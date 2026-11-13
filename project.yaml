@@ -58,9 +58,6 @@ naming:
   scenes: PascalCase
 
 commands:
-  # TODO: -projectPath . assumes the Unity project is at the repo root. It is not
-  # there yet (a project sits in "My project/" and "Rolchess/", both made with 6.6).
-  # Create it with 6.3 LTS at the repo root, then re-run /setup-engine unity.
   # build/run: WebGL has no sourced -build<PLATFORM>Player flag; needs a custom
   # -executeMethod build script. Set both once the Unity project exists.
   build: "[TO BE CONFIGURED]"
