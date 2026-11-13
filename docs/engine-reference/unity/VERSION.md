@@ -3,7 +3,7 @@
 | Field | Value |
 |-------|-------|
 | **Engine Version** | Unity 6.3 LTS |
-| **Installed at pin time** | NOT DETERMINED — no editor under `C:/Program Files/Unity/Hub/Editor` (probed 2026-11-13); Unity not installed yet. |
+| **Installed at pin time** | 6000.3.28f1 (probed 2026-11-13 at `C:/Program Files/Unity/Hub/Editor/6000.3.28f1/Editor/Unity.exe`); a 6000.6.9f1 editor is also installed, not the pinned one. |
 | **Release Date** | December 2025 |
 | **Latest editor on the pinned line** | 6000.3.26f1 (Oct 8, 2026) |
 | **Project Pinned** | 2026-02-13 |

@@ -40,8 +40,7 @@ engine:
   language: "C#"
   rendering: "URP"
   physics: "PhysX"
-  # TODO: Unity is not installed yet — add `path:` with the editor's full path
-  # (e.g. C:/Program Files/Unity/Hub/Editor/6000.3.<patch>/Editor/Unity.exe)
+  path: "C:/Program Files/Unity/Hub/Editor/6000.3.28f1/Editor/Unity.exe"
 
 specialists:
   code: "unity-specialist"
@@ -59,11 +58,12 @@ naming:
   scenes: PascalCase
 
 commands:
-  # TODO: Unity is not installed yet — replace <UNITY_EDITOR> with the editor's
-  # full path once installed (via /project-settings). Until then these do not run.
+  # TODO: -projectPath . assumes the Unity project is at the repo root. It is not
+  # there yet (a project sits in "My project/" and "Rolchess/", both made with 6.6).
+  # Create it with 6.3 LTS at the repo root, then re-run /setup-engine unity.
   # build/run: WebGL has no sourced -build<PLATFORM>Player flag; needs a custom
   # -executeMethod build script. Set both once the Unity project exists.
   build: "[TO BE CONFIGURED]"
-  test: '"<UNITY_EDITOR>" -batchmode -runTests -projectPath . -testPlatform EditMode -testResults test-results/editmode.xml'
+  test: '"C:/Program Files/Unity/Hub/Editor/6000.3.28f1/Editor/Unity.exe" -batchmode -runTests -projectPath . -testPlatform EditMode -testResults test-results/editmode.xml'
   run: "[TO BE CONFIGURED]"
-  smoke: '"<UNITY_EDITOR>" -batchmode -quit -projectPath . -logFile -'
+  smoke: '"C:/Program Files/Unity/Hub/Editor/6000.3.28f1/Editor/Unity.exe" -batchmode -quit -projectPath . -logFile -'
