@@ -121,13 +121,12 @@ Reglas del cuaderno (2026-11-13): las reglas completas están en `design/reglas-
 
 ## Avoid
 - cajas aleatorias de pago
-- consolas, por ahora
 
 ## Out of scope
 - Terrenos y bonus de grupo hasta después del primer prototipo
 - Modo de 3 jugadores, más adelante
 - Online, cuentas, tienda, skins y torneos hasta su fase (2 a 5)
-- Móvil hasta la Fase 6
+- Móvil hasta la Fase 6; PC (Steam) y consolas hasta la Fase 7
 
 ## Build order
 1. Fase 1: juego local funcional (tablero sin terrenos, piezas, dado, mover → atacar, castillo, el Rey cae); el tamaño del tablero se ajusta jugando
@@ -136,6 +135,7 @@ Reglas del cuaderno (2026-11-13): las reglas completas están en `design/reglas-
 4. Fase 4: tienda y skins (decidir pagos)
 5. Fase 5: torneos automatizados (jueves y sábados, dos horarios, brackets, premios)
 6. Fase 6: port a móvil
+7. Fase 7: PC (Steam) y consolas
 
 ---
 **Who it's for / what they feel:** jugadores de ajedrez y de táctica que quieren duelos cortos y personalizar su ejército *(guessed)*
