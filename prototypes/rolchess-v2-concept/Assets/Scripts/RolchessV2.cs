@@ -118,7 +118,7 @@ public class RolchessV2 : MonoBehaviour
     Vector2 origin = new Vector2(10, 10);
     float cs = 30f;
     Texture2D hexTex;
-    GUIStyle centerStyle, richStyle;
+    GUIStyle centerStyle, richStyle, statStyle;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     static void Boot()
@@ -133,19 +133,20 @@ public class RolchessV2 : MonoBehaviour
 
     void Awake()
     {
-        hexTex = MakeHexTexture(64, 74);
+        hexTex = MakeHexTexture(74, 64);
     }
 
     static Texture2D MakeHexTexture(int w, int h)
     {
         var t = new Texture2D(w, h, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Bilinear };
-        float R = h / 2f, half = R * 0.8660254f;
+        // Flat-top hexagon: vertices left and right, flat edges up and down.
+        float R = w / 2f, half = R * 0.8660254f;
         var px = new Color32[w * h];
         for (int y = 0; y < h; y++)
             for (int x = 0; x < w; x++)
             {
                 float dx = Mathf.Abs(x + 0.5f - w / 2f), dy = Mathf.Abs(y + 0.5f - h / 2f);
-                bool inside = dx <= half && dy <= R - dx / 1.7320508f;
+                bool inside = dy <= half && dx <= R - dy / 1.7320508f;
                 px[y * w + x] = inside ? new Color32(255, 255, 255, 255) : new Color32(255, 255, 255, 0);
             }
         t.SetPixels32(px);
@@ -215,8 +216,9 @@ public class RolchessV2 : MonoBehaviour
 
     static Vector3Int Cube(Vector2Int v)
     {
-        int q = v.x - (v.y - (v.y & 1)) / 2;
-        int r = v.y;
+        // Flat-top hexes in vertical columns; odd columns sit half a cell lower.
+        int q = v.x;
+        int r = v.y - (v.x - (v.x & 1)) / 2;
         return new Vector3Int(q, r, -q - r);
     }
 
@@ -233,18 +235,18 @@ public class RolchessV2 : MonoBehaviour
         new Vector2Int(1, 0), new Vector2Int(-1, 0), new Vector2Int(0, 1), new Vector2Int(0, -1),
         new Vector2Int(1, 1), new Vector2Int(1, -1), new Vector2Int(-1, 1), new Vector2Int(-1, -1),
     };
-    static readonly Vector2Int[] HexEven = { new Vector2Int(1, 0), new Vector2Int(-1, 0), new Vector2Int(0, -1), new Vector2Int(-1, -1), new Vector2Int(0, 1), new Vector2Int(-1, 1) };
-    static readonly Vector2Int[] HexOdd  = { new Vector2Int(1, 0), new Vector2Int(-1, 0), new Vector2Int(1, -1), new Vector2Int(0, -1), new Vector2Int(1, 1), new Vector2Int(0, 1) };
+    static readonly Vector2Int[] HexEven = { new Vector2Int(0, -1), new Vector2Int(0, 1), new Vector2Int(1, 0), new Vector2Int(1, -1), new Vector2Int(-1, 0), new Vector2Int(-1, -1) };
+    static readonly Vector2Int[] HexOdd  = { new Vector2Int(0, -1), new Vector2Int(0, 1), new Vector2Int(1, 0), new Vector2Int(1, 1), new Vector2Int(-1, 0), new Vector2Int(-1, 1) };
 
     IEnumerable<Vector2Int> MoveNeighbors(Vector2Int v)
     {
-        var dirs = hex ? ((v.y & 1) == 1 ? HexOdd : HexEven) : Orth;
+        var dirs = hex ? ((v.x & 1) == 1 ? HexOdd : HexEven) : Orth;
         foreach (var d in dirs) { var n = v + d; if (InBoard(n)) yield return n; }
     }
 
     IEnumerable<Vector2Int> Adjacent(Vector2Int v)
     {
-        var dirs = hex ? ((v.y & 1) == 1 ? HexOdd : HexEven) : Eight;
+        var dirs = hex ? ((v.x & 1) == 1 ? HexOdd : HexEven) : Eight;
         foreach (var d in dirs) { var n = v + d; if (InBoard(n)) yield return n; }
     }
 
@@ -648,6 +650,8 @@ public class RolchessV2 : MonoBehaviour
             centerStyle = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter, fontStyle = FontStyle.Bold, richText = true };
             centerStyle.normal.textColor = Color.white;
             richStyle = new GUIStyle(GUI.skin.label) { richText = true, wordWrap = true };
+            statStyle = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleLeft, fontStyle = FontStyle.Bold, richText = true, wordWrap = false, clipping = TextClipping.Overflow, padding = new RectOffset(0, 0, 0, 0), margin = new RectOffset(0, 0, 0, 0) };
+            statStyle.normal.textColor = Color.white;
         }
 
         if (phase == Phase.Setup) { DrawSetup(); return; }
@@ -687,21 +691,21 @@ public class RolchessV2 : MonoBehaviour
     {
         float availW = Screen.width - 340f, availH = Screen.height - 20f;
         if (!hex) cs = Mathf.Max(14f, Mathf.Min(availW / W, availH / H));
-        else cs = Mathf.Max(14f, Mathf.Min(availW / (W + 0.5f), availH / (((H - 1) * 0.75f + 1f) * 1.1547f)));
+        else cs = Mathf.Max(14f, Mathf.Min(availW / (((W - 1) * 0.75f + 1f) * 1.1547f), availH / (H + 0.5f)));
     }
 
     Rect BoardRect()
     {
         if (!hex) return new Rect(origin.x, origin.y, W * cs, H * cs);
-        float h = cs * 1.1547f;
-        return new Rect(origin.x, origin.y, (W + 0.5f) * cs, (H - 1) * 0.75f * h + h);
+        float w = cs * 1.1547f;
+        return new Rect(origin.x, origin.y, (W - 1) * 0.75f * w + w, (H + 0.5f) * cs);
     }
 
     Rect CellRect(Vector2Int v)
     {
         if (!hex) return new Rect(origin.x + v.x * cs, origin.y + v.y * cs, cs, cs);
-        float h = cs * 1.1547f;
-        return new Rect(origin.x + v.x * cs + ((v.y & 1) == 1 ? cs / 2f : 0f), origin.y + v.y * h * 0.75f, cs, h);
+        float w = cs * 1.1547f;
+        return new Rect(origin.x + v.x * w * 0.75f, origin.y + v.y * cs + ((v.x & 1) == 1 ? cs / 2f : 0f), w, cs);
     }
 
     Vector2 Center(Vector2Int v) => CellRect(v).center;
@@ -802,15 +806,18 @@ public class RolchessV2 : MonoBehaviour
             else if (plans.ContainsKey(p)) Tile(p.pos, new Color(1f, 0.55f, 0.1f));
             else if (phase == Phase.Attack && p.owner == current && HasTargets(p)) Tile(p.pos, new Color(1f, 1f, 1f, 0.55f));
 
-            float ins = cs * 0.12f;
-            var inner = new Rect(r.x + ins, r.y + ins + (hex ? r.height * 0.06f : 0f), r.width - ins * 2, r.height - ins * 2 - (hex ? r.height * 0.12f : 0f));
+            float ins = cs * (hex ? 0.07f : 0.12f), insX = hex ? ins * 1.1547f : ins;
+            var inner = new Rect(r.x + insX, r.y + ins, r.width - insX * 2, r.height - ins * 2);
             Color col = p.owner == 0 ? new Color(0.25f, 0.45f, 0.95f) : new Color(0.90f, 0.30f, 0.30f);
             if (phase == Phase.Move && p.owner == current && p.moved) col *= 0.55f;
             col.a = 1f;
-            Fill(inner, col);
-            Text(new Rect(inner.x, inner.y, inner.width, inner.height * 0.5f), $"<size={FontSize(3f)}>{Letters[(int)p.kind]}</size>");
-            Text(new Rect(inner.x - 4, inner.y + inner.height * 0.45f, inner.width + 8, inner.height * 0.55f),
-                 $"<size={FontSize(5.2f)}>{AttackValue(p)}·{Shield[(int)p.kind]}·{p.life}</size>");
+            Fill(inner, col, hex ? hexTex : null);
+            // Big letter on the left, Vida / Ataque / Defensa stacked on the right.
+            var c = r.center;
+            Text(new Rect(c.x - cs * 0.40f, c.y - cs * 0.30f, cs * 0.40f, cs * 0.60f), $"<size={FontSize(2.3f)}>{Letters[(int)p.kind]}</size>");
+            string[] stats = { $"V{p.life}", $"A{AttackValue(p)}", $"D{Shield[(int)p.kind]}" };
+            for (int i = 0; i < 3; i++)
+                GUI.Label(new Rect(c.x + cs * 0.01f, c.y - cs * 0.315f + i * cs * 0.21f, cs * 0.40f, cs * 0.21f), $"<size={FontSize(4.6f)}>{stats[i]}</size>", statStyle);
         }
 
         foreach (var kv in plans)
@@ -836,6 +843,8 @@ public class RolchessV2 : MonoBehaviour
                 Badge(kv.Key.pos, dmg >= kv.Key.life ? $"−{dmg} MUERE" : $"−{dmg}");
             }
             foreach (var kv in toWalls) Badge(kv.Key, $"−{kv.Value}");
+            // The demolisher dies with its own explosion: say so before resolving.
+            foreach (var kv in plans) if (kv.Value.explode) Badge(kv.Key.pos, "MUERE");
         }
     }
 
@@ -941,7 +950,7 @@ public class RolchessV2 : MonoBehaviour
                 break;
             case Phase.Attack:
                 GUILayout.Label("<b>ATACAR</b>: asigna todos los ataques y se resuelven juntos.", richStyle);
-                GUILayout.Label("Clic en tu pieza (resaltada) → clic en su objetivo naranja. Clic de nuevo en la pieza para quitar su flecha. Demoledor: clic en él mismo para que explote.", richStyle);
+                GUILayout.Label("Clic en tu pieza (resaltada) → clic en su objetivo naranja. Clic de nuevo en la pieza para quitar su flecha. Demoledor: clic en él mismo para que explote (muere al atacar).", richStyle);
                 DrawBonus();
                 GUILayout.Label($"Ataques asignados: {plans.Count}");
                 if (GUILayout.Button("Quitar todas las flechas")) { plans.Clear(); ClearSelection(); }
@@ -965,7 +974,7 @@ public class RolchessV2 : MonoBehaviour
         DrawStats(false);
         GUILayout.Label("<b>Dado</b>", richStyle);
         foreach (var f in DieFaces) GUILayout.Label($"<size=11>{f}</size>", richStyle);
-        GUILayout.Label("<size=11>Fichas: letra · ataque·escudo·vida. S Soldado, A Arquero, E Escudero, C Catapulta, J Jinete, D Demoledor, R Rey</size>", richStyle);
+        GUILayout.Label("<size=11>Fichas: letra + V vida, A ataque, D defensa. S Soldado, A Arquero, E Escudero, C Catapulta, J Jinete, D Demoledor, R Rey</size>", richStyle);
         GUILayout.EndArea();
     }
 

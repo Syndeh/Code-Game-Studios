@@ -38,12 +38,12 @@ Comparar: cuadrado vs hexagonal, con vs sin castillos (criterios del CD-PLAYTEST
 | 7 atravesar | Se atraviesan aliados, nunca enemigos |
 | 9 dado | Dado grande en el centro al tirarlo, efecto en el panel y lista de caras siempre visible |
 | 11 muro | Solo el borde; 16 tramos de 30 de vida, sin escudo; cualquier pieza enemiga en alcance lo ataca; romper uno abre un hueco |
-| 12 demoledor | Explota: daña todas las casillas vecinas (aliados y muros incluidos) y muere |
+| 12 demoledor | Explota: daña todas las casillas vecinas (aliados y muros incluidos) y muere; la vista previa marca MUERE sobre él |
 | 14 timer | 40 / 60 / 90 s o sin límite; al llegar a 0 se resuelven los ataques asignados y termina el turno |
 | 15 auto | Pasa solo a ataque cuando no quedan movimientos; termina solo cuando no quedan ataques o todos están asignados (2 s de aviso) |
 | 16 sin castillos | Opción: Rey atrás, reclutas a su alrededor |
-| 17 hexagonal | Opción de tablero hexagonal |
-| 19 estadísticas | Cada ficha muestra ataque·escudo·vida |
+| 17 hexagonal | Opción de tablero hexagonal: casillas con lado plano arriba, en columnas verticales, y fichas hexagonales |
+| 19 estadísticas | Cada ficha muestra la letra grande y, en columna, V vida, A ataque, D defensa |
 
 Sin cambios a pedido: la cara 1 del dado sigue haciendo perder el turno.
 
