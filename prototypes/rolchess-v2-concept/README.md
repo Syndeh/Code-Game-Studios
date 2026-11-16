@@ -31,14 +31,14 @@ Comparar: cuadrado vs hexagonal, con vs sin castillos (criterios del CD-PLAYTEST
 |---|---|
 | 1 deshacer | Botón "Deshacer último movimiento" |
 | 2, 8, 10 ataques | Se asignan con flechas y se resuelven todos juntos; daño sumado por objetivo, escudo una vez; vista previa del daño |
-| 3, 18 alcance | Zona: cualquier casilla a esa distancia o menos (catapulta 2–6) |
-| catapulta | Dispara a cualquier casilla a su alcance, aunque esté vacía, y daña esa casilla y todas las de alrededor: enemigos, aliados y muros (también los propios) |
+| 3, 18 alcance | Zona: cualquier casilla a esa distancia o menos (catapulta 2–6). El alcance de ataque se pinta en rojizo para la pieza seleccionada o la que está bajo el cursor, propia o rival |
+| catapulta | Dispara a cualquier casilla a su alcance, aunque esté vacía, con daño completo en esa casilla y la mitad (redondeada hacia abajo) en todas las de alrededor: enemigos, aliados y muros (también los propios) |
 | 4 reclutas | Aparecen del lado que mira al rival (y el error de asimetría de la v1 desaparece) |
 | 5 castillos | En los extremos del tablero; opción de posición al azar: el tablero se divide en 9 sectores como un teclado de teléfono y los castillos (azul y rojo) caen en 4 y 6, 1 y 9, 7 y 3, 7 y 9, 1 y 3, 1 y 7, 3 y 9 o 2 y 8. La formación inicial mira al rival: de arriba hacia abajo cuando los dos castillos comparten columna, y en diagonal en 1 y 9 y 7 y 3. Sin castillos vale la misma lógica, con los Reyes en esos sectores |
 | 6 Rey | Regla del cuaderno: sale apareciendo al lado / entra donde elijas; ese turno no se mueve más |
 | 7 atravesar | Se atraviesan aliados, nunca enemigos |
-| 9 dado | Dado grande en el centro al tirarlo, efecto en el panel y lista de caras siempre visible |
-| caras del dado | 2: carga de refuerzo (hasta 4); al gastarla, +2 ataque y +2 defensa a todas tus piezas hasta tu próximo turno. 3: reclutas 4 soldados, arqueros o escuderos. 4: reclutas especiales: 4 jinetes, 4 catapultas o 1 demoledor. 5: turno normal, sin efecto (se quitó la retirada) |
+| 9 dado | Se tira solo al empezar cada turno; dado grande en el centro, efecto en el panel y lista de caras siempre visible |
+| caras del dado | 2: carga de refuerzo (hasta 4); al gastarla, +2 ataque y +2 defensa a todas tus piezas hasta tu próximo turno. 3: reclutas 4 soldados, arqueros o escuderos. 4: reclutas especiales: 4 jinetes, 2 catapultas o 1 demoledor. 5: turno normal, sin efecto (se quitó la retirada) |
 | 11 muro | Solo el borde; 16 tramos (12 en hexagonal: el anillo a distancia 2 del Rey) de 30 de vida, sin escudo; cualquier pieza enemiga en alcance lo ataca; romper uno abre un hueco y ese castillo ya no recluta (regla del jugador: para reclutar hacen falta todos los muros) |
 | 12 demoledor | Explota: daña todas las casillas vecinas (aliados y muros incluidos) y muere; la vista previa marca MUERE sobre él |
 | 14 timer | 60 / 90 s o sin límite; al llegar a 0 se resuelven los ataques asignados y termina el turno |

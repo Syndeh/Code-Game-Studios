@@ -36,7 +36,7 @@ public class RolchessV2 : MonoBehaviour
         "1: pierdes el turno",
         "2: +1 carga de refuerzo: +2 ataque y +2 defensa a todas tus piezas (hasta 4)",
         "3: reclutas 4 soldados, arqueros o escuderos",
-        "4: reclutas especiales: 4 jinetes, 4 catapultas o 1 demoledor",
+        "4: reclutas especiales: 4 jinetes, 2 catapultas o 1 demoledor",
         "5: turno normal, sin efecto",
         "6: mueves todas las piezas que quieras",
     };
@@ -454,9 +454,11 @@ public class RolchessV2 : MonoBehaviour
             {
                 foreach (var n in AreaCells(pl.wall))
                 {
+                    // Full damage on the chosen cell, half (rounded down) on the cells around it.
+                    int v = n == pl.wall ? AttackValue(a) : AttackValue(a) / 2;
                     var o = PieceAt(n);
-                    if (o != null) Accumulate(toPieces, o, AttackValue(a));
-                    if (IsWall(n)) Accumulate(toWalls, n, AttackValue(a));
+                    if (o != null) Accumulate(toPieces, o, v);
+                    if (IsWall(n)) Accumulate(toWalls, n, v);
                 }
             }
             else if (pl.isWall) Accumulate(toWalls, pl.wall, AttackValue(a));
@@ -484,6 +486,7 @@ public class RolchessV2 : MonoBehaviour
         ClearSelection();
         autoAction = AutoAction.None; autoAt = -1f;
         turnStart = Time.realtimeSinceStartup;
+        Roll(); // the die rolls by itself; the overlay shows the result
     }
 
     void Roll()
@@ -509,7 +512,7 @@ public class RolchessV2 : MonoBehaviour
     // Without castles there are no walls to bring down, so demolishers cannot be recruited.
     bool CanRecruitKind(Kind k) => castles || k != Kind.Demoledor;
     static bool IsSpecial(Kind k) => k == Kind.Jinete || k == Kind.Catapulta || k == Kind.Demoledor;
-    static int RecruitCount(Kind k) => k == Kind.Demoledor ? 1 : 4;   // demolishers come one at a time
+    static int RecruitCount(Kind k) => k == Kind.Demoledor ? 1 : k == Kind.Catapulta ? 2 : 4;   // demolishers one at a time, catapults in pairs
 
     void Recruit(Kind k)
     {
@@ -918,6 +921,18 @@ public class RolchessV2 : MonoBehaviour
                 }
             }
 
+        // Attack range of the selected piece, or of whichever piece is under the mouse.
+        Piece ranged = selected;
+        if (ranged == null && HitTest(Event.current.mousePosition, out var hover)) ranged = PieceAt(hover);
+        if (ranged != null)
+            for (int x = 0; x < W; x++)
+                for (int y = 0; y < H; y++)
+                {
+                    var v = new Vector2Int(x, y);
+                    // Green move cells keep their colour so the two overlays stay readable.
+                    if (InRange(ranged, v) && !reach.Contains(v) && !kingCands.Contains(v)) Tile(v, new Color(1f, 0.25f, 0.2f, 0.30f), hex ? 0.5f : 1f);
+                }
+
         foreach (var p in pieces)
         {
             var r = CellRect(p.pos);
@@ -1047,7 +1062,7 @@ public class RolchessV2 : MonoBehaviour
         switch (phase)
         {
             case Phase.Roll:
-                if (GUILayout.Button("Tirar dado", GUILayout.Height(40))) Roll();
+                GUILayout.Label("Tirando el dado…");
                 break;
             case Phase.LostTurn:
                 if (GUILayout.Button("Pasar el turno ahora", GUILayout.Height(32))) EndTurn(true);
@@ -1085,7 +1100,7 @@ public class RolchessV2 : MonoBehaviour
                 break;
             case Phase.Attack:
                 GUILayout.Label("<b>ATACAR</b>: asigna los ataques; se resuelven juntos cuando pulses Resolver.", richStyle);
-                GUILayout.Label("Clic en tu pieza (resaltada) → clic en su objetivo naranja. Clic de nuevo en la pieza para quitar su flecha. Demoledor: clic en él mismo para que explote (muere al atacar). Catapulta: clic en cualquier casilla a su alcance; daña esa casilla y todas las de alrededor, aliados incluidos.", richStyle);
+                GUILayout.Label("Clic en tu pieza (resaltada) → clic en su objetivo naranja. Clic de nuevo en la pieza para quitar su flecha. Demoledor: clic en él mismo para que explote (muere al atacar). Catapulta: clic en cualquier casilla a su alcance; daño completo en esa casilla y la mitad en todas las de alrededor, aliados incluidos.", richStyle);
                 DrawBonus();
                 GUILayout.Label($"Ataques asignados: {plans.Count}");
                 if (GUILayout.Button("Quitar todas las flechas")) { plans.Clear(); ClearSelection(); }
@@ -1109,7 +1124,7 @@ public class RolchessV2 : MonoBehaviour
         DrawStats(false);
         GUILayout.Label("<b>Dado</b>", richStyle);
         foreach (var f in DieFaces) GUILayout.Label($"<size=11>{f}</size>", richStyle);
-        GUILayout.Label("<size=11>Fichas: letra + V vida, A ataque, D defensa. S Soldado, A Arquero, E Escudero, C Catapulta, J Jinete, D Demoledor, R Rey</size>", richStyle);
+        GUILayout.Label("<size=11>Fichas: letra + V vida, A ataque, D defensa. S Soldado, A Arquero, E Escudero, C Catapulta, J Jinete, D Demoledor, R Rey. Casillas rojizas: alcance de ataque de la pieza seleccionada o bajo el cursor.</size>", richStyle);
         GUILayout.EndArea();
     }
 
