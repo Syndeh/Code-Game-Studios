@@ -75,12 +75,12 @@ public class RolchessV2 : MonoBehaviour
     bool castles = true;
     bool castleRandom;   // castles in a random pair of sectors instead of 4 and 6
     // Allowed castle sectors (blue, red), keypad numbering. Index 0 is the default.
-    static readonly int[,] SectorPairs = { { 4, 6 }, { 1, 9 }, { 7, 3 }, { 7, 9 }, { 1, 3 }, { 1, 7 }, { 3, 9 }, { 2, 8 } };
+    static readonly int[,] SectorPairs = { { 4, 6 }, { 1, 9 }, { 7, 3 } };   // 2-8 does not fit: 15 rows leave no room between the castles
     int pairIdx, forcedPair = -1;
     readonly Vector2Int[] home = new Vector2Int[2];   // King's starting cell (castle centre)
     readonly Vector2Int[] face = new Vector2Int[2];   // direction towards the rival
-    int sizeIdx = 0, timerIdx = 0;
-    static readonly int[] Sizes = { 20, 24 };
+    int timerIdx = 0;
+    const int BoardW = 24, BoardH = 15;   // wide board for a 16:9 screen
     static readonly int[] Timers = { 60, 90, 0 };
     static readonly string[] TimerLabels = { "60 s", "90 s", "Sin límite" };
 
@@ -121,13 +121,13 @@ public class RolchessV2 : MonoBehaviour
     float matchStart, turnStart, matchEnd;
     readonly List<float>[] turnTimes = { new List<float>(), new List<float>() };
     int lostTurns, timeouts, turnNumber;
-    int attackTurns, combinedTurns;   // turns with any attack / with 2+ pieces on one enemy target
+    int attackTurns, combinedTurns, decisiveTurns;   // turns with any attack / 2+ pieces on one enemy target / where combining decided it
 
     // ---------- Drawing ----------
     Vector2 origin = new Vector2(10, 10);
     float cs = 30f;
     Texture2D hexTex;
-    GUIStyle centerStyle, richStyle, statStyle;
+    GUIStyle centerStyle, richStyle, statStyle, badgeStyle;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     static void Boot()
@@ -166,7 +166,7 @@ public class RolchessV2 : MonoBehaviour
     // ================= Setup =================
     void BuildMatch()
     {
-        W = H = Sizes[sizeIdx];
+        W = BoardW; H = BoardH;
         timerLimit = Timers[timerIdx];
         pieces.Clear(); wallLife.Clear(); wallOwner.Clear();
         for (int p = 0; p < 2; p++) { interior[p].Clear(); castleCells[p].Clear(); breaches[p] = 0; boostCharges[p] = 0; boostOn[p] = false; }
@@ -186,7 +186,7 @@ public class RolchessV2 : MonoBehaviour
             var d = home[1 - p] - home[p];
             face[p] = new Vector2Int(d.x > 0 ? 1 : d.x < 0 ? -1 : 0, d.y > 0 ? 1 : d.y < 0 ? -1 : 0);
         }
-        attackTurns = combinedTurns = 0;
+        attackTurns = combinedTurns = decisiveTurns = 0;
         for (int p = 0; p < 2; p++)
         {
             Vector2Int king = home[p];
@@ -546,8 +546,10 @@ public class RolchessV2 : MonoBehaviour
         IncomingDamage(toPieces, toWalls);
         log.Clear();
 
-        // Measurement: was any enemy piece or wall hit by 2 or more attackers this turn?
-        var attackers = new Dictionary<object, int>();
+        // Measurement. "Combined" = an enemy piece or wall hit by 2+ attackers. "Decisive" is the
+        // strict one: the sum kills (or breaks the wall) where no single attacker would, or the
+        // sum gets through a defense that every single attacker bounces off.
+        var hits = new Dictionary<object, List<int>>();
         foreach (var kv in plans)
         {
             var a = kv.Key; var pl = kv.Value;
@@ -555,13 +557,30 @@ public class RolchessV2 : MonoBehaviour
                                           : new[] { pl.isWall ? pl.wall : pl.target.pos };
             foreach (var c in cells)
             {
+                int v = pl.area && c != pl.wall ? AttackValue(a) / 2 : AttackValue(a);
                 var o = PieceAt(c);
-                if (o != null && o.owner != a.owner) Accumulate(attackers, o, 1);
-                if (IsWall(c) && wallOwner[c] != a.owner) Accumulate(attackers, c, 1);
+                object key = o != null && o.owner != a.owner ? o : IsWall(c) && wallOwner[c] != a.owner ? (object)c : null;
+                if (key == null) continue;
+                if (!hits.TryGetValue(key, out var list)) hits[key] = list = new List<int>();
+                list.Add(v);
             }
         }
         attackTurns++;
-        foreach (var kv in attackers) if (kv.Value >= 2) { combinedTurns++; break; }
+        bool anyCombined = false, anyDecisive = false;
+        foreach (var kv in hits)
+        {
+            if (kv.Value.Count < 2) continue;
+            anyCombined = true;
+            int sum = 0, best = 0;
+            foreach (int v in kv.Value) { sum += v; best = Mathf.Max(best, v); }
+            int shield = kv.Key is Piece tp ? ShieldValue(tp) : 0;
+            int life = kv.Key is Piece tp2 ? tp2.life : wallLife[(Vector2Int)kv.Key];
+            bool kills = sum - shield >= life && best - shield < life;
+            bool pierces = sum > shield && best <= shield;
+            if (kills || pierces) anyDecisive = true;
+        }
+        if (anyCombined) combinedTurns++;
+        if (anyDecisive) decisiveTurns++;
 
         foreach (var kv in toPieces)
         {
@@ -601,7 +620,7 @@ public class RolchessV2 : MonoBehaviour
             Debug.Log($"[RolchessV2] Ganó J{winner + 1}. {(hex ? "hex" : "cuadrado")}, {(castles ? "con" : "sin")} castillos, {W}x{H}, " +
                       $"timer {timerLimit}s. Partida {Fmt(matchEnd - matchStart)}, turnos {turnNumber}, " +
                       $"promedio J1 {Fmt(Avg(turnTimes[0]))}, J2 {Fmt(Avg(turnTimes[1]))}, perdidos {lostTurns}, por tiempo {timeouts}, " +
-                      $"turnos con ataque {attackTurns}, con ataque combinado {combinedTurns}");
+                      $"turnos con ataque {attackTurns}, con ataque combinado {combinedTurns}, combinado decisivo {decisiveTurns}");
         }
     }
 
@@ -768,6 +787,7 @@ public class RolchessV2 : MonoBehaviour
             richStyle = new GUIStyle(GUI.skin.label) { richText = true, wordWrap = true };
             statStyle = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleLeft, fontStyle = FontStyle.Bold, richText = true, wordWrap = false, clipping = TextClipping.Overflow, padding = new RectOffset(0, 0, 0, 0), margin = new RectOffset(0, 0, 0, 0) };
             statStyle.normal.textColor = Color.white;
+            badgeStyle = new GUIStyle(statStyle) { alignment = TextAnchor.MiddleCenter };
         }
 
         if (phase == Phase.Setup) { DrawSetup(); return; }
@@ -782,7 +802,17 @@ public class RolchessV2 : MonoBehaviour
 
         DrawBoard();
         DrawDieOverlay();
-        DrawPanel(new Rect(BoardRect().xMax + 14, 10, 300, Screen.height - 20));
+
+        // Right strip, split in two: blue gets the actions in the top half, red in the bottom
+        // half; the other half shows the reference info.
+        var b = BoardRect();
+        float px = b.xMax, pw = Screen.width - px, half = Screen.height / 2f;
+        var top = new Rect(px, 0, pw, half);
+        var bottom = new Rect(px, half, pw, Screen.height - half);
+        var mine = current == 0 ? top : bottom;
+        Fill(mine, current == 0 ? new Color(0.13f, 0.30f, 0.78f, 0.20f) : new Color(0.74f, 0.17f, 0.17f, 0.20f));
+        DrawPanel(Pad(mine));
+        if (phase != Phase.Over) DrawInfo(Pad(current == 0 ? bottom : top));
     }
 
     void DrawSetup()
@@ -790,14 +820,12 @@ public class RolchessV2 : MonoBehaviour
         GUILayout.BeginArea(new Rect(Screen.width / 2f - 200, 60, 400, 460), GUI.skin.box);
         GUILayout.Label("<size=22><b>Rolchess v2: prototipo</b></size>", richStyle);
         GUILayout.Space(8);
-        GUILayout.Label("Tablero");
-        hex = GUILayout.Toolbar(hex ? 1 : 0, new[] { "Cuadrado", "Hexagonal" }) == 1;
+        hex = false; // hexagonal board parked for now: the code stays, the option is hidden
         GUILayout.Label("Castillos");
         castles = GUILayout.Toolbar(castles ? 0 : 1, new[] { "Con castillos", "Sin castillos (Rey atrás)" }) == 0;
         GUILayout.Label("Posición inicial (castillos o Reyes)");
-        castleRandom = GUILayout.Toolbar(castleRandom ? 1 : 0, new[] { "En el medio (4 y 6)", "Al azar (8 combinaciones)" }) == 1;
-        GUILayout.Label("Tamaño");
-        sizeIdx = GUILayout.Toolbar(sizeIdx, new[] { "20", "24" });
+        castleRandom = GUILayout.Toolbar(castleRandom ? 1 : 0, new[] { "En el medio (4 y 6)", "Al azar (4 y 6, 1 y 9, 7 y 3)" }) == 1;
+        GUILayout.Label($"Tablero: {BoardW} × {BoardH}");
         GUILayout.Label("Tiempo por turno");
         timerIdx = GUILayout.Toolbar(timerIdx, TimerLabels);
         GUILayout.Space(16);
@@ -805,11 +833,20 @@ public class RolchessV2 : MonoBehaviour
         GUILayout.EndArea();
     }
 
+    const float PanelWidth = 340f;
+    Vector2 panelScroll, infoScroll;
+
+    static Rect Pad(Rect r) => new Rect(r.x + 12, r.y + 10, r.width - 24, r.height - 20);
+
+    // The board fills the screen to the left of the panel strip, centred vertically.
     void ComputeCellSize()
     {
-        float availW = Screen.width - 340f, availH = Screen.height - 20f;
+        float availW = Screen.width - PanelWidth, availH = Screen.height - 4f;
         if (!hex) cs = Mathf.Max(14f, Mathf.Min(availW / W, availH / H));
         else cs = Mathf.Max(14f, Mathf.Min(availW / (((W - 1) * 0.75f + 1f) * 1.1547f), availH / (H + 0.5f)));
+        origin = Vector2.zero;
+        var b = BoardRect();
+        origin = new Vector2(0f, (Screen.height - b.height) / 2f);
     }
 
     Rect BoardRect()
@@ -988,23 +1025,23 @@ public class RolchessV2 : MonoBehaviour
             foreach (var kv in toPieces)
             {
                 int dmg = Mathf.Max(0, kv.Value - ShieldValue(kv.Key));
-                Badge(kv.Key.pos, dmg >= kv.Key.life ? $"−{dmg} MUERE" : $"−{dmg}");
+                if (dmg >= kv.Key.life) Badge(kv.Key.pos, "MUERE", true); else Badge(kv.Key.pos, $"−{dmg}");
             }
-            foreach (var kv in toWalls) Badge(kv.Key, $"−{kv.Value}");
+            foreach (var kv in toWalls) { if (kv.Value >= wallLife[kv.Key]) Badge(kv.Key, "ROTO", true); else Badge(kv.Key, $"−{kv.Value}"); }
             // The demolisher dies with its own explosion: say so before resolving.
-            foreach (var kv in plans) if (kv.Value.explode) Badge(kv.Key.pos, "MUERE");
+            foreach (var kv in plans) if (kv.Value.explode) Badge(kv.Key.pos, "MUERE", true);
         }
     }
 
-    void Badge(Vector2Int v, string s)
+    // Damage preview. A lethal hit shows only the word, as a black band across the piece.
+    void Badge(Vector2Int v, string s, bool lethal = false)
     {
         var r = CellRect(v);
-        var b = new Rect(r.x - cs * 0.1f, r.y - cs * 0.35f, cs * 1.2f, cs * 0.4f);
-        Fill(b, new Color(0f, 0f, 0f, 0.75f));
-        var old = centerStyle.normal.textColor;
-        centerStyle.normal.textColor = new Color(1f, 0.85f, 0.2f);
-        GUI.Label(b, $"<size={FontSize(3.6f)}>{s}</size>", centerStyle);
-        centerStyle.normal.textColor = old;
+        var b = lethal ? new Rect(r.center.x - cs * 0.5f, r.center.y - cs * 0.19f, cs, cs * 0.38f)
+                       : new Rect(r.x - cs * 0.1f, r.y - cs * 0.35f, cs * 1.2f, cs * 0.4f);
+        Fill(b, lethal ? new Color(0f, 0f, 0f, 0.92f) : new Color(0f, 0f, 0f, 0.75f));
+        badgeStyle.normal.textColor = lethal ? Color.white : new Color(1f, 0.85f, 0.2f);
+        GUI.Label(b, $"<size={FontSize(lethal ? 4.4f : 3.6f)}>{s}</size>", badgeStyle);
     }
 
     int FontSize(float div) => Mathf.Max(8, Mathf.RoundToInt(cs / div));
@@ -1025,6 +1062,7 @@ public class RolchessV2 : MonoBehaviour
     void DrawPanel(Rect area)
     {
         GUILayout.BeginArea(area);
+        panelScroll = GUILayout.BeginScrollView(panelScroll);
         string who = current == 0 ? "<color=#6fa0ff>Jugador 1 (azul)</color>" : "<color=#ff7a7a>Jugador 2 (rojo)</color>";
 
         if (phase == Phase.Over)
@@ -1033,6 +1071,7 @@ public class RolchessV2 : MonoBehaviour
             foreach (var l in log) GUILayout.Label(l, richStyle);
             DrawStats(true);
             if (GUILayout.Button("Nueva partida", GUILayout.Height(32))) phase = Phase.Setup;
+            GUILayout.EndScrollView();
             GUILayout.EndArea();
             return;
         }
@@ -1084,7 +1123,7 @@ public class RolchessV2 : MonoBehaviour
             case Phase.Move:
                 GUILayout.Label("<b>MOVER</b>", richStyle);
                 GUILayout.Label(unlimitedMoves ? "Piezas movidas: sin límite" : $"Piezas movidas: {movesUsed}/{MaxMoves} (+ Rey)");
-                GUILayout.Label("Clic en tu pieza y luego en una casilla verde. Puedes atravesar a tus compañeros.", richStyle);
+                GUILayout.Label("<size=11>Clic en tu pieza y luego en una casilla verde. Puedes atravesar a tus compañeros.</size>", richStyle);
                 if (selected != null && selected.kind == Kind.Rey && castles)
                 {
                     if (KingExitCells(selected).Count > 0 && GUILayout.Button("Sacar al Rey del castillo"))
@@ -1100,7 +1139,7 @@ public class RolchessV2 : MonoBehaviour
                 break;
             case Phase.Attack:
                 GUILayout.Label("<b>ATACAR</b>: asigna los ataques; se resuelven juntos cuando pulses Resolver.", richStyle);
-                GUILayout.Label("Clic en tu pieza (resaltada) → clic en su objetivo naranja. Clic de nuevo en la pieza para quitar su flecha. Demoledor: clic en él mismo para que explote (muere al atacar). Catapulta: clic en cualquier casilla a su alcance; daño completo en esa casilla y la mitad en todas las de alrededor, aliados incluidos.", richStyle);
+                GUILayout.Label("<size=11>Clic en tu pieza (resaltada) → clic en su objetivo naranja. Clic de nuevo en la pieza para quitar su flecha. Demoledor: clic en él mismo para que explote (muere al atacar). Catapulta: clic en cualquier casilla a su alcance; daño completo en esa casilla y la mitad en todas las de alrededor, aliados incluidos.</size>", richStyle);
                 DrawBonus();
                 GUILayout.Label($"Ataques asignados: {plans.Count}");
                 if (GUILayout.Button("Quitar todas las flechas")) { plans.Clear(); ClearSelection(); }
@@ -1120,11 +1159,20 @@ public class RolchessV2 : MonoBehaviour
         }
         GUILayout.Space(4);
         GUILayout.Label($"Cargas de refuerzo: J1 {boostCharges[0]}{(boostOn[0] ? " (activo)" : "")} · J2 {boostCharges[1]}{(boostOn[1] ? " (activo)" : "")}");
+        GUILayout.EndScrollView();
+        GUILayout.EndArea();
+    }
+
+    void DrawInfo(Rect area)
+    {
+        GUILayout.BeginArea(area);
+        infoScroll = GUILayout.BeginScrollView(infoScroll);
         if (castles) GUILayout.Label($"Muros rotos: azul {breaches[0]}, rojo {breaches[1]} (con un muro derribado no se recluta)");
         DrawStats(false);
         GUILayout.Label("<b>Dado</b>", richStyle);
         foreach (var f in DieFaces) GUILayout.Label($"<size=11>{f}</size>", richStyle);
         GUILayout.Label("<size=11>Fichas: letra + V vida, A ataque, D defensa. S Soldado, A Arquero, E Escudero, C Catapulta, J Jinete, D Demoledor, R Rey. Casillas rojizas: alcance de ataque de la pieza seleccionada o bajo el cursor.</size>", richStyle);
+        GUILayout.EndScrollView();
         GUILayout.EndArea();
     }
 
@@ -1150,9 +1198,10 @@ public class RolchessV2 : MonoBehaviour
         GUILayout.Label($"Partida {Fmt(match)} · prom. J1 {Fmt(Avg(turnTimes[0]))} ({turnTimes[0].Count}) · J2 {Fmt(Avg(turnTimes[1]))} ({turnTimes[1].Count})", richStyle);
         GUILayout.Label($"Prom. general {Fmt(Avg(all))} · más largo {Fmt(longest)} · perdidos {lostTurns} · por tiempo {timeouts}", richStyle);
         int played = all.Count;
-        string pct = played > 0 ? $" ({combinedTurns * 100 / played}%)" : "";
-        GUILayout.Label($"Ataque combinado (2+ piezas a un objetivo): {combinedTurns} de {played} turnos jugados{pct} · turnos con ataque {attackTurns}", richStyle);
-        GUILayout.Label($"<size=11>{(hex ? "Hexagonal" : "Cuadrado")} {W}×{H}, {(castles ? "castillos" : "sin castillos, Reyes")} en {SectorPairs[pairIdx, 0]} y {SectorPairs[pairIdx, 1]}, timer {(timerLimit > 0 ? timerLimit + " s" : "sin límite")}</size>", richStyle);
+        string pct = played > 0 ? $" ({decisiveTurns * 100 / played}%)" : "";
+        GUILayout.Label($"Ataque combinado decisivo (sumando matan o rompen una defensa que por separado no): {decisiveTurns} de {played} turnos jugados{pct}", richStyle);
+        GUILayout.Label($"2+ piezas a un mismo objetivo: {combinedTurns} turnos · turnos con ataque: {attackTurns}", richStyle);
+        GUILayout.Label($"<size=11>{(hex ? "Hexagonal" : "Tablero")} {W}×{H}, {(castles ? "castillos" : "sin castillos, Reyes")} en {SectorPairs[pairIdx, 0]} y {SectorPairs[pairIdx, 1]}, timer {(timerLimit > 0 ? timerLimit + " s" : "sin límite")}</size>", richStyle);
     }
 
     static float Avg(List<float> l)
