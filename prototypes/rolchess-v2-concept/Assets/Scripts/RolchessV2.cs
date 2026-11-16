@@ -37,7 +37,7 @@ public class RolchessV2 : MonoBehaviour
         "2: +1 carga de refuerzo: +2 ataque y +2 defensa a todas tus piezas (hasta 4)",
         "3: reclutas 4 soldados, arqueros o escuderos",
         "4: reclutas especiales: 4 jinetes, 4 catapultas o 1 demoledor",
-        "5: retirada al castillo (no está en el prototipo)",
+        "5: turno normal, sin efecto",
         "6: mueves todas las piezas que quieras",
     };
 
@@ -73,6 +73,12 @@ public class RolchessV2 : MonoBehaviour
     // ---------- Setup options ----------
     bool hex;
     bool castles = true;
+    bool castleRandom;   // castles in a random pair of sectors instead of 4 and 6
+    // Allowed castle sectors (blue, red), keypad numbering. Index 0 is the default.
+    static readonly int[,] SectorPairs = { { 4, 6 }, { 1, 9 }, { 7, 3 }, { 7, 9 }, { 1, 3 }, { 1, 7 }, { 3, 9 }, { 2, 8 } };
+    int pairIdx, forcedPair = -1;
+    readonly Vector2Int[] home = new Vector2Int[2];   // King's starting cell (castle centre)
+    readonly Vector2Int[] face = new Vector2Int[2];   // direction towards the rival
     int sizeIdx = 0, timerIdx = 0;
     static readonly int[] Sizes = { 20, 24 };
     static readonly int[] Timers = { 60, 90, 0 };
@@ -115,6 +121,7 @@ public class RolchessV2 : MonoBehaviour
     float matchStart, turnStart, matchEnd;
     readonly List<float>[] turnTimes = { new List<float>(), new List<float>() };
     int lostTurns, timeouts, turnNumber;
+    int attackTurns, combinedTurns;   // turns with any attack / with 2+ pieces on one enemy target
 
     // ---------- Drawing ----------
     Vector2 origin = new Vector2(10, 10);
@@ -164,52 +171,48 @@ public class RolchessV2 : MonoBehaviour
         pieces.Clear(); wallLife.Clear(); wallOwner.Clear();
         for (int p = 0; p < 2; p++) { interior[p].Clear(); castleCells[p].Clear(); breaches[p] = 0; boostCharges[p] = 0; boostOn[p] = false; }
 
-        int cy = H / 2;
+        // The board is split in 9 sectors numbered like a phone keypad (1 top-left ... 9 bottom-right).
+        // Without the random option, or without castles, the players sit in 4 and 6.
+        pairIdx = castles && castleRandom ? (forcedPair >= 0 ? forcedPair : Random.Range(0, SectorPairs.GetLength(0))) : 0;
         for (int p = 0; p < 2; p++)
         {
-            int x0 = p == 0 ? 0 : W - 5;
-            Vector2Int king;
-            if (castles && hex)
-            {
-                // Hex castle: the King's 6 neighbours are the interior, the ring at distance 2 is the wall.
-                king = new Vector2Int(x0 + 2, cy);
+            int sector = SectorPairs[pairIdx, p] - 1, sc = sector % 3, sr = sector / 3;
+            int edge = castles ? 2 : 1;   // castle centre sits 2 cells from the border, a lone King 1
+            home[p] = new Vector2Int(sc == 0 ? edge : sc == 1 ? W / 2 : W - 1 - edge, sr == 0 ? 2 : sr == 1 ? H / 2 : H - 3);
+        }
+        for (int p = 0; p < 2; p++)
+        {
+            // Face the rival: along the columns only when both castles share a column (1-7, 3-9, 2-8).
+            var d = home[1 - p] - home[p];
+            face[p] = d.x != 0 ? new Vector2Int(d.x > 0 ? 1 : -1, 0) : new Vector2Int(0, d.y > 0 ? 1 : -1);
+        }
+        attackTurns = combinedTurns = 0;
+        for (int p = 0; p < 2; p++)
+        {
+            Vector2Int king = home[p];
+            if (castles)
                 for (int x = 0; x < W; x++)
                     for (int y = 0; y < H; y++)
                     {
+                        // Square castle: 5x5 block, the border is the wall. Hex castle: the King's
+                        // 6 neighbours are the interior and the ring at distance 2 is the wall.
                         var v = new Vector2Int(x, y);
-                        int d = Dist(v, king);
+                        int d = hex ? Dist(v, king) : Mathf.Max(Mathf.Abs(x - king.x), Mathf.Abs(y - king.y));
                         if (d > 2) continue;
                         castleCells[p].Add(v);
                         if (d == 2) { wallLife[v] = WallLife; wallOwner[v] = p; }
                         else interior[p].Add(v);
                     }
-            }
-            else if (castles)
-            {
-                for (int x = x0; x < x0 + 5; x++)
-                    for (int y = cy - 2; y <= cy + 2; y++)
-                    {
-                        var v = new Vector2Int(x, y);
-                        castleCells[p].Add(v);
-                        bool border = x == x0 || x == x0 + 4 || y == cy - 2 || y == cy + 2;
-                        if (border) { wallLife[v] = WallLife; wallOwner[v] = p; }
-                        else interior[p].Add(v);
-                    }
-                king = new Vector2Int(x0 + 2, cy);
-            }
-            else king = new Vector2Int(p == 0 ? 1 : W - 2, cy);
             Add(Kind.Rey, p, king);
 
-            // 3 columns of 4, back to front: archers, soldiers, escuderos. Red mirrors blue.
+            // 3 lines of 4, back to front: archers, soldiers, escuderos, facing the rival.
             // They start far apart so there is room to approach: against the castle wall,
-            // or near the King (one free column in between) when there are no castles.
+            // or near the King (one free line in between) when there are no castles.
             Kind[] ranks = { Kind.Arquero, Kind.Soldado, Kind.Escudero };
-            int back = castles ? 5 : 3;
+            int back = castles ? 3 : 2;
+            var side = new Vector2Int(face[p].y, face[p].x);
             for (int c = 0; c < 3; c++)
-            {
-                int col = p == 0 ? back + c : W - 1 - back - c;
-                for (int i = 0; i < 4; i++) Add(ranks[c], p, new Vector2Int(col, cy - 2 + i));
-            }
+                for (int i = 0; i < 4; i++) Add(ranks[c], p, king + face[p] * (back + c) + side * (i - 2));
         }
         RebuildOcc();
         current = 0;
@@ -317,7 +320,12 @@ public class RolchessV2 : MonoBehaviour
         return res;
     }
 
-    float FrontScore(int owner, Vector2Int v) => (owner == 0 ? -v.x : v.x) * 100f + Mathf.Abs(v.y - H / 2);
+    // Lower is better: as far towards the rival as possible, then close to the King's line.
+    float FrontScore(int owner, Vector2Int v)
+    {
+        var d = v - home[owner]; var f = face[owner];
+        return -(d.x * f.x + d.y * f.y) * 100f + Mathf.Abs(d.x * f.y + d.y * f.x);
+    }
 
     List<Vector2Int> SpawnCells(int owner)
     {
@@ -508,6 +516,23 @@ public class RolchessV2 : MonoBehaviour
         IncomingDamage(toPieces, toWalls);
         log.Clear();
 
+        // Measurement: was any enemy piece or wall hit by 2 or more attackers this turn?
+        var attackers = new Dictionary<object, int>();
+        foreach (var kv in plans)
+        {
+            var a = kv.Key; var pl = kv.Value;
+            IEnumerable<Vector2Int> cells = pl.explode ? Adjacent(a.pos) : pl.area ? AreaCells(pl.wall)
+                                          : new[] { pl.isWall ? pl.wall : pl.target.pos };
+            foreach (var c in cells)
+            {
+                var o = PieceAt(c);
+                if (o != null && o.owner != a.owner) Accumulate(attackers, o, 1);
+                if (IsWall(c) && wallOwner[c] != a.owner) Accumulate(attackers, c, 1);
+            }
+        }
+        attackTurns++;
+        foreach (var kv in attackers) if (kv.Value >= 2) { combinedTurns++; break; }
+
         foreach (var kv in toPieces)
         {
             var t = kv.Key;
@@ -545,7 +570,8 @@ public class RolchessV2 : MonoBehaviour
             turnTimes[current].Add(matchEnd - turnStart);
             Debug.Log($"[RolchessV2] Ganó J{winner + 1}. {(hex ? "hex" : "cuadrado")}, {(castles ? "con" : "sin")} castillos, {W}x{H}, " +
                       $"timer {timerLimit}s. Partida {Fmt(matchEnd - matchStart)}, turnos {turnNumber}, " +
-                      $"promedio J1 {Fmt(Avg(turnTimes[0]))}, J2 {Fmt(Avg(turnTimes[1]))}, perdidos {lostTurns}, por tiempo {timeouts}");
+                      $"promedio J1 {Fmt(Avg(turnTimes[0]))}, J2 {Fmt(Avg(turnTimes[1]))}, perdidos {lostTurns}, por tiempo {timeouts}, " +
+                      $"turnos con ataque {attackTurns}, con ataque combinado {combinedTurns}");
         }
     }
 
@@ -738,6 +764,10 @@ public class RolchessV2 : MonoBehaviour
         hex = GUILayout.Toolbar(hex ? 1 : 0, new[] { "Cuadrado", "Hexagonal" }) == 1;
         GUILayout.Label("Castillos");
         castles = GUILayout.Toolbar(castles ? 0 : 1, new[] { "Con castillos", "Sin castillos (Rey atrás)" }) == 0;
+        GUI.enabled = castles;
+        GUILayout.Label("Posición de los castillos");
+        castleRandom = GUILayout.Toolbar(castleRandom ? 1 : 0, new[] { "En el medio (4 y 6)", "Al azar (8 combinaciones)" }) == 1;
+        GUI.enabled = true;
         GUILayout.Label("Tamaño");
         sizeIdx = GUILayout.Toolbar(sizeIdx, new[] { "20", "24" });
         GUILayout.Label("Tiempo por turno");
@@ -870,18 +900,28 @@ public class RolchessV2 : MonoBehaviour
             else if (plans.ContainsKey(p)) Tile(p.pos, new Color(1f, 0.55f, 0.1f));
             else if (phase == Phase.Attack && p.owner == current && HasTargets(p)) Tile(p.pos, new Color(1f, 1f, 1f, 0.55f));
 
-            float ins = cs * (hex ? 0.07f : 0.12f), insX = hex ? ins * 1.1547f : ins;
+            float ins = cs * (hex ? 0.05f : 0.06f), insX = hex ? ins * 1.1547f : ins;
             var inner = new Rect(r.x + insX, r.y + ins, r.width - insX * 2, r.height - ins * 2);
-            Color col = p.owner == 0 ? new Color(0.25f, 0.45f, 0.95f) : new Color(0.90f, 0.30f, 0.30f);
+            Color col = p.owner == 0 ? new Color(0.13f, 0.30f, 0.78f) : new Color(0.74f, 0.17f, 0.17f);
             if (phase == Phase.Move && p.owner == current && p.moved) col *= 0.55f;
             col.a = 1f;
             Fill(inner, col, hex ? hexTex : null);
             // Big letter on the left, Vida / Ataque / Defensa stacked on the right.
             var c = r.center;
-            Text(new Rect(c.x - cs * 0.40f, c.y - cs * 0.30f, cs * 0.40f, cs * 0.60f), $"<size={FontSize(2.3f)}>{Letters[(int)p.kind]}</size>");
+            float lx = hex ? 0.52f : 0.47f, sx = hex ? 0.17f : 0.07f, step = 0.27f;
+            Text(new Rect(c.x - cs * lx, c.y - cs * 0.30f, cs * 0.33f, cs * 0.60f), $"<size={FontSize(3.0f)}>{Letters[(int)p.kind]}</size>");
             string[] stats = { $"V{p.life}", $"A{AttackValue(p)}", $"D{ShieldValue(p)}" };
             for (int i = 0; i < 3; i++)
-                GUI.Label(new Rect(c.x + cs * 0.01f, c.y - cs * 0.315f + i * cs * 0.21f, cs * 0.40f, cs * 0.21f), $"<size={FontSize(4.6f)}>{stats[i]}</size>", statStyle);
+            {
+                // Bigger numbers with a dark shadow so they read on both team colours.
+                var sr = new Rect(c.x - cs * sx, c.y - cs * step * 1.5f + i * cs * step, cs * 0.56f, cs * step);
+                string txt = $"<size={FontSize(4.0f)}>{stats[i]}</size>";
+                var oldCol = GUI.contentColor;
+                GUI.contentColor = new Color(0f, 0f, 0f, 0.9f);
+                GUI.Label(new Rect(sr.x + 1f, sr.y + 1f, sr.width, sr.height), txt, statStyle);
+                GUI.contentColor = oldCol;
+                GUI.Label(sr, txt, statStyle);
+            }
         }
 
         foreach (var kv in plans)
@@ -1069,7 +1109,10 @@ public class RolchessV2 : MonoBehaviour
         GUILayout.Label("<b>Medición</b>", richStyle);
         GUILayout.Label($"Partida {Fmt(match)} · prom. J1 {Fmt(Avg(turnTimes[0]))} ({turnTimes[0].Count}) · J2 {Fmt(Avg(turnTimes[1]))} ({turnTimes[1].Count})", richStyle);
         GUILayout.Label($"Prom. general {Fmt(Avg(all))} · más largo {Fmt(longest)} · perdidos {lostTurns} · por tiempo {timeouts}", richStyle);
-        GUILayout.Label($"<size=11>{(hex ? "Hexagonal" : "Cuadrado")} {W}×{H}, {(castles ? "con" : "sin")} castillos, timer {(timerLimit > 0 ? timerLimit + " s" : "sin límite")}</size>", richStyle);
+        int played = all.Count;
+        string pct = played > 0 ? $" ({combinedTurns * 100 / played}%)" : "";
+        GUILayout.Label($"Ataque combinado (2+ piezas a un objetivo): {combinedTurns} de {played} turnos jugados{pct} · turnos con ataque {attackTurns}", richStyle);
+        GUILayout.Label($"<size=11>{(hex ? "Hexagonal" : "Cuadrado")} {W}×{H}, {(castles ? $"castillos en {SectorPairs[pairIdx, 0]} y {SectorPairs[pairIdx, 1]}" : "sin castillos")}, timer {(timerLimit > 0 ? timerLimit + " s" : "sin límite")}</size>", richStyle);
     }
 
     static float Avg(List<float> l)
