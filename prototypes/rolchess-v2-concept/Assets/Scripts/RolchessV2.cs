@@ -14,7 +14,7 @@ public class RolchessV2 : MonoBehaviour
     // ---------- Tuning (hardcoded on purpose: prototype) ----------
     const int MaxMoves = 12;
     const int WallLife = 30;
-    const int BreachesToLoseRecruit = 4;
+    const int BreachesToLoseRecruit = 1; // recruiting needs every wall standing
     const float AutoDelay = 2f;
     const float DieOverlayTime = 2.5f;
 
@@ -71,10 +71,10 @@ public class RolchessV2 : MonoBehaviour
     // ---------- Setup options ----------
     bool hex;
     bool castles = true;
-    int sizeIdx = 1, timerIdx = 1;
-    static readonly int[] Sizes = { 16, 20, 24 };
-    static readonly int[] Timers = { 40, 60, 90, 0 };
-    static readonly string[] TimerLabels = { "40 s", "60 s", "90 s", "Sin límite" };
+    int sizeIdx = 0, timerIdx = 0;
+    static readonly int[] Sizes = { 20, 24 };
+    static readonly int[] Timers = { 60, 90, 0 };
+    static readonly string[] TimerLabels = { "60 s", "90 s", "Sin límite" };
 
     // ---------- State ----------
     int W, H, timerLimit;
@@ -198,10 +198,16 @@ public class RolchessV2 : MonoBehaviour
             else king = new Vector2Int(p == 0 ? 1 : W - 2, cy);
             Add(Kind.Rey, p, king);
 
-            int col1 = p == 0 ? 6 : W - 7;   // soldiers and archers
-            int col2 = p == 0 ? 7 : W - 8;   // escuderos in front
-            for (int i = 0; i < 8; i++) Add(i % 2 == 0 ? Kind.Soldado : Kind.Arquero, p, new Vector2Int(col1, cy - 4 + i));
-            for (int i = 0; i < 4; i++) Add(Kind.Escudero, p, new Vector2Int(col2, cy - 2 + i));
+            // 3 columns of 4, back to front: archers, soldiers, escuderos. Red mirrors blue.
+            // They start far apart so there is room to approach: against the castle wall,
+            // or near the King (one free column in between) when there are no castles.
+            Kind[] ranks = { Kind.Arquero, Kind.Soldado, Kind.Escudero };
+            int back = castles ? 5 : 3;
+            for (int c = 0; c < 3; c++)
+            {
+                int col = p == 0 ? back + c : W - 1 - back - c;
+                for (int i = 0; i < 4; i++) Add(ranks[c], p, new Vector2Int(col, cy - 2 + i));
+            }
         }
         RebuildOcc();
         current = 0;
@@ -428,15 +434,19 @@ public class RolchessV2 : MonoBehaviour
             case 3: soldierBonus[current] = Mathf.Min(4, soldierBonus[current] + 1); phase = Phase.Move; break;
             case 4:
                 if (CanRecruit(current)) phase = Phase.Recruit;
-                else { phase = Phase.Move; message = "4: tu castillo está destruido, no puedes reclutar."; }
+                else { phase = Phase.Move; message = "4: tu castillo tiene un muro derribado, no puedes reclutar."; }
                 break;
             case 5: phase = Phase.Move; break;
             default: unlimitedMoves = true; phase = Phase.Move; break;
         }
     }
 
+    // Without castles there are no walls to bring down, so demolishers cannot be recruited.
+    bool CanRecruitKind(Kind k) => castles || k != Kind.Demoledor;
+
     void Recruit(Kind k)
     {
+        if (!CanRecruitKind(k)) return;
         int alive = 0;
         foreach (var p in pieces) if (p.owner == current && p.kind == k) alive++;
         int n = Mathf.Min(4, Limit[(int)k] - alive);
@@ -694,7 +704,7 @@ public class RolchessV2 : MonoBehaviour
         GUILayout.Label("Castillos");
         castles = GUILayout.Toolbar(castles ? 0 : 1, new[] { "Con castillos", "Sin castillos (Rey atrás)" }) == 0;
         GUILayout.Label("Tamaño");
-        sizeIdx = GUILayout.Toolbar(sizeIdx, new[] { "16", "20", "24" });
+        sizeIdx = GUILayout.Toolbar(sizeIdx, new[] { "20", "24" });
         GUILayout.Label("Tiempo por turno");
         timerIdx = GUILayout.Toolbar(timerIdx, TimerLabels);
         GUILayout.Space(16);
@@ -940,8 +950,9 @@ public class RolchessV2 : MonoBehaviour
                 {
                     int alive = 0;
                     foreach (var p in pieces) if (p.owner == current && p.kind == (Kind)k) alive++;
-                    GUI.enabled = alive < Limit[k];
-                    if (GUILayout.Button($"{Names[k]} ({alive}/{Limit[k]})")) Recruit((Kind)k);
+                    bool allowed = CanRecruitKind((Kind)k);
+                    GUI.enabled = allowed && alive < Limit[k];
+                    if (GUILayout.Button(allowed ? $"{Names[k]} ({alive}/{Limit[k]})" : $"{Names[k]} (solo con castillos)")) Recruit((Kind)k);
                     GUI.enabled = true;
                 }
                 if (GUILayout.Button("No reclutar")) phase = Phase.Move;
@@ -985,7 +996,7 @@ public class RolchessV2 : MonoBehaviour
         }
         GUILayout.Space(4);
         GUILayout.Label($"Cargas J1: arq {archerBonus[0]}, sold {soldierBonus[0]} · J2: arq {archerBonus[1]}, sold {soldierBonus[1]}");
-        if (castles) GUILayout.Label($"Muros rotos: azul {breaches[0]}, rojo {breaches[1]} (con {BreachesToLoseRecruit} no se recluta)");
+        if (castles) GUILayout.Label($"Muros rotos: azul {breaches[0]}, rojo {breaches[1]} (con un muro derribado no se recluta)");
         DrawStats(false);
         GUILayout.Label("<b>Dado</b>", richStyle);
         foreach (var f in DieFaces) GUILayout.Label($"<size=11>{f}</size>", richStyle);

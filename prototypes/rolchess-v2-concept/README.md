@@ -37,18 +37,19 @@ Comparar: cuadrado vs hexagonal, con vs sin castillos (criterios del CD-PLAYTEST
 | 6 Rey | Regla del cuaderno: sale apareciendo al lado / entra donde elijas; ese turno no se mueve más |
 | 7 atravesar | Se atraviesan aliados, nunca enemigos |
 | 9 dado | Dado grande en el centro al tirarlo, efecto en el panel y lista de caras siempre visible |
-| 11 muro | Solo el borde; 16 tramos (12 en hexagonal: el anillo a distancia 2 del Rey) de 30 de vida, sin escudo; cualquier pieza enemiga en alcance lo ataca; romper uno abre un hueco |
+| 11 muro | Solo el borde; 16 tramos (12 en hexagonal: el anillo a distancia 2 del Rey) de 30 de vida, sin escudo; cualquier pieza enemiga en alcance lo ataca; romper uno abre un hueco y ese castillo ya no recluta (regla del jugador: para reclutar hacen falta todos los muros) |
 | 12 demoledor | Explota: daña todas las casillas vecinas (aliados y muros incluidos) y muere; la vista previa marca MUERE sobre él |
-| 14 timer | 40 / 60 / 90 s o sin límite; al llegar a 0 se resuelven los ataques asignados y termina el turno |
+| 14 timer | 60 / 90 s o sin límite; al llegar a 0 se resuelven los ataques asignados y termina el turno |
 | 15 auto | Pasa solo a ataque cuando no quedan movimientos; termina solo cuando no quedan ataques o todos están asignados (2 s de aviso) |
-| 16 sin castillos | Opción: Rey atrás, reclutas a su alrededor |
+| 16 sin castillos | Opción: Rey atrás, reclutas a su alrededor; sin castillos no se reclutan demoledores |
+| inicio | Cada jugador empieza con 3 columnas de 4: arqueros atrás, soldados, escuderos al frente; el rojo espejado. Pegadas al castillo, o cerca del Rey si no hay castillos, para que haya que acercarse al rival. Tablero de 20 o 24 |
 | 17 hexagonal | Opción de tablero hexagonal: casillas con lado plano arriba, en columnas verticales, y fichas hexagonales |
 | 19 estadísticas | Cada ficha muestra la letra grande y, en columna, V vida, A ataque, D defensa |
 
 Sin cambios a pedido: la cara 1 del dado sigue haciendo perder el turno.
 
 **Supuestos del prototipo** (no los dijo el jugador): en el cuadrado se mueve en cruz (en
-hex, a las 6 vecinas); el castillo cuenta como destruido para reclutar con 4 tramos rotos;
+hex, a las 6 vecinas);
 solo se atacan muros enemigos (la explosión del demoledor sí daña los propios).
 
 **Fuera:** cara 5 del dado, escudero que cubre de flechas, torres, tirada para ver quién empieza.
