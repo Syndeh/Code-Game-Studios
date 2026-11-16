@@ -14,6 +14,7 @@ public class RolchessV2 : MonoBehaviour
     // ---------- Tuning (hardcoded on purpose: prototype) ----------
     const int MaxMoves = 12;
     const int WallLife = 30;
+    const int BoostAmount = 2;
     const int BreachesToLoseRecruit = 1; // recruiting needs every wall standing
     const float AutoDelay = 2f;
     const float DieOverlayTime = 2.5f;
@@ -33,9 +34,9 @@ public class RolchessV2 : MonoBehaviour
     static readonly string[] DieFaces =
     {
         "1: pierdes el turno",
-        "2: +1 carga de ataque para arqueros (hasta 4)",
-        "3: +1 carga de ataque para soldados (hasta 4)",
-        "4: reclutas 4 de un tipo",
+        "2: +1 carga de refuerzo: +2 ataque y +2 defensa a todas tus piezas (hasta 4)",
+        "3: reclutas 4 soldados, arqueros o escuderos",
+        "4: reclutas especiales: 4 jinetes, 4 catapultas o 1 demoledor",
         "5: retirada al castillo (no está en el prototipo)",
         "6: mueves todas las piezas que quieras",
     };
@@ -53,6 +54,7 @@ public class RolchessV2 : MonoBehaviour
     {
         public Piece target;
         public bool isWall;
+        public bool area;      // catapult: hits `wall` (any cell) and every cell around it
         public Vector2Int wall;
         public bool explode;
     }
@@ -85,8 +87,9 @@ public class RolchessV2 : MonoBehaviour
     readonly HashSet<Vector2Int>[] interior = { new HashSet<Vector2Int>(), new HashSet<Vector2Int>() };
     readonly HashSet<Vector2Int>[] castleCells = { new HashSet<Vector2Int>(), new HashSet<Vector2Int>() };
     readonly int[] breaches = new int[2];
-    readonly int[] archerBonus = new int[2];
-    readonly int[] soldierBonus = new int[2];
+    readonly int[] boostCharges = new int[2];
+    readonly bool[] boostOn = new bool[2];   // +2 attack / +2 defense, until that player's next turn
+    bool recruitSpecial;                     // die 3 = basic troops, die 4 = special pieces
 
     int current;
     Phase phase = Phase.Setup;
@@ -94,7 +97,6 @@ public class RolchessV2 : MonoBehaviour
     float dieShownAt = -100f;
     int movesUsed;
     bool unlimitedMoves;
-    bool archerBonusOn, soldierBonusOn, bonusUsedThisTurn;
 
     Piece selected;
     HashSet<Vector2Int> reach = new HashSet<Vector2Int>();
@@ -160,7 +162,7 @@ public class RolchessV2 : MonoBehaviour
         W = H = Sizes[sizeIdx];
         timerLimit = Timers[timerIdx];
         pieces.Clear(); wallLife.Clear(); wallOwner.Clear();
-        for (int p = 0; p < 2; p++) { interior[p].Clear(); castleCells[p].Clear(); breaches[p] = 0; archerBonus[p] = soldierBonus[p] = 0; }
+        for (int p = 0; p < 2; p++) { interior[p].Clear(); castleCells[p].Clear(); breaches[p] = 0; boostCharges[p] = 0; boostOn[p] = false; }
 
         int cy = H / 2;
         for (int p = 0; p < 2; p++)
@@ -358,6 +360,15 @@ public class RolchessV2 : MonoBehaviour
             }
             return false;
         }
+        if (a.kind == Kind.Catapulta)
+        {
+            // Worth shooting if some cell in range has an enemy piece or wall inside its area.
+            foreach (var p in pieces)
+                if (p.owner != a.owner) foreach (var c in AreaCells(p.pos)) if (InRange(a, c)) return true;
+            foreach (var kv in wallLife)
+                if (wallOwner[kv.Key] != a.owner) foreach (var c in AreaCells(kv.Key)) if (InRange(a, c)) return true;
+            return false;
+        }
         foreach (var p in pieces) if (p.owner != a.owner && InRange(a, p.pos)) return true;
         foreach (var kv in wallLife) if (wallOwner[kv.Key] != a.owner && InRange(a, kv.Key)) return true;
         return false;
@@ -366,6 +377,7 @@ public class RolchessV2 : MonoBehaviour
     bool IsValidTarget(Piece a, Vector2Int cell)
     {
         if (a.kind == Kind.Demoledor) return false; // the demolisher explodes instead
+        if (a.kind == Kind.Catapulta) return InBoard(cell) && InRange(a, cell); // any cell, even an empty one
         var o = PieceAt(cell);
         if (o != null) return o.owner != a.owner && InRange(a, cell);
         if (IsWall(cell)) return wallOwner[cell] != a.owner && InRange(a, cell);
@@ -375,9 +387,17 @@ public class RolchessV2 : MonoBehaviour
     int AttackValue(Piece a)
     {
         int v = Atk[(int)a.kind];
-        if (a.kind == Kind.Arquero && archerBonusOn) v++;
-        if (a.kind == Kind.Soldado && soldierBonusOn) v++;
+        if (boostOn[a.owner]) v += BoostAmount;
         return v;
+    }
+
+    int ShieldValue(Piece p) => Shield[(int)p.kind] + (boostOn[p.owner] ? BoostAmount : 0);
+
+    // Cells hit by a catapult shot: the chosen cell and every cell around it.
+    IEnumerable<Vector2Int> AreaCells(Vector2Int c)
+    {
+        yield return c;
+        foreach (var n in Adjacent(c)) yield return n;
     }
 
     // Sums every planned attack per target. Shield is applied once per target later.
@@ -389,6 +409,15 @@ public class RolchessV2 : MonoBehaviour
             if (pl.explode)
             {
                 foreach (var n in Adjacent(a.pos))
+                {
+                    var o = PieceAt(n);
+                    if (o != null) Accumulate(toPieces, o, AttackValue(a));
+                    if (IsWall(n)) Accumulate(toWalls, n, AttackValue(a));
+                }
+            }
+            else if (pl.area)
+            {
+                foreach (var n in AreaCells(pl.wall))
                 {
                     var o = PieceAt(n);
                     if (o != null) Accumulate(toPieces, o, AttackValue(a));
@@ -413,7 +442,7 @@ public class RolchessV2 : MonoBehaviour
         phase = Phase.Roll;
         movesUsed = 0;
         unlimitedMoves = false;
-        archerBonusOn = soldierBonusOn = bonusUsedThisTurn = false;
+        boostOn[current] = false; // the boost lasts until its owner's next turn
         foreach (var p in pieces) p.moved = false;
         undo.Clear();
         plans.Clear();
@@ -430,11 +459,12 @@ public class RolchessV2 : MonoBehaviour
         switch (die)
         {
             case 1: phase = Phase.LostTurn; break;
-            case 2: archerBonus[current] = Mathf.Min(4, archerBonus[current] + 1); phase = Phase.Move; break;
-            case 3: soldierBonus[current] = Mathf.Min(4, soldierBonus[current] + 1); phase = Phase.Move; break;
+            case 2: boostCharges[current] = Mathf.Min(4, boostCharges[current] + 1); phase = Phase.Move; break;
+            case 3:
             case 4:
+                recruitSpecial = die == 4;
                 if (CanRecruit(current)) phase = Phase.Recruit;
-                else { phase = Phase.Move; message = "4: tu castillo tiene un muro derribado, no puedes reclutar."; }
+                else { phase = Phase.Move; message = $"{die}: tu castillo tiene un muro derribado, no puedes reclutar."; }
                 break;
             case 5: phase = Phase.Move; break;
             default: unlimitedMoves = true; phase = Phase.Move; break;
@@ -443,13 +473,15 @@ public class RolchessV2 : MonoBehaviour
 
     // Without castles there are no walls to bring down, so demolishers cannot be recruited.
     bool CanRecruitKind(Kind k) => castles || k != Kind.Demoledor;
+    static bool IsSpecial(Kind k) => k == Kind.Jinete || k == Kind.Catapulta || k == Kind.Demoledor;
+    static int RecruitCount(Kind k) => k == Kind.Demoledor ? 1 : 4;   // demolishers come one at a time
 
     void Recruit(Kind k)
     {
-        if (!CanRecruitKind(k)) return;
+        if (!CanRecruitKind(k) || IsSpecial(k) != recruitSpecial) return;
         int alive = 0;
         foreach (var p in pieces) if (p.owner == current && p.kind == k) alive++;
-        int n = Mathf.Min(4, Limit[(int)k] - alive);
+        int n = Mathf.Min(RecruitCount(k), Limit[(int)k] - alive);
         var cells = SpawnCells(current);
         int placed = 0;
         for (int i = 0; i < cells.Count && placed < n; i++) { Add(k, current, cells[i]); placed++; }
@@ -479,7 +511,7 @@ public class RolchessV2 : MonoBehaviour
         foreach (var kv in toPieces)
         {
             var t = kv.Key;
-            int sh = Shield[(int)t.kind];
+            int sh = ShieldValue(t);
             int dmg = Mathf.Max(0, kv.Value - sh);
             t.life -= dmg;
             log.Add($"{(t.owner == 0 ? "Azul" : "Rojo")} {Names[(int)t.kind]}: {kv.Value} − esc {sh} = {dmg}{(t.life <= 0 ? " MUERE" : $" (queda {t.life})")}");
@@ -546,10 +578,12 @@ public class RolchessV2 : MonoBehaviour
         else if (phase == Phase.Move && !AnyMovable()) want = AutoAction.ToAttack;
         else if (phase == Phase.Attack)
         {
-            int potential = 0, assigned = 0;
+            // Only auto-end when nothing can attack. Assigned attacks wait for the player's
+            // "Resolver" button: they may still want to change or drop one.
+            bool anyAttack = plans.Count > 0;
             foreach (var p in pieces)
-                if (p.owner == current && HasTargets(p)) { potential++; if (plans.ContainsKey(p)) assigned++; }
-            if (potential == 0 || assigned == potential) want = AutoAction.ResolveAndEnd;
+                if (p.owner == current && HasTargets(p)) { anyAttack = true; break; }
+            if (!anyAttack) want = AutoAction.ResolveAndEnd;
         }
 
         if (want != autoAction) { autoAction = want; autoAt = want == AutoAction.None ? -1f : now + AutoDelay; }
@@ -631,7 +665,8 @@ public class RolchessV2 : MonoBehaviour
                 }
                 if (IsValidTarget(selected, cell))
                 {
-                    plans[selected] = p != null ? new Plan { target = p } : new Plan { isWall = true, wall = cell };
+                    plans[selected] = selected.kind == Kind.Catapulta ? new Plan { area = true, wall = cell }
+                                    : p != null ? new Plan { target = p } : new Plan { isWall = true, wall = cell };
                     ClearSelection();
                     return;
                 }
@@ -801,6 +836,10 @@ public class RolchessV2 : MonoBehaviour
         {
             foreach (var p in pieces) if (IsValidTarget(selected, p.pos)) targetCells.Add(p.pos);
             foreach (var kv in wallLife) if (IsValidTarget(selected, kv.Key)) targetCells.Add(kv.Key);
+            if (selected.kind == Kind.Catapulta)
+                for (int x = 0; x < W; x++)
+                    for (int y = 0; y < H; y++)
+                        if (IsValidTarget(selected, new Vector2Int(x, y))) targetCells.Add(new Vector2Int(x, y));
             if (selected.kind == Kind.Demoledor) foreach (var n in Adjacent(selected.pos)) targetCells.Add(n);
         }
 
@@ -840,7 +879,7 @@ public class RolchessV2 : MonoBehaviour
             // Big letter on the left, Vida / Ataque / Defensa stacked on the right.
             var c = r.center;
             Text(new Rect(c.x - cs * 0.40f, c.y - cs * 0.30f, cs * 0.40f, cs * 0.60f), $"<size={FontSize(2.3f)}>{Letters[(int)p.kind]}</size>");
-            string[] stats = { $"V{p.life}", $"A{AttackValue(p)}", $"D{Shield[(int)p.kind]}" };
+            string[] stats = { $"V{p.life}", $"A{AttackValue(p)}", $"D{ShieldValue(p)}" };
             for (int i = 0; i < 3; i++)
                 GUI.Label(new Rect(c.x + cs * 0.01f, c.y - cs * 0.315f + i * cs * 0.21f, cs * 0.40f, cs * 0.21f), $"<size={FontSize(4.6f)}>{stats[i]}</size>", statStyle);
         }
@@ -853,7 +892,11 @@ public class RolchessV2 : MonoBehaviour
             {
                 foreach (var n in Adjacent(a.pos)) Line(Center(a.pos), Center(n), new Color(1f, 0.6f, 0.1f, 0.8f), 2f);
             }
-            else Arrow(Center(a.pos), pl.isWall ? Center(pl.wall) : Center(pl.target.pos), color);
+            else
+            {
+                if (pl.area) foreach (var n in AreaCells(pl.wall)) if (InBoard(n)) Tile(n, new Color(1f, 0.45f, 0.1f, 0.45f), hex ? 0.5f : 1f);
+                Arrow(Center(a.pos), pl.isWall || pl.area ? Center(pl.wall) : Center(pl.target.pos), color);
+            }
         }
 
         // Damage preview on every planned target.
@@ -864,7 +907,7 @@ public class RolchessV2 : MonoBehaviour
             IncomingDamage(toPieces, toWalls);
             foreach (var kv in toPieces)
             {
-                int dmg = Mathf.Max(0, kv.Value - Shield[(int)kv.Key.kind]);
+                int dmg = Mathf.Max(0, kv.Value - ShieldValue(kv.Key));
                 Badge(kv.Key.pos, dmg >= kv.Key.life ? $"−{dmg} MUERE" : $"−{dmg}");
             }
             foreach (var kv in toWalls) Badge(kv.Key, $"−{kv.Value}");
@@ -931,7 +974,7 @@ public class RolchessV2 : MonoBehaviour
         {
             string what = autoAction == AutoAction.EndLost ? "Pasando el turno"
                         : autoAction == AutoAction.ToAttack ? "Pasando a ataque"
-                        : "Resolviendo y terminando el turno";
+                        : "Sin ataques posibles: terminando el turno";
             GUILayout.Label($"<color=#ffd24d>{what} en {Mathf.Max(0f, autoAt - Time.realtimeSinceStartup):0.0} s…</color>", richStyle);
         }
         GUILayout.Space(4);
@@ -948,11 +991,12 @@ public class RolchessV2 : MonoBehaviour
                 GUILayout.Label("¿Qué reclutas? (aparecen del lado que mira al rival)");
                 for (int k = 0; k < 6; k++)
                 {
+                    if (IsSpecial((Kind)k) != recruitSpecial) continue;
                     int alive = 0;
                     foreach (var p in pieces) if (p.owner == current && p.kind == (Kind)k) alive++;
                     bool allowed = CanRecruitKind((Kind)k);
                     GUI.enabled = allowed && alive < Limit[k];
-                    if (GUILayout.Button(allowed ? $"{Names[k]} ({alive}/{Limit[k]})" : $"{Names[k]} (solo con castillos)")) Recruit((Kind)k);
+                    if (GUILayout.Button(allowed ? $"{RecruitCount((Kind)k)} {Names[k]} ({alive}/{Limit[k]})" : $"{Names[k]} (solo con castillos)")) Recruit((Kind)k);
                     GUI.enabled = true;
                 }
                 if (GUILayout.Button("No reclutar")) phase = Phase.Move;
@@ -975,8 +1019,8 @@ public class RolchessV2 : MonoBehaviour
                 if (GUILayout.Button("Terminar movimiento → Atacar", GUILayout.Height(32))) { phase = Phase.Attack; ClearSelection(); }
                 break;
             case Phase.Attack:
-                GUILayout.Label("<b>ATACAR</b>: asigna todos los ataques y se resuelven juntos.", richStyle);
-                GUILayout.Label("Clic en tu pieza (resaltada) → clic en su objetivo naranja. Clic de nuevo en la pieza para quitar su flecha. Demoledor: clic en él mismo para que explote (muere al atacar).", richStyle);
+                GUILayout.Label("<b>ATACAR</b>: asigna los ataques; se resuelven juntos cuando pulses Resolver.", richStyle);
+                GUILayout.Label("Clic en tu pieza (resaltada) → clic en su objetivo naranja. Clic de nuevo en la pieza para quitar su flecha. Demoledor: clic en él mismo para que explote (muere al atacar). Catapulta: clic en cualquier casilla a su alcance; daña esa casilla y todas las de alrededor, aliados incluidos.", richStyle);
                 DrawBonus();
                 GUILayout.Label($"Ataques asignados: {plans.Count}");
                 if (GUILayout.Button("Quitar todas las flechas")) { plans.Clear(); ClearSelection(); }
@@ -995,7 +1039,7 @@ public class RolchessV2 : MonoBehaviour
             foreach (var l in log) GUILayout.Label(l, richStyle);
         }
         GUILayout.Space(4);
-        GUILayout.Label($"Cargas J1: arq {archerBonus[0]}, sold {soldierBonus[0]} · J2: arq {archerBonus[1]}, sold {soldierBonus[1]}");
+        GUILayout.Label($"Cargas de refuerzo: J1 {boostCharges[0]}{(boostOn[0] ? " (activo)" : "")} · J2 {boostCharges[1]}{(boostOn[1] ? " (activo)" : "")}");
         if (castles) GUILayout.Label($"Muros rotos: azul {breaches[0]}, rojo {breaches[1]} (con un muro derribado no se recluta)");
         DrawStats(false);
         GUILayout.Label("<b>Dado</b>", richStyle);
@@ -1006,15 +1050,13 @@ public class RolchessV2 : MonoBehaviour
 
     void DrawBonus()
     {
-        if (bonusUsedThisTurn)
+        if (boostOn[current])
         {
-            GUILayout.Label(archerBonusOn ? "Bonus activo: +1 arqueros" : "Bonus activo: +1 soldados");
+            GUILayout.Label($"Refuerzo activo: +{BoostAmount} ataque y +{BoostAmount} defensa a todas tus piezas, hasta tu próximo turno");
             return;
         }
-        if (archerBonus[current] > 0 && GUILayout.Button($"Usar +1 arqueros ({archerBonus[current]})"))
-        { archerBonus[current]--; archerBonusOn = true; bonusUsedThisTurn = true; }
-        if (soldierBonus[current] > 0 && GUILayout.Button($"Usar +1 soldados ({soldierBonus[current]})"))
-        { soldierBonus[current]--; soldierBonusOn = true; bonusUsedThisTurn = true; }
+        if (boostCharges[current] > 0 && GUILayout.Button($"Usar refuerzo +{BoostAmount} ataque / +{BoostAmount} defensa ({boostCharges[current]})"))
+        { boostCharges[current]--; boostOn[current] = true; }
     }
 
     void DrawStats(bool final)
