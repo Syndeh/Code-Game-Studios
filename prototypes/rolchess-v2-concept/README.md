@@ -34,7 +34,7 @@ Comparar: cuadrado vs hexagonal, con vs sin castillos (criterios del CD-PLAYTEST
 | 3, 18 alcance | Zona: cualquier casilla a esa distancia o menos (catapulta 2–6) |
 | catapulta | Dispara a cualquier casilla a su alcance, aunque esté vacía, y daña esa casilla y todas las de alrededor: enemigos, aliados y muros (también los propios) |
 | 4 reclutas | Aparecen del lado que mira al rival (y el error de asimetría de la v1 desaparece) |
-| 5 castillos | En los extremos del tablero; opción de posición al azar: el tablero se divide en 9 sectores como un teclado de teléfono y los castillos (azul y rojo) caen en 4 y 6, 1 y 9, 7 y 3, 7 y 9, 1 y 3, 1 y 7, 3 y 9 o 2 y 8. La formación inicial mira al rival: de arriba hacia abajo cuando los dos castillos comparten columna |
+| 5 castillos | En los extremos del tablero; opción de posición al azar: el tablero se divide en 9 sectores como un teclado de teléfono y los castillos (azul y rojo) caen en 4 y 6, 1 y 9, 7 y 3, 7 y 9, 1 y 3, 1 y 7, 3 y 9 o 2 y 8. La formación inicial mira al rival: de arriba hacia abajo cuando los dos castillos comparten columna, y en diagonal en 1 y 9 y 7 y 3. Sin castillos vale la misma lógica, con los Reyes en esos sectores |
 | 6 Rey | Regla del cuaderno: sale apareciendo al lado / entra donde elijas; ese turno no se mueve más |
 | 7 atravesar | Se atraviesan aliados, nunca enemigos |
 | 9 dado | Dado grande en el centro al tirarlo, efecto en el panel y lista de caras siempre visible |
