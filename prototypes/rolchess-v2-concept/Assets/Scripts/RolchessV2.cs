@@ -167,7 +167,22 @@ public class RolchessV2 : MonoBehaviour
         {
             int x0 = p == 0 ? 0 : W - 5;
             Vector2Int king;
-            if (castles)
+            if (castles && hex)
+            {
+                // Hex castle: the King's 6 neighbours are the interior, the ring at distance 2 is the wall.
+                king = new Vector2Int(x0 + 2, cy);
+                for (int x = 0; x < W; x++)
+                    for (int y = 0; y < H; y++)
+                    {
+                        var v = new Vector2Int(x, y);
+                        int d = Dist(v, king);
+                        if (d > 2) continue;
+                        castleCells[p].Add(v);
+                        if (d == 2) { wallLife[v] = WallLife; wallOwner[v] = p; }
+                        else interior[p].Add(v);
+                    }
+            }
+            else if (castles)
             {
                 for (int x = x0; x < x0 + 5; x++)
                     for (int y = cy - 2; y <= cy + 2; y++)

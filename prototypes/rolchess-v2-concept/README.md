@@ -37,7 +37,7 @@ Comparar: cuadrado vs hexagonal, con vs sin castillos (criterios del CD-PLAYTEST
 | 6 Rey | Regla del cuaderno: sale apareciendo al lado / entra donde elijas; ese turno no se mueve más |
 | 7 atravesar | Se atraviesan aliados, nunca enemigos |
 | 9 dado | Dado grande en el centro al tirarlo, efecto en el panel y lista de caras siempre visible |
-| 11 muro | Solo el borde; 16 tramos de 30 de vida, sin escudo; cualquier pieza enemiga en alcance lo ataca; romper uno abre un hueco |
+| 11 muro | Solo el borde; 16 tramos (12 en hexagonal: el anillo a distancia 2 del Rey) de 30 de vida, sin escudo; cualquier pieza enemiga en alcance lo ataca; romper uno abre un hueco |
 | 12 demoledor | Explota: daña todas las casillas vecinas (aliados y muros incluidos) y muere; la vista previa marca MUERE sobre él |
 | 14 timer | 40 / 60 / 90 s o sin límite; al llegar a 0 se resuelven los ataques asignados y termina el turno |
 | 15 auto | Pasa solo a ataque cuando no quedan movimientos; termina solo cuando no quedan ataques o todos están asignados (2 s de aviso) |
