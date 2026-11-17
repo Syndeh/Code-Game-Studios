@@ -4,7 +4,8 @@
 
 # rolchess-v3-concept
 
-**Status:** in progress
+**Status:** concluded — PROCEED (2026-11-17). Reglas del Modificador cerradas; porcentajes y
+umbrales se ajustan en el MVP. Concepto: `design/gdd/game-concept.md`
 
 Copia de `prototypes/rolchess-v2-concept/` (que queda intacta) con los cambios del jugador del
 2026-11-17. Informe de la v2: `prototypes/rolchess-v2-concept/REPORT.md`.
@@ -84,3 +85,12 @@ Cambios después de la partida 1: probabilidades revisadas y umbrales más cerca
 1; 3/4 y 1/2), sin caras de reclutar con un muro roto, Grito de guerra que se aplica en el mismo
 turno con +2 de movimiento y el ataque en verde, elecciones del modificador en el centro del
 tablero y caras sin número en pantalla.
+
+**Cierre (2026-11-17).** Se cierra con una partida. Lo que buscaba la v3 se cumplió: nadie
+sintió que ganó el dado, los turnos perdidos quedaron por debajo del 20% y hubo remontada.
+Además, a los jugadores nuevos les gustó. Las reglas del Modificador quedan como están. Los
+porcentajes y umbrales (los últimos sin jugar) se ajustan con partidas del MVP. Quedan
+abiertos: la duración (32:45 con jugadores nuevos contra la meta de 15 min), si el líder en
+piezas gana la mayoría y la variante sin castillos.
+
+Veredicto: **PROCEED**. Las reglas pasan a `design/gdd/game-concept.md`.
