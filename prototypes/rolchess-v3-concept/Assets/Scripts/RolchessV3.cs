@@ -2,6 +2,7 @@
 // Question: With the "Modificador" (a 5-face die whose odds depend on how the match is going,
 //           shown before rolling), does the die stop deciding matches while comebacks stay
 //           possible? Also: circular range, split move/attack timer, archers on walls.
+//           2026-11-17 (b): recruit call limits, riders jump enemies, escudero covers an ally.
 // Date: 2026-11-17 (built on rolchess-v2-concept, 2026-11-13)
 //
 // Hotseat 2 players, drawn entirely with IMGUI. Press Play in any scene: it creates itself.
@@ -20,6 +21,10 @@ public class RolchessV3 : MonoBehaviour
     static readonly int[] MoveTime   = { 60, 40 };   // seconds: before / after SlowdownAfter
     static readonly int[] AttackTime = { 30, 20 };
     const int BreachesToLoseRecruit = 1; // recruiting needs every wall standing
+    // Recruit calls per player for the whole match. Llamada al servicio can come up 8 times;
+    // Cuerno de guerra allows 4 calls of each special kind. Once used up, that face drops to 0%.
+    const int MaxCommonCalls = 8;
+    const int MaxSpecialCallsPerKind = 4;
     const float AutoDelay = 2f;
     const float DieOverlayTime = 2.5f;
 
@@ -114,6 +119,10 @@ public class RolchessV3 : MonoBehaviour
     readonly bool[] boostOn = new bool[2];   // Grito de guerra in use: +2 attack, only during that player's turn
     Band rollBand;                           // odds table used for the last roll
     bool recruitSpecial;                     // die 3 = basic troops, die 4 = special pieces
+    readonly int[] commonCalls = new int[2];                       // times Llamada al servicio came up
+    readonly int[,] specialCalls = new int[2, (int)Kind.Rey];      // Cuerno de guerra calls per special kind
+    // Escudero → ally it covers from archer shots during the rival's next turn (notebook rule).
+    readonly Dictionary<Piece, Piece> guards = new Dictionary<Piece, Piece>();
 
     int current;
     Phase phase = Phase.Setup;
@@ -189,7 +198,9 @@ public class RolchessV3 : MonoBehaviour
     {
         W = BoardW; H = BoardH;
         pieces.Clear(); wallLife.Clear(); wallOwner.Clear();
-        for (int p = 0; p < 2; p++) { interior[p].Clear(); castleCells[p].Clear(); breaches[p] = 0; boostCharges[p] = 0; boostOn[p] = false; }
+        for (int p = 0; p < 2; p++) { interior[p].Clear(); castleCells[p].Clear(); breaches[p] = 0; boostCharges[p] = 0; boostOn[p] = false; commonCalls[p] = 0; }
+        System.Array.Clear(specialCalls, 0, specialCalls.Length);
+        guards.Clear();
 
         // The board is split in 9 sectors numbered like a phone keypad (1 top-left ... 9 bottom-right).
         // Without the random option the players sit in 4 and 6. Same logic with or without castles.
@@ -349,9 +360,9 @@ public class RolchessV3 : MonoBehaviour
                     continue;
                 }
                 var o = PieceAt(n);
-                if (o != null && o.owner != p.owner) continue; // enemies block
+                if (o != null && o.owner != p.owner && p.kind != Kind.Jinete) continue; // enemies block, except for riders (they jump over)
                 dist[n] = d + 1;
-                q.Enqueue(n);                                  // allies can be passed through
+                q.Enqueue(n);                                  // allies (and enemies, for riders) can be passed through
                 if (o == null) res.Add(n);                      // but not stopped on
             }
         }
@@ -496,9 +507,33 @@ public class RolchessV3 : MonoBehaviour
             else if (pl.area)
                 // Full damage on the chosen cell, half (rounded down) on the cells around it.
                 foreach (var n in AreaCells(pl.wall)) HitCell(n, n == pl.wall ? AttackValue(a) : AttackValue(a) / 2);
+            else if (!pl.isWall && Guardian(a, pl.target) is Piece g) Accumulate(toPieces, g, AttackValue(a));
             else HitCell(pl.isWall ? pl.wall : pl.target.pos, AttackValue(a));
         }
     }
+
+    // An archer's shot at a covered piece goes to the escudero covering it, if that escudero
+    // is still alive and one cell away. Only archers: soldiers, catapults etc. are not stopped.
+    Piece Guardian(Piece attacker, Piece target)
+    {
+        if (attacker.kind != Kind.Arquero || target == null) return null;
+        foreach (var kv in guards)
+        {
+            var g = kv.Key;
+            if (kv.Value != target || g.owner != target.owner || g.life <= 0 || !pieces.Contains(g)) continue;
+            foreach (var n in Adjacent(g.pos)) if (n == target.pos) return g;
+        }
+        return null;
+    }
+
+    bool CanGuard(Piece e)
+    {
+        if (e.kind != Kind.Escudero) return false;
+        foreach (var n in Adjacent(e.pos)) { var o = PieceAt(n); if (o != null && o.owner == e.owner) return true; }
+        return false;
+    }
+
+    bool RivalHasArchers(int owner) => pieces.Exists(p => p.owner != owner && p.kind == Kind.Arquero);
 
     static void Accumulate<T>(Dictionary<T, int> d, T k, int v)
     {
@@ -515,6 +550,10 @@ public class RolchessV3 : MonoBehaviour
         unlimitedMoves = false;
         boostOn[0] = boostOn[1] = false; // Grito de guerra only lasts the turn it is used in
         foreach (var p in pieces) p.moved = false;
+        // Covers set last turn by this player have lasted through the rival's turn: drop them.
+        var expired = new List<Piece>();
+        foreach (var kv in guards) if (kv.Key.owner == current || !pieces.Contains(kv.Key)) expired.Add(kv.Key);
+        foreach (var g in expired) guards.Remove(g);
         undo.Clear();
         plans.Clear();
         ClearSelection();
@@ -543,18 +582,27 @@ public class RolchessV3 : MonoBehaviour
 
     // A broken wall means no recruiting: faces 3 and 4 drop to 0% and their share is split
     // between Grito de guerra (half, rounded down) and Arremetida (the rest).
+    // Used-up recruit calls do the same with their own face: Llamada al servicio after 8 times,
+    // Cuerno de guerra once every special kind it can still bring has had its 4 calls.
     int[] EffectiveOdds(int owner, Band band)
     {
         var o = new int[5];
         for (int f = 0; f < 5; f++) o[f] = Odds[(int)band, f];
-        if (!CanRecruit(owner))
-        {
-            int freed = o[2] + o[3];
-            o[2] = o[3] = 0;
-            o[1] += freed / 2;
-            o[4] += freed - freed / 2;
-        }
+        bool commonOff = !CanRecruit(owner) || commonCalls[owner] >= MaxCommonCalls;
+        bool specialOff = !CanRecruit(owner) || !SpecialCallsLeft(owner);
+        int freed = (commonOff ? o[2] : 0) + (specialOff ? o[3] : 0);
+        if (commonOff) o[2] = 0;
+        if (specialOff) o[3] = 0;
+        o[1] += freed / 2;
+        o[4] += freed - freed / 2;
         return o;
+    }
+
+    bool SpecialCallsLeft(int owner)
+    {
+        for (int k = 0; k < (int)Kind.Rey; k++)
+            if (IsSpecial((Kind)k) && CanRecruitKind((Kind)k) && specialCalls[owner, k] < MaxSpecialCallsPerKind) return true;
+        return false;
     }
 
     void Roll()
@@ -565,6 +613,7 @@ public class RolchessV3 : MonoBehaviour
         die = 5;
         for (int f = 0; f < 5; f++) { acc += odds[f]; if (r < acc) { die = f + 1; break; } }
         faceCount[die - 1]++;
+        if (die == 3) commonCalls[current]++;   // counts when it comes up, recruited or not
         bandCount[(int)rollBand]++;
         rollLog.Add($"T{turnNumber} {(current == 0 ? "Azul" : "Rojo")} {PieceCount(current)} vs {PieceCount(1 - current)} · {BandNames[(int)rollBand]} → {die} {FaceNames[die - 1]}");
         dieShownAt = Time.realtimeSinceStartup;
@@ -576,8 +625,9 @@ public class RolchessV3 : MonoBehaviour
             case 3:
             case 4:
                 recruitSpecial = die == 4;
-                if (CanRecruit(current)) phase = Phase.Recruit;
-                else { phase = Phase.Move; message = $"{FaceNames[die - 1]}: tu castillo tiene un muro derribado, no puedes reclutar."; }
+                if (!CanRecruit(current)) { phase = Phase.Move; message = $"{FaceNames[die - 1]}: tu castillo tiene un muro derribado, no puedes reclutar."; }
+                else if (!AnyRecruitable()) { phase = Phase.Move; message = $"{FaceNames[die - 1]}: no queda nada que reclutar (topes de piezas o de llamadas)."; }
+                else phase = Phase.Recruit;   // recruiting is mandatory: there is no "don't recruit" option
                 break;
             default: unlimitedMoves = true; phase = Phase.Move; break;   // 5: Arremetida
         }
@@ -603,9 +653,29 @@ public class RolchessV3 : MonoBehaviour
     static bool IsSpecial(Kind k) => k == Kind.Jinete || k == Kind.Catapulta || k == Kind.Demoledor;
     static int RecruitCount(Kind k) => k == Kind.Demoledor ? 1 : k == Kind.Catapulta ? 2 : 4;   // demolishers one at a time, catapults in pairs
 
+    bool RecruitableKind(Kind k)
+    {
+        if (!CanRecruitKind(k) || IsSpecial(k) != recruitSpecial) return false;
+        if (IsSpecial(k) && specialCalls[current, (int)k] >= MaxSpecialCallsPerKind) return false;
+        int alive = 0;
+        foreach (var p in pieces) if (p.owner == current && p.kind == k) alive++;
+        return alive < Limit[(int)k] && SpawnCells(current).Count > 0;
+    }
+
+    bool AnyRecruitable()
+    {
+        for (int k = 0; k < (int)Kind.Rey; k++) if (RecruitableKind((Kind)k)) return true;
+        return false;
+    }
+
     void Recruit(Kind k)
     {
         if (!CanRecruitKind(k) || IsSpecial(k) != recruitSpecial) return;
+        if (IsSpecial(k))
+        {
+            if (specialCalls[current, (int)k] >= MaxSpecialCallsPerKind) return;
+            specialCalls[current, (int)k]++;
+        }
         int alive = 0;
         foreach (var p in pieces) if (p.owner == current && p.kind == k) alive++;
         int n = Mathf.Min(RecruitCount(k), Limit[(int)k] - alive);
@@ -644,7 +714,7 @@ public class RolchessV3 : MonoBehaviour
         {
             var a = kv.Key; var pl = kv.Value;
             IEnumerable<Vector2Int> cells = pl.explode ? Adjacent(a.pos) : pl.area ? AreaCells(pl.wall)
-                                          : new[] { pl.isWall ? pl.wall : pl.target.pos };
+                                          : new[] { pl.isWall ? pl.wall : (Guardian(a, pl.target) ?? pl.target).pos };
             foreach (var c in cells)
             {
                 int v = pl.area && c != pl.wall ? AttackValue(a) / 2 : AttackValue(a);
@@ -757,9 +827,11 @@ public class RolchessV3 : MonoBehaviour
         {
             // Only auto-end when nothing can attack. Assigned attacks wait for the player's
             // "Resolver" button: they may still want to change or drop one.
+            // An escudero that can cover an ally also counts, but only while the rival has archers.
             bool anyAttack = plans.Count > 0;
+            bool guardMatters = RivalHasArchers(current);
             foreach (var p in pieces)
-                if (p.owner == current && HasTargets(p)) { anyAttack = true; break; }
+                if (p.owner == current && (HasTargets(p) || (guardMatters && CanGuard(p) && !guards.ContainsKey(p)))) { anyAttack = true; break; }
             if (!anyAttack) want = AutoAction.ResolveAndEnd;
         }
 
@@ -844,7 +916,16 @@ public class RolchessV3 : MonoBehaviour
                 if (cell == selected.pos)
                 {
                     if (selected.kind == Kind.Demoledor && !plans.ContainsKey(selected)) plans[selected] = new Plan { explode = true };
-                    else plans.Remove(selected);
+                    else { plans.Remove(selected); guards.Remove(selected); }
+                    ClearSelection();
+                    return;
+                }
+                // Escudero → an ally one cell away: cover it from archers during the rival's turn.
+                // It replaces the escudero's attack this turn.
+                if (selected.kind == Kind.Escudero && p != null && p.owner == current && p != selected && IsAdjacent(selected.pos, cell))
+                {
+                    plans.Remove(selected);
+                    guards[selected] = p;
                     ClearSelection();
                     return;
                 }
@@ -852,17 +933,24 @@ public class RolchessV3 : MonoBehaviour
                 {
                     plans[selected] = selected.kind == Kind.Catapulta ? new Plan { area = true, wall = cell }
                                     : p != null ? new Plan { target = p } : new Plan { isWall = true, wall = cell };
+                    guards.Remove(selected);
                     ClearSelection();
                     return;
                 }
             }
-            if (p != null && p.owner == current && (HasTargets(p) || plans.ContainsKey(p)))
+            if (p != null && p.owner == current && (HasTargets(p) || plans.ContainsKey(p) || CanGuard(p) || guards.ContainsKey(p)))
             {
                 ClearSelection();
                 selected = p;
             }
             else ClearSelection();
         }
+    }
+
+    bool IsAdjacent(Vector2Int a, Vector2Int b)
+    {
+        foreach (var n in Adjacent(a)) if (n == b) return true;
+        return false;
     }
 
     void DoMove(Piece piece, Vector2Int to, bool counted)
@@ -1050,6 +1138,10 @@ public class RolchessV3 : MonoBehaviour
                         if (IsValidTarget(selected, new Vector2Int(x, y))) targetCells.Add(new Vector2Int(x, y));
             if (selected.kind == Kind.Demoledor) foreach (var n in Adjacent(selected.pos)) targetCells.Add(n);
         }
+        // Allies a selected escudero can cover (light blue).
+        var guardCells = new HashSet<Vector2Int>();
+        if (phase == Phase.Attack && selected != null && selected.kind == Kind.Escudero)
+            foreach (var n in Adjacent(selected.pos)) { var o = PieceAt(n); if (o != null && o.owner == selected.owner) guardCells.Add(n); }
 
         for (int x = 0; x < W; x++)
             for (int y = 0; y < H; y++)
@@ -1087,8 +1179,9 @@ public class RolchessV3 : MonoBehaviour
         {
             var r = CellRect(p.pos);
             if (p == selected) Tile(p.pos, new Color(1f, 0.85f, 0.2f));
+            else if (guardCells.Contains(p.pos)) Tile(p.pos, new Color(0.30f, 0.85f, 1f));
             else if (plans.ContainsKey(p)) Tile(p.pos, new Color(1f, 0.55f, 0.1f));
-            else if (phase == Phase.Attack && p.owner == current && HasTargets(p)) Tile(p.pos, new Color(1f, 1f, 1f, 0.55f));
+            else if (phase == Phase.Attack && p.owner == current && (HasTargets(p) || CanGuard(p))) Tile(p.pos, new Color(1f, 1f, 1f, 0.55f));
 
             float ins = cs * (hex ? 0.05f : 0.06f), insX = hex ? ins * 1.1547f : ins;
             var inner = new Rect(r.x + insX, r.y + ins, r.width - insX * 2, r.height - ins * 2);
@@ -1121,6 +1214,17 @@ public class RolchessV3 : MonoBehaviour
                 GUI.Label(sr, txt, statStyle);
                 GUI.contentColor = oldCol;
             }
+        }
+
+        // Covers: a thick light-blue bar from the escudero to the ally, and a CUBRE tag on the ally.
+        foreach (var kv in guards)
+        {
+            if (!pieces.Contains(kv.Key) || !pieces.Contains(kv.Value)) continue;
+            Line(Center(kv.Key.pos), Center(kv.Value.pos), new Color(0.30f, 0.85f, 1f, 0.9f), 5f);
+            var r = CellRect(kv.Value.pos);
+            var tag = new Rect(r.x, r.y - cs * 0.02f, r.width, cs * 0.24f);
+            Fill(tag, new Color(0.05f, 0.25f, 0.35f, 0.9f));
+            Text(tag, $"<size={FontSize(6f)}>CUBIERTO</size>");
         }
 
         foreach (var kv in plans)
@@ -1212,18 +1316,20 @@ public class RolchessV3 : MonoBehaviour
         }
         else
         {
-            GUILayout.Label("¿Qué reclutas? (aparecen del lado que mira al rival)", centerWrapStyle);
+            GUILayout.Label(recruitSpecial
+                ? "¿Qué reclutas? (aparecen del lado que mira al rival; cada tipo se puede llamar 4 veces)"
+                : $"¿Qué reclutas? (aparecen del lado que mira al rival; Llamada al servicio {commonCalls[current]}/{MaxCommonCalls})", centerWrapStyle);
             for (int k = 0; k < 6; k++)
             {
                 if (IsSpecial((Kind)k) != recruitSpecial) continue;
                 int alive = 0;
                 foreach (var p in pieces) if (p.owner == current && p.kind == (Kind)k) alive++;
                 bool allowed = CanRecruitKind((Kind)k);
-                GUI.enabled = allowed && alive < Limit[k];
-                if (GUILayout.Button(allowed ? $"{RecruitCount((Kind)k)} {Names[k]} ({alive}/{Limit[k]})" : $"{Names[k]} (solo con castillos)", GUILayout.Height(34))) Recruit((Kind)k);
+                string calls = IsSpecial((Kind)k) ? $" · llamadas {specialCalls[current, k]}/{MaxSpecialCallsPerKind}" : "";
+                GUI.enabled = RecruitableKind((Kind)k);
+                if (GUILayout.Button(allowed ? $"{RecruitCount((Kind)k)} {Names[k]} ({alive}/{Limit[k]}{calls})" : $"{Names[k]} (solo con castillos)", GUILayout.Height(34))) Recruit((Kind)k);
                 GUI.enabled = true;
             }
-            if (GUILayout.Button("No reclutar", GUILayout.Height(30))) phase = Phase.Move;
         }
         GUILayout.EndArea();
     }
@@ -1296,8 +1402,10 @@ public class RolchessV3 : MonoBehaviour
                 GUILayout.Label("<b>ATACAR</b>: asigna los ataques; se resuelven juntos cuando pulses Resolver.", richStyle);
                 GUILayout.Label("<size=11>Clic en tu pieza (resaltada) → clic en su objetivo naranja. Clic de nuevo en la pieza para quitar su flecha. Demoledor: clic en él mismo para que explote (muere al atacar). Catapulta: clic en cualquier casilla a su alcance; daño completo en esa casilla y la mitad en todas las de alrededor, aliados incluidos.</size>", richStyle);
                 DrawBonus();
-                GUILayout.Label($"Ataques asignados: {plans.Count}");
-                if (GUILayout.Button("Quitar todas las flechas")) { plans.Clear(); ClearSelection(); }
+                GUILayout.Label("<size=11>Escudero: clic en él y luego en un aliado a un cuadro (celeste) para cubrirlo de los arqueros durante el turno rival; en lugar de atacar. Él recibe esos disparos.</size>", richStyle);
+                int myGuards = 0; foreach (var kv in guards) if (kv.Key.owner == current) myGuards++;
+                GUILayout.Label($"Ataques asignados: {plans.Count} · coberturas: {myGuards}");
+                if (GUILayout.Button("Quitar todas las flechas")) { plans.Clear(); RemoveGuardsOf(current); ClearSelection(); }
                 if (GUILayout.Button("Resolver ataques y terminar turno", GUILayout.Height(34)))
                 {
                     ResolveAll();
@@ -1330,6 +1438,13 @@ public class RolchessV3 : MonoBehaviour
         GUILayout.EndArea();
     }
 
+    void RemoveGuardsOf(int owner)
+    {
+        var mine = new List<Piece>();
+        foreach (var kv in guards) if (kv.Key.owner == owner) mine.Add(kv.Key);
+        foreach (var g in mine) guards.Remove(g);
+    }
+
     void DrawBonus()
     {
         if (boostOn[current])
@@ -1348,7 +1463,10 @@ public class RolchessV3 : MonoBehaviour
             var parts = new List<string>();
             for (int f = 0; f < 5; f++) parts.Add($"{FaceNames[f]} {odds[f]}%");
             string noRecruit = CanRecruit(p) ? "" : " · muro roto: sin reclutas";
-            GUILayout.Label($"<size=12>{who} ({PieceCount(p)} piezas vs {PieceCount(1 - p)}) · {BandNames[(int)band]}{noRecruit}\n{string.Join(" · ", parts)}</size>", richStyle);
+            string calls = $"Llamadas: comunes {commonCalls[p]}/{MaxCommonCalls} · J {specialCalls[p, (int)Kind.Jinete]}/{MaxSpecialCallsPerKind}" +
+                           $" · C {specialCalls[p, (int)Kind.Catapulta]}/{MaxSpecialCallsPerKind}" +
+                           (castles ? $" · D {specialCalls[p, (int)Kind.Demoledor]}/{MaxSpecialCallsPerKind}" : "");
+            GUILayout.Label($"<size=12>{who} ({PieceCount(p)} piezas vs {PieceCount(1 - p)}) · {BandNames[(int)band]}{noRecruit}\n{string.Join(" · ", parts)}\n{calls}</size>", richStyle);
         }
         for (int f = 1; f <= 5; f++) GUILayout.Label($"<size=11>{FaceLine(f)}</size>", richStyle);
     }

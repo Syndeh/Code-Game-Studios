@@ -72,7 +72,9 @@ Este concepto reemplaza al cuaderno donde no coinciden. Cada regla se detalla en
 | Tablero | Cuadrado, 24 × 15 (pensado para 16:9). Hexagonal descartado por ahora | v2 |
 | Ejército inicial | 4 soldados, 4 arqueros, 4 escuderos y el Rey; en 3 columnas de 4 (arqueros atrás, escuderos al frente), mirando al rival | cuaderno + v2 |
 | Turno | Modificador (automático) → mover hasta 12 piezas más el Rey → asignar ataques → resolver | cuaderno + v2 + v3 |
-| Movimiento | En cruz en el tablero cuadrado; se atraviesan aliados, nunca enemigos; se puede deshacer el último movimiento | v1 notas 1 y 7 (cruz: supuesto del prototipo) |
+| Movimiento | En cruz en el tablero cuadrado; se atraviesan aliados, nunca enemigos (salvo el jinete); se puede deshacer el último movimiento | v1 notas 1 y 7 (cruz: supuesto del prototipo) |
+| Jinete | Pasa por encima de los enemigos: no lo bloquean, pero no termina el movimiento sobre ellos. Los muros sí lo frenan | jugador 2026-11-17 (v3, sin jugar) |
+| Escudero | En la fase de ataque, en lugar de atacar, puede cubrir a un aliado a un cuadro (las 8 vecinas). Durante el turno rival, los ataques de **arqueros** a ese aliado los recibe el escudero (menos su escudo); el resto de los ataques no. Dura hasta el siguiente turno propio | cuaderno + jugador 2026-11-17 (v3, sin jugar) |
 | Alcance | Circular: una casilla está en alcance si dx² + dy² ≤ alcance² + 1 (con 6, hasta 37). Catapulta 2–6: no alcanza las 8 vecinas. Las piezas de alcance 1 atacan a las 8 vecinas | v1 notas 3 y 18 + v3 |
 | Ataques | Se asignan con flechas y se resuelven todos juntos; el daño se suma por objetivo y el escudo se resta una vez; vista previa del resultado antes de resolver | v1 notas 2, 8 y 10 |
 | Catapulta | Dispara a cualquier casilla en alcance: daño completo ahí y la mitad (hacia abajo) alrededor, a enemigos, aliados y muros | v2 |
@@ -80,9 +82,10 @@ Este concepto reemplaza al cuaderno donde no coinciden. Cada regla se detalla en
 | Castillo | Muro perimetral de 5 × 5; 16 tramos de 30 de vida sin escudo; cualquier pieza enemiga en alcance lo ataca; un tramo roto abre un hueco y ese castillo deja de reclutar | v1 nota 11 + v2 |
 | Arqueros en el muro | Un arquero puede subir a un tramo libre de su propio muro (uno por tramo; el muro no se atraviesa). Arriba tiene +2 de escudo. El daño a esa casilla lo reciben el arquero (menos su escudo) y el muro (completo); si el muro se rompe, el arquero queda en el hueco | v3 |
 | Rey | Vida 30. Entra y sale del castillo con la regla del cuaderno (ese turno no se mueve más); al seleccionarlo se marcan las casillas de salida o de entrada. Muere el Rey, termina la partida | cuaderno + v3 |
-| Reclutas | Aparecen del lado del castillo que mira al rival | v1 nota 4 |
+| Reclutas | Aparecen del lado del castillo que mira al rival. Reclutar es obligatorio cuando sale la cara (no hay "no reclutar"); si no queda nada disponible, se pasa a mover | v1 nota 4 + jugador 2026-11-17 |
+| Límite de reclutas | Por jugador y por partida. **Llamada al servicio** sale como mucho 8 veces. **Cuerno de guerra**: 4 llamadas por tipo (jinetes 4, catapultas 4, demoledores 4). Se mantienen los topes de piezas vivas (12/16/12/8/8/4) | jugador 2026-11-17 (v3, sin jugar) |
 | Modificador (el dado) | 5 caras; en pantalla se ve solo el nombre. **Distracción**: perdés el turno · **Grito de guerra**: +2 de ataque y +2 de movimiento a todas tus piezas en ese turno, no se acumula · **Llamada al servicio**: reclutás 4 soldados, arqueros o escuderos · **Cuerno de guerra**: reclutás 4 jinetes, 2 catapultas o 1 demoledor · **Arremetida**: movés todas las piezas que quieras. Las elecciones aparecen en el centro del tablero | v2 + v3 |
-| Probabilidades del Modificador | Al empezar su turno, antes de tirar, se comparan las piezas vivas del jugador (Rey incluido, muros no) con las del rival. Normal 20/20/20/20/20 · Pierde con 3/4 o menos 20/20/25/20/15 · Pierde con 1/2 o menos 15/20/25/25/15 · Gana 4 a 3 o más 20/25/15/20/20 · Gana 2 a 1 o más 20/25/15/15/25. Con un muro roto, las dos caras de reclutar bajan a 0% y su parte va mitad a Grito de guerra y el resto a Arremetida. Las de los dos jugadores se ven siempre en pantalla. Valores provisionales: se ajustan en el MVP | v3 |
+| Probabilidades del Modificador | Al empezar su turno, antes de tirar, se comparan las piezas vivas del jugador (Rey incluido, muros no) con las del rival. Normal 20/20/20/20/20 · Pierde con 3/4 o menos 20/20/25/20/15 · Pierde con 1/2 o menos 15/20/25/25/15 · Gana 4 a 3 o más 20/25/15/20/20 · Gana 2 a 1 o más 20/25/15/15/25. Con un muro roto, las dos caras de reclutar bajan a 0% y su parte va mitad a Grito de guerra y el resto a Arremetida. Lo mismo con cada cara de reclutar agotada: Llamada al servicio después de 8 veces, y Cuerno de guerra cuando ningún tipo especial tiene llamadas (sin castillos, los demoledores no cuentan). Las de los dos jugadores se ven siempre en pantalla. Valores provisionales: se ajustan en el MVP | v3 |
 | Timer | Por etapas: 60 s para mover (reclutar incluido) y 30 para atacar; desde el minuto 10 de partida, 40 + 20. Se acaba el de mover → pasa a atacar; se acaba el de atacar → se resuelven los ataques asignados y termina el turno. El turno también termina solo si no quedan acciones | v1 notas 14 y 15 + v3 |
 | Variante sin castillos | Rey atrás, reclutas a su alrededor, sin demoledores. Se mantiene como opción; sin probar | v1 nota 16 |
 | Estadísticas | Tabla grande del cuaderno con demoledor de ataque 30; se ven ataque, escudo y vida en cada pieza | cuaderno + v1 nota 19 |
@@ -90,7 +93,8 @@ Este concepto reemplaza al cuaderno donde no coinciden. Cada regla se detalla en
 **Modificador: reglas decididas, números provisionales.** La v3 implementó el rumbo acordado
 después de la v2: las probabilidades se adaptan a cómo va la partida (con menos piezas, más
 chances de reclutar), se ven antes de tirar y ninguna cara cae sin sentido (sin muros no salen
-las caras de reclutar; el Grito de guerra se usa en el mismo turno). Distracción (perder el
+las caras de reclutar, ni las que ya agotaron sus llamadas; el Grito de guerra se usa en el
+mismo turno). Distracción (perder el
 turno) sigue por decisión del jugador; el director creativo la marcó en contra de los pilares
 1 y 3. En la primera partida de la v3 salió en el 19% de las tiradas y nadie sintió que el dado
 decidiera. Porcentajes y umbrales se ajustan con partidas del MVP; se documentan en

@@ -5,7 +5,9 @@
 # rolchess-v3-concept
 
 **Status:** concluded — PROCEED (2026-11-17). Reglas del Modificador cerradas; porcentajes y
-umbrales se ajustan en el MVP. Concepto: `design/gdd/game-concept.md`
+umbrales se ajustan en el MVP. Concepto: `design/gdd/game-concept.md`. Después del cierre se
+agregaron, a pedido del jugador y todavía sin jugar: límite de llamadas de reclutamiento,
+jinete que salta enemigos y escudero que cubre de los arqueros.
 
 Copia de `prototypes/rolchess-v2-concept/` (que queda intacta) con los cambios del jugador del
 2026-11-17. Informe de la v2: `prototypes/rolchess-v2-concept/REPORT.md`.
@@ -45,14 +47,24 @@ Comparar también: con y sin castillos (pendiente desde la v2).
 | Alcance circular | Una casilla está en alcance si dx² + dy² ≤ alcance² + 1 (con 6, hasta 37). La catapulta no alcanza las 8 vecinas. Las piezas de alcance 1 siguen igual |
 | Rey | Al seleccionarlo se marcan en celeste las casillas para salir del castillo (o entrar), sin botón. Ese turno no se mueve más |
 | Arqueros en el muro | Un arquero puede moverse a un tramo libre de su propio muro (un arquero por tramo; el muro no se atraviesa). Arriba tiene +2 de defensa. El daño a esa casilla lo reciben el arquero (menos su defensa) y el muro (completo). Si el muro se rompe, el arquero queda en el hueco |
+| Límite de reclutas (2026-11-17) | Por jugador y por partida. **Llamada al servicio** puede salir 8 veces; después baja a 0%. **Cuerno de guerra**: cada tipo especial se puede llamar 4 veces (jinetes 4, catapultas 4, demoledores 4); cuando ya no queda ningún tipo con llamadas, baja a 0%. El porcentaje liberado va como con el muro roto: la mitad a Grito de guerra y el resto a Arremetida. Las llamadas usadas se ven en el panel de información y en los botones de reclutar |
+| Jinete (2026-11-17) | Pasa por encima de los enemigos: no lo bloquean, pero no puede terminar sobre ellos. Los muros sí lo frenan |
+| Escudero (2026-11-17) | En la fase de ataque, en lugar de atacar, puede cubrir a un aliado a un cuadro: clic en el escudero y luego en el aliado (celeste). Durante el turno rival, los disparos de **arqueros** a ese aliado los recibe el escudero (con su defensa); el resto de los ataques no. Una barra celeste y la etiqueta CUBIERTO lo marcan. Dura hasta que empieza tu siguiente turno. Regla del cuaderno |
 | Medición | Turnos perdidos sobre tiradas, conteo de cada cara y de cada tabla, tiempo agotado al mover y al atacar, y registro de cada tirada en la consola |
 
 **Supuestos del prototipo** (no los dijo el jugador): para elegir la tabla se cuentan todas las
 piezas vivas, Rey incluido; el arquero en el muro resta su defensa y el muro recibe el daño
 completo; las cinco tablas suman 100%.
+Para los cambios del 2026-11-17 (b): reclutar es obligatorio (se quitó "No reclutar"); si no
+queda ningún tipo disponible (topes de piezas o de llamadas, o sin lugar), el turno pasa a mover
+con un aviso; una Llamada al servicio cuenta al salir; una llamada de Cuerno de guerra cuenta
+para el tipo que reclutas; sin castillos los demoledores no cuentan para agotar el Cuerno; siguen valiendo los
+topes de piezas vivas (12/16/12/8/8/4); el escudero cubre a un aliado en las 8 casillas vecinas
+y, si cubre, ese turno no ataca; mientras el rival tenga arqueros, un escudero que puede cubrir
+evita que el turno termine solo.
 De la v2 siguen: movimiento en cruz, solo se atacan muros enemigos.
 
-**Fuera:** escudero que cubre de flechas, torres, tirada para ver quién empieza, tablero
+**Fuera:** torres, tirada para ver quién empieza, tablero
 hexagonal (oculto).
 
 ## Findings
