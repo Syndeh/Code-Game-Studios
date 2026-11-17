@@ -493,30 +493,30 @@ public class RolchessV3 : MonoBehaviour
     // segment under it both take it (the archer subtracts its shield, the wall has none).
     void IncomingDamage(Dictionary<Piece, int> toPieces, Dictionary<Vector2Int, int> toWalls)
     {
-        void HitCell(Vector2Int cell, int v)
+        void HitCell(Piece a, Vector2Int cell, int v)
         {
             var o = PieceAt(cell);
-            if (o != null) Accumulate(toPieces, o, v);
+            if (o != null) Accumulate(toPieces, Guardian(a, o) ?? o, v);   // a covered piece passes it to its escudero
             if (IsWall(cell)) Accumulate(toWalls, cell, v);
         }
         foreach (var kv in plans)
         {
             var a = kv.Key; var pl = kv.Value;
             if (pl.explode)
-                foreach (var n in Adjacent(a.pos)) HitCell(n, AttackValue(a));
+                foreach (var n in Adjacent(a.pos)) HitCell(a, n, AttackValue(a));
             else if (pl.area)
                 // Full damage on the chosen cell, half (rounded down) on the cells around it.
-                foreach (var n in AreaCells(pl.wall)) HitCell(n, n == pl.wall ? AttackValue(a) : AttackValue(a) / 2);
-            else if (!pl.isWall && Guardian(a, pl.target) is Piece g) Accumulate(toPieces, g, AttackValue(a));
-            else HitCell(pl.isWall ? pl.wall : pl.target.pos, AttackValue(a));
+                foreach (var n in AreaCells(pl.wall)) HitCell(a, n, n == pl.wall ? AttackValue(a) : AttackValue(a) / 2);
+            else HitCell(a, pl.isWall ? pl.wall : pl.target.pos, AttackValue(a));
         }
     }
 
-    // An archer's shot at a covered piece goes to the escudero covering it, if that escudero
-    // is still alive and one cell away. Only archers: soldiers, catapults etc. are not stopped.
+    // Any enemy attack on a covered piece goes to the escudero covering it, if that escudero is
+    // still alive and one cell away (2026-11-17: every piece, not only archers; area and
+    // explosion damage included). Friendly fire (own catapult or demolisher) is not covered.
     Piece Guardian(Piece attacker, Piece target)
     {
-        if (attacker.kind != Kind.Arquero || target == null) return null;
+        if (target == null || attacker.owner == target.owner) return null;
         foreach (var kv in guards)
         {
             var g = kv.Key;
@@ -533,7 +533,6 @@ public class RolchessV3 : MonoBehaviour
         return false;
     }
 
-    bool RivalHasArchers(int owner) => pieces.Exists(p => p.owner != owner && p.kind == Kind.Arquero);
 
     static void Accumulate<T>(Dictionary<T, int> d, T k, int v)
     {
@@ -714,11 +713,12 @@ public class RolchessV3 : MonoBehaviour
         {
             var a = kv.Key; var pl = kv.Value;
             IEnumerable<Vector2Int> cells = pl.explode ? Adjacent(a.pos) : pl.area ? AreaCells(pl.wall)
-                                          : new[] { pl.isWall ? pl.wall : (Guardian(a, pl.target) ?? pl.target).pos };
+                                          : new[] { pl.isWall ? pl.wall : pl.target.pos };
             foreach (var c in cells)
             {
                 int v = pl.area && c != pl.wall ? AttackValue(a) / 2 : AttackValue(a);
                 var o = PieceAt(c);
+                if (o != null) o = Guardian(a, o) ?? o;
                 object key = o != null && o.owner != a.owner ? o : IsWall(c) && wallOwner[c] != a.owner ? (object)c : null;
                 if (key == null) continue;
                 if (!hits.TryGetValue(key, out var list)) hits[key] = list = new List<int>();
@@ -827,11 +827,10 @@ public class RolchessV3 : MonoBehaviour
         {
             // Only auto-end when nothing can attack. Assigned attacks wait for the player's
             // "Resolver" button: they may still want to change or drop one.
-            // An escudero that can cover an ally also counts, but only while the rival has archers.
+            // An escudero that can still cover an ally also counts as a possible action.
             bool anyAttack = plans.Count > 0;
-            bool guardMatters = RivalHasArchers(current);
             foreach (var p in pieces)
-                if (p.owner == current && (HasTargets(p) || (guardMatters && CanGuard(p) && !guards.ContainsKey(p)))) { anyAttack = true; break; }
+                if (p.owner == current && (HasTargets(p) || (CanGuard(p) && !guards.ContainsKey(p)))) { anyAttack = true; break; }
             if (!anyAttack) want = AutoAction.ResolveAndEnd;
         }
 
@@ -1402,7 +1401,7 @@ public class RolchessV3 : MonoBehaviour
                 GUILayout.Label("<b>ATACAR</b>: asigna los ataques; se resuelven juntos cuando pulses Resolver.", richStyle);
                 GUILayout.Label("<size=11>Clic en tu pieza (resaltada) → clic en su objetivo naranja. Clic de nuevo en la pieza para quitar su flecha. Demoledor: clic en él mismo para que explote (muere al atacar). Catapulta: clic en cualquier casilla a su alcance; daño completo en esa casilla y la mitad en todas las de alrededor, aliados incluidos.</size>", richStyle);
                 DrawBonus();
-                GUILayout.Label("<size=11>Escudero: clic en él y luego en un aliado a un cuadro (celeste) para cubrirlo de los arqueros durante el turno rival; en lugar de atacar. Él recibe esos disparos.</size>", richStyle);
+                GUILayout.Label("<size=11>Escudero: clic en él y luego en un aliado a un cuadro (celeste) para cubrirlo durante el turno rival; en lugar de atacar. Él recibe todos los ataques enemigos a ese aliado.</size>", richStyle);
                 int myGuards = 0; foreach (var kv in guards) if (kv.Key.owner == current) myGuards++;
                 GUILayout.Label($"Ataques asignados: {plans.Count} · coberturas: {myGuards}");
                 if (GUILayout.Button("Quitar todas las flechas")) { plans.Clear(); RemoveGuardsOf(current); ClearSelection(); }

@@ -49,7 +49,7 @@ Comparar también: con y sin castillos (pendiente desde la v2).
 | Arqueros en el muro | Un arquero puede moverse a un tramo libre de su propio muro (un arquero por tramo; el muro no se atraviesa). Arriba tiene +2 de defensa. El daño a esa casilla lo reciben el arquero (menos su defensa) y el muro (completo). Si el muro se rompe, el arquero queda en el hueco |
 | Límite de reclutas (2026-11-17) | Por jugador y por partida. **Llamada al servicio** puede salir 8 veces; después baja a 0%. **Cuerno de guerra**: cada tipo especial se puede llamar 4 veces (jinetes 4, catapultas 4, demoledores 4); cuando ya no queda ningún tipo con llamadas, baja a 0%. El porcentaje liberado va como con el muro roto: la mitad a Grito de guerra y el resto a Arremetida. Las llamadas usadas se ven en el panel de información y en los botones de reclutar |
 | Jinete (2026-11-17) | Pasa por encima de los enemigos: no lo bloquean, pero no puede terminar sobre ellos. Los muros sí lo frenan |
-| Escudero (2026-11-17) | En la fase de ataque, en lugar de atacar, puede cubrir a un aliado a un cuadro: clic en el escudero y luego en el aliado (celeste). Durante el turno rival, los disparos de **arqueros** a ese aliado los recibe el escudero (con su defensa); el resto de los ataques no. Una barra celeste y la etiqueta CUBIERTO lo marcan. Dura hasta que empieza tu siguiente turno. Regla del cuaderno |
+| Escudero (2026-11-17) | En la fase de ataque, en lugar de atacar, puede cubrir a un aliado a un cuadro: clic en el escudero y luego en el aliado (celeste). Durante el turno rival, **todos** los ataques enemigos a ese aliado los recibe el escudero (con su defensa), también el área de la catapulta y la explosión del demoledor; el fuego propio no. Una barra celeste y la etiqueta CUBIERTO lo marcan. Dura hasta que empieza tu siguiente turno. Basado en el cuaderno (que lo limitaba a los arqueros); ampliado por el jugador |
 | Vidas (2026-11-17) | Se invierten: arquero 15 (antes 20), escudero 20 (antes 15) |
 | Medición | Turnos perdidos sobre tiradas, conteo de cada cara y de cada tabla, tiempo agotado al mover y al atacar, y registro de cada tirada en la consola |
 
@@ -61,8 +61,9 @@ queda ningún tipo disponible (topes de piezas o de llamadas, o sin lugar), el t
 con un aviso; una Llamada al servicio cuenta al salir; una llamada de Cuerno de guerra cuenta
 para el tipo que reclutas; sin castillos los demoledores no cuentan para agotar el Cuerno; siguen valiendo los
 topes de piezas vivas (12/16/12/8/8/4); el escudero cubre a un aliado en las 8 casillas vecinas
-y, si cubre, ese turno no ataca; mientras el rival tenga arqueros, un escudero que puede cubrir
-evita que el turno termine solo.
+y, si cubre, ese turno no ataca; un escudero que todavía puede cubrir evita que el turno
+termine solo; si la catapulta o el demoledor alcanzan al escudero y al aliado cubierto, el
+escudero recibe los dos golpes.
 De la v2 siguen: movimiento en cruz, solo se atacan muros enemigos.
 
 **Fuera:** torres, tirada para ver quién empieza, tablero
