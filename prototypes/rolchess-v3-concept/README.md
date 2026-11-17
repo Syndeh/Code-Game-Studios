@@ -50,6 +50,7 @@ Comparar también: con y sin castillos (pendiente desde la v2).
 | Límite de reclutas (2026-11-17) | Por jugador y por partida. **Llamada al servicio** puede salir 8 veces; después baja a 0%. **Cuerno de guerra**: cada tipo especial se puede llamar 4 veces (jinetes 4, catapultas 4, demoledores 4); cuando ya no queda ningún tipo con llamadas, baja a 0%. El porcentaje liberado va como con el muro roto: la mitad a Grito de guerra y el resto a Arremetida. Las llamadas usadas se ven en el panel de información y en los botones de reclutar |
 | Jinete (2026-11-17) | Pasa por encima de los enemigos: no lo bloquean, pero no puede terminar sobre ellos. Los muros sí lo frenan |
 | Escudero (2026-11-17) | En la fase de ataque, en lugar de atacar, puede cubrir a un aliado a un cuadro: clic en el escudero y luego en el aliado (celeste). Durante el turno rival, los disparos de **arqueros** a ese aliado los recibe el escudero (con su defensa); el resto de los ataques no. Una barra celeste y la etiqueta CUBIERTO lo marcan. Dura hasta que empieza tu siguiente turno. Regla del cuaderno |
+| Vidas (2026-11-17) | Se invierten: arquero 15 (antes 20), escudero 20 (antes 15) |
 | Medición | Turnos perdidos sobre tiradas, conteo de cada cara y de cada tabla, tiempo agotado al mover y al atacar, y registro de cada tirada en la consola |
 
 **Supuestos del prototipo** (no los dijo el jugador): para elegir la tabla se cuentan todas las

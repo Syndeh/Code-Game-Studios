@@ -37,7 +37,7 @@ public class RolchessV3 : MonoBehaviour
     static readonly int[] RMax   = { 1, 6, 1, 6, 1, 1, 1 };
     static readonly int[] Atk    = { 8, 6, 4, 10, 8, 30, 8 };
     static readonly int[] Shield = { 2, 2, 5, 3, 3, 1, 5 };
-    static readonly int[] Life   = { 25, 20, 15, 15, 20, 10, 30 };
+    static readonly int[] Life   = { 25, 15, 20, 15, 20, 10, 30 };   // 2026-11-17: archer 15, escudero 20 (swapped)
     static readonly int[] Limit  = { 12, 16, 12, 8, 8, 4, 1 };
 
     // The "Modificador": a 5-face die rolled automatically at the start of each turn.
