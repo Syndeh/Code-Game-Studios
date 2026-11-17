@@ -36,9 +36,10 @@ Comparar también: con y sin castillos (pendiente desde la v2).
 
 | Tema | En la v3 |
 |---|---|
-| Dado → **Modificador** | 5 caras: 1 Distracción (pierdes el turno) · 2 Grito de guerra (+1 carga, hasta 4; al usarla, +2 de ataque a todas tus piezas en ese turno) · 3 Llamada al servicio (reclutas 4 soldados, arqueros o escuderos) · 4 Cuerno de guerra (4 jinetes, 2 catapultas o 1 demoledor) · 5 Arremetida (mueves todas las piezas) |
-| Probabilidades | Según tus piezas comparadas con las del rival, Rey incluido y muros no: Normal 20/20/20/20/20 · Pierde con 2/3 o menos 20/20/25/20/15 · Pierde con 1/3 o menos 15/20/25/25/15 · Gana con 3/2 o más 20/25/15/20/20 · Gana con 3/1 o más 20/25/15/15/25 (revisadas el 2026-11-17, antes de jugar). Las de los dos jugadores se ven siempre en el panel de información |
-| Grito de guerra | Ya no da defensa y dura solo el turno en que se usa (en la v2: +2 ataque y +2 defensa hasta el turno siguiente) |
+| Dado → **Modificador** | 5 caras: 1 Distracción (pierdes el turno) · 2 Grito de guerra (+2 de ataque y +2 de movimiento a todas tus piezas en ese mismo turno; no se acumula) · 3 Llamada al servicio (reclutas 4 soldados, arqueros o escuderos) · 4 Cuerno de guerra (4 jinetes, 2 catapultas o 1 demoledor) · 5 Arremetida (mueves todas las piezas) |
+| Probabilidades | Según tus piezas comparadas con las del rival, Rey incluido y muros no: Normal 20/20/20/20/20 · Pierde con 3/4 o menos 20/20/25/20/15 · Pierde con 1/2 o menos 15/20/25/25/15 · Gana 4 a 3 o más 20/25/15/20/20 · Gana 2 a 1 o más 20/25/15/15/25. Se evalúa para cada jugador al empezar su turno, antes de tirar. Con un muro roto no puede reclutar: Llamada al servicio y Cuerno de guerra bajan a 0% y su parte se reparte entre Grito de guerra (la mitad, redondeada hacia abajo) y Arremetida (el resto). Las de los dos jugadores se ven siempre en el panel de información. Probabilidades y umbrales revisados después de la partida 1 (antes: 2/3, 1/3, 3/2 y 3/1) |
+| Pantalla | Los números de las caras son internos: el juego muestra solo el nombre del modificador. Las elecciones del modificador (qué reclutar, pasar el turno) aparecen en un recuadro en el centro del tablero |
+| Grito de guerra | Se aplica solo en el turno en que sale: +2 de ataque y +2 de movimiento, sin cargas ni botón; el ataque de cada ficha se ve en verde (en la v2: carga de hasta 4, +2 ataque y +2 defensa hasta el turno siguiente). Cambiado después de la partida 1 |
 | Timer | 60 s para mover + 30 s para atacar; desde el minuto 10 de partida, 40 + 20. Se acaba el de mover → pasa a atacar. Se acaba el de atacar → se resuelven los ataques asignados y termina el turno. Reclutar cuenta como tiempo de mover. Opción "Sin límite" |
 | Alcance circular | Una casilla está en alcance si dx² + dy² ≤ alcance² + 1 (con 6, hasta 37). La catapulta no alcanza las 8 vecinas. Las piezas de alcance 1 siguen igual |
 | Rey | Al seleccionarlo se marcan en celeste las casillas para salir del castillo (o entrar), sin botón. Ese turno no se mueve más |
@@ -55,4 +56,31 @@ hexagonal (oculto).
 
 ## Findings
 
-Pendiente: todavía no se jugó.
+En curso. Partidas jugadas:
+
+| Fecha | Reglas | Config | Duración | Turno prom. (J1 / J2) | Más largo | Perdidos / tiradas | Tablas usadas | Caras 1·2·3·4·5 | Tiempo agotado (mover / atacar) | Combinado decisivo | Ganó |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 2026-11-17 | Probabilidades viejas, Grito con cargas | 24×15, castillos en 4 y 6, timer 60+30 → 40+20 | 32:45 | 0:57 (0:57 en 18 / 0:57 en 16) | 1:30 | 8 / 42 (19%) | Normal 33 · pierde 2/3: 5 · pierde 1/3: 1 · gana 3/2: 3 | 8 · 10 · 7 · 11 · 6 | 16 / 29 de 34 turnos | 21 de 34 (61%); 2+ piezas a un objetivo en 27 de 31 turnos con ataque | Rojo |
+
+**Partida 1 (2026-11-17), jugadores nuevos.** Se jugó antes de cambiar las probabilidades y el
+Grito de guerra.
+- **Duración:** 32:45, el doble de la meta. Hubo mucho ida y vuelta porque salieron muchas
+  caras de reclutar (3 y 4: 18 de 42 tiradas). Al principio los jugadores tenían dudas; cuando
+  entendieron el juego se entusiasmaron y no se dieron cuenta de que había pasado media hora.
+- **Tiempo agotado:** el de atacar se agotó en 29 de 34 turnos. Por ser nuevos no llegaban a
+  planear los ataques y a veces esperaban a que se resolvieran solos. Para el jugador no es
+  grave: con el timer va a pasar y acorta la partida.
+- **Dado:** esta vez nadie sintió que lo ganó el dado; fue más parejo. Los turnos perdidos
+  quedaron en 19%, por debajo del 20%, y para el jugador no son un problema.
+- **Remontada:** el que estuvo acorralado al principio terminó ganando. Puede deberse a que,
+  por ser nuevos, no sabían aprovechar la ventaja.
+- **Modificador:** casi no actuó, porque se usó la tabla Normal en 33 de 42 tiradas. Con
+  piezas parejas no se llega a 2/3 ni a 3/2 (con 15 piezas del rival, de 11 a 22 propias es
+  Normal). La tabla se evalúa para cada jugador al empezar su turno, antes de tirar.
+- **Combinado decisivo:** primera medición, 61%. Ahora distingue: no marca todos los turnos
+  con ataque.
+
+Cambios después de la partida 1: probabilidades revisadas y umbrales más cercanos (4 a 3 y 2 a
+1; 3/4 y 1/2), sin caras de reclutar con un muro roto, Grito de guerra que se aplica en el mismo
+turno con +2 de movimiento y el ataque en verde, elecciones del modificador en el centro del
+tablero y caras sin número en pantalla.

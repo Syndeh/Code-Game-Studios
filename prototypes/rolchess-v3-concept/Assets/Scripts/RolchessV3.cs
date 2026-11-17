@@ -14,8 +14,7 @@ public class RolchessV3 : MonoBehaviour
     // ---------- Tuning (hardcoded on purpose: prototype) ----------
     const int MaxMoves = 12;
     const int WallLife = 30;
-    const int BoostAmount = 2;            // Grito de guerra: +2 attack for that turn
-    const int MaxBoostCharges = 4;
+    const int BoostAmount = 2;            // Grito de guerra: +2 attack and +2 movement the turn it is rolled (no charges)
     const int WallArcherShield = 2;       // archer standing on its own wall
     const float SlowdownAfter = 600f;     // after 10 min the turn timer gets shorter
     static readonly int[] MoveTime   = { 60, 40 };   // seconds: before / after SlowdownAfter
@@ -41,23 +40,23 @@ public class RolchessV3 : MonoBehaviour
     static readonly string[] FaceText =
     {
         "pierdes el turno",
-        "+1 carga: +2 de ataque a todas tus piezas durante el turno en que la uses (hasta 4)",
+        "+2 de ataque y +2 de movimiento a todas tus piezas en este turno (no se acumula)",
         "reclutas 4 piezas comunes: soldados, arqueros o escuderos",
         "reclutas especiales: 4 jinetes, 2 catapultas o 1 demoledor",
         "mueves todas las piezas que quieras, sin límite",
     };
-    static string FaceLine(int face) => $"{face}. {FaceNames[face - 1]}: {FaceText[face - 1]}";
+    static string FaceLine(int face) => $"{FaceNames[face - 1]}: {FaceText[face - 1]}";   // face numbers stay internal
 
     // Odds (%) per face 1..5, chosen by comparing your pieces (King included) with the rival's.
     enum Band { Normal, Losing23, Losing13, Winning32, Winning31 }
-    static readonly string[] BandNames = { "Normal", "Pierde (2/3 o menos)", "Pierde (1/3 o menos)", "Gana (3/2 o más)", "Gana (3/1 o más)" };
+    static readonly string[] BandNames = { "Normal", "Pierde (3/4 o menos)", "Pierde (1/2 o menos)", "Gana (4 a 3 o más)", "Gana (2 a 1 o más)" };
     static readonly int[,] Odds =
     {
         { 20, 20, 20, 20, 20 },   // normal
-        { 20, 20, 25, 20, 15 },   // losing with 2/3 of the rival's pieces (revised 2026-11-17)
-        { 15, 20, 25, 25, 15 },   // losing with 1/3
-        { 20, 25, 15, 20, 20 },   // winning with 3/2
-        { 20, 25, 15, 15, 25 },   // winning with 3/1
+        { 20, 20, 25, 20, 15 },   // losing with 3/4 of the rival's pieces or less (revised 2026-11-17)
+        { 15, 20, 25, 25, 15 },   // losing with 1/2 or less
+        { 20, 25, 15, 20, 20 },   // winning 4 to 3 or more
+        { 20, 25, 15, 15, 25 },   // winning 2 to 1 or more
     };
 
     class Piece
@@ -149,7 +148,7 @@ public class RolchessV3 : MonoBehaviour
     Vector2 origin = new Vector2(10, 10);
     float cs = 30f;
     Texture2D hexTex;
-    GUIStyle centerStyle, richStyle, statStyle, badgeStyle;
+    GUIStyle centerStyle, richStyle, statStyle, badgeStyle, centerWrapStyle;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     static void Boot()
@@ -332,7 +331,7 @@ public class RolchessV3 : MonoBehaviour
         var dist = new Dictionary<Vector2Int, int> { [p.pos] = 0 };
         var q = new Queue<Vector2Int>();
         q.Enqueue(p.pos);
-        int max = Mov[(int)p.kind];
+        int max = Mov[(int)p.kind] + (boostOn[p.owner] ? BoostAmount : 0);
         while (q.Count > 0)
         {
             var c = q.Dequeue();
@@ -535,19 +534,36 @@ public class RolchessV3 : MonoBehaviour
     Band BandFor(int owner)
     {
         int mine = PieceCount(owner), theirs = PieceCount(1 - owner);
-        if (mine * 3 <= theirs) return Band.Losing13;
-        if (mine * 3 <= theirs * 2) return Band.Losing23;
-        if (mine >= theirs * 3) return Band.Winning31;
-        if (mine * 2 >= theirs * 3) return Band.Winning32;
+        if (mine * 2 <= theirs) return Band.Losing13;        // 1/2 or less
+        if (mine * 4 <= theirs * 3) return Band.Losing23;    // 3/4 or less
+        if (mine >= theirs * 2) return Band.Winning31;       // 2 to 1 or more
+        if (mine * 3 >= theirs * 4) return Band.Winning32;   // 4 to 3 or more
         return Band.Normal;
+    }
+
+    // A broken wall means no recruiting: faces 3 and 4 drop to 0% and their share is split
+    // between Grito de guerra (half, rounded down) and Arremetida (the rest).
+    int[] EffectiveOdds(int owner, Band band)
+    {
+        var o = new int[5];
+        for (int f = 0; f < 5; f++) o[f] = Odds[(int)band, f];
+        if (!CanRecruit(owner))
+        {
+            int freed = o[2] + o[3];
+            o[2] = o[3] = 0;
+            o[1] += freed / 2;
+            o[4] += freed - freed / 2;
+        }
+        return o;
     }
 
     void Roll()
     {
         rollBand = BandFor(current);
+        var odds = EffectiveOdds(current, rollBand);
         int r = Random.Range(0, 100), acc = 0;
         die = 5;
-        for (int f = 0; f < 5; f++) { acc += Odds[(int)rollBand, f]; if (r < acc) { die = f + 1; break; } }
+        for (int f = 0; f < 5; f++) { acc += odds[f]; if (r < acc) { die = f + 1; break; } }
         faceCount[die - 1]++;
         bandCount[(int)rollBand]++;
         rollLog.Add($"T{turnNumber} {(current == 0 ? "Azul" : "Rojo")} {PieceCount(current)} vs {PieceCount(1 - current)} · {BandNames[(int)rollBand]} → {die} {FaceNames[die - 1]}");
@@ -556,12 +572,12 @@ public class RolchessV3 : MonoBehaviour
         switch (die)
         {
             case 1: phase = Phase.LostTurn; break;
-            case 2: boostCharges[current] = Mathf.Min(MaxBoostCharges, boostCharges[current] + 1); phase = Phase.Move; break;
+            case 2: boostOn[current] = true; phase = Phase.Move; break;   // Grito de guerra: applies now, never stored
             case 3:
             case 4:
                 recruitSpecial = die == 4;
                 if (CanRecruit(current)) phase = Phase.Recruit;
-                else { phase = Phase.Move; message = $"{die}. {FaceNames[die - 1]}: tu castillo tiene un muro derribado, no puedes reclutar."; }
+                else { phase = Phase.Move; message = $"{FaceNames[die - 1]}: tu castillo tiene un muro derribado, no puedes reclutar."; }
                 break;
             default: unlimitedMoves = true; phase = Phase.Move; break;   // 5: Arremetida
         }
@@ -882,13 +898,15 @@ public class RolchessV3 : MonoBehaviour
             statStyle = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleLeft, fontStyle = FontStyle.Bold, richText = true, wordWrap = false, clipping = TextClipping.Overflow, padding = new RectOffset(0, 0, 0, 0), margin = new RectOffset(0, 0, 0, 0) };
             statStyle.normal.textColor = Color.white;
             badgeStyle = new GUIStyle(statStyle) { alignment = TextAnchor.MiddleCenter };
+            centerWrapStyle = new GUIStyle(centerStyle) { wordWrap = true, fontStyle = FontStyle.Normal };
         }
 
         if (phase == Phase.Setup) { DrawSetup(); return; }
 
         ComputeCellSize();
         var e = Event.current;
-        if (e.type == EventType.MouseDown && e.button == 0 && phase != Phase.Over && BoardRect().Contains(e.mousePosition))
+        if (e.type == EventType.MouseDown && e.button == 0 && phase != Phase.Over && BoardRect().Contains(e.mousePosition)
+            && !(CenterBoxVisible && CenterBoxRect().Contains(e.mousePosition)))   // let the centre buttons get the click
         {
             if (HitTest(e.mousePosition, out var cell)) OnCellClicked(cell);
             e.Use();
@@ -896,6 +914,7 @@ public class RolchessV3 : MonoBehaviour
 
         DrawBoard();
         DrawDieOverlay();
+        DrawCenterActions();
 
         // Right strip, split in two: blue gets the actions in the top half, red in the bottom
         // half; the other half shows the reference info.
@@ -1098,8 +1117,9 @@ public class RolchessV3 : MonoBehaviour
                 var oldCol = GUI.contentColor;
                 GUI.contentColor = new Color(0f, 0f, 0f, 0.9f);
                 GUI.Label(new Rect(sr.x + 1f, sr.y + 1f, sr.width, sr.height), txt, statStyle);
-                GUI.contentColor = oldCol;
+                GUI.contentColor = (i == 1 && boostOn[p.owner]) ? new Color(0.45f, 1f, 0.45f) : oldCol; // boosted attack in green
                 GUI.Label(sr, txt, statStyle);
+                GUI.contentColor = oldCol;
             }
         }
 
@@ -1160,13 +1180,52 @@ public class RolchessV3 : MonoBehaviour
     void DrawDieOverlay()
     {
         float since = Time.realtimeSinceStartup - dieShownAt;
-        if (since > DieOverlayTime || phase == Phase.Roll) return;
+        if (since > DieOverlayTime || phase == Phase.Roll || CenterBoxVisible) return;
         var b = BoardRect();
-        var box = new Rect(b.center.x - 190, b.center.y - 90, 380, 180);
+        var box = new Rect(b.center.x - 210, b.center.y - 80, 420, 160);
         Fill(box, new Color(0f, 0f, 0f, 0.85f));
-        GUI.Label(new Rect(box.x, box.y + 4, box.width, 90), $"<size=72><b>{die}</b></size>", centerStyle);
-        GUI.Label(new Rect(box.x + 10, box.y + 92, box.width - 20, 30), $"<size=22><b>{FaceNames[die - 1]}</b></size>", centerStyle);
-        GUI.Label(new Rect(box.x + 10, box.y + 122, box.width - 20, 54), $"<size=14>{FaceText[die - 1]}  ·  tabla: {BandNames[(int)rollBand]}</size>", centerStyle);
+        GUI.Label(new Rect(box.x + 10, box.y + 8, box.width - 20, 70), $"<size=40><b>{FaceNames[die - 1]}</b></size>", centerStyle);
+        GUI.Label(new Rect(box.x + 10, box.y + 82, box.width - 20, 70), $"<size=14>{FaceText[die - 1]}\ntabla: {BandNames[(int)rollBand]}</size>", centerWrapStyle);
+    }
+
+    // Choices the Modificador asks for (recruits, lost turn) appear in the middle of the board.
+    bool CenterBoxVisible => phase == Phase.Recruit || phase == Phase.LostTurn;
+
+    Rect CenterBoxRect()
+    {
+        var b = BoardRect();
+        return new Rect(b.center.x - 210, b.center.y - 160, 420, 320);
+    }
+
+    void DrawCenterActions()
+    {
+        if (!CenterBoxVisible) return;
+        var box = CenterBoxRect();
+        Fill(box, new Color(0f, 0f, 0f, 0.88f));
+        GUILayout.BeginArea(new Rect(box.x + 16, box.y + 10, box.width - 32, box.height - 20));
+        GUILayout.Label($"<size=34><b>{FaceNames[die - 1]}</b></size>", centerStyle, GUILayout.Height(52));
+        GUILayout.Label($"<size=14>{FaceText[die - 1]}\ntabla: {BandNames[(int)rollBand]}</size>", centerWrapStyle);
+        GUILayout.Space(8);
+        if (phase == Phase.LostTurn)
+        {
+            if (GUILayout.Button("Pasar el turno ahora", GUILayout.Height(40))) EndTurn(true);
+        }
+        else
+        {
+            GUILayout.Label("¿Qué reclutas? (aparecen del lado que mira al rival)", centerWrapStyle);
+            for (int k = 0; k < 6; k++)
+            {
+                if (IsSpecial((Kind)k) != recruitSpecial) continue;
+                int alive = 0;
+                foreach (var p in pieces) if (p.owner == current && p.kind == (Kind)k) alive++;
+                bool allowed = CanRecruitKind((Kind)k);
+                GUI.enabled = allowed && alive < Limit[k];
+                if (GUILayout.Button(allowed ? $"{RecruitCount((Kind)k)} {Names[k]} ({alive}/{Limit[k]})" : $"{Names[k]} (solo con castillos)", GUILayout.Height(34))) Recruit((Kind)k);
+                GUI.enabled = true;
+            }
+            if (GUILayout.Button("No reclutar", GUILayout.Height(30))) phase = Phase.Move;
+        }
+        GUILayout.EndArea();
     }
 
     void DrawPanel(Rect area)
@@ -1199,7 +1258,7 @@ public class RolchessV3 : MonoBehaviour
         else GUILayout.Label($"Turno: {Fmt(elapsed)}");
 
         if (phase != Phase.Roll)
-            GUILayout.Label($"<size=20><b>Modificador {die}: {FaceNames[die - 1]}</b></size>\n{FaceText[die - 1]}", richStyle);
+            GUILayout.Label($"<size=20><b>Modificador: {FaceNames[die - 1]}</b></size>\n{FaceText[die - 1]}", richStyle);
 
         if (autoAction != AutoAction.None)
         {
@@ -1216,21 +1275,8 @@ public class RolchessV3 : MonoBehaviour
                 GUILayout.Label("Tirando el dado…");
                 break;
             case Phase.LostTurn:
-                if (GUILayout.Button("Pasar el turno ahora", GUILayout.Height(32))) EndTurn(true);
-                break;
             case Phase.Recruit:
-                GUILayout.Label("¿Qué reclutas? (aparecen del lado que mira al rival)");
-                for (int k = 0; k < 6; k++)
-                {
-                    if (IsSpecial((Kind)k) != recruitSpecial) continue;
-                    int alive = 0;
-                    foreach (var p in pieces) if (p.owner == current && p.kind == (Kind)k) alive++;
-                    bool allowed = CanRecruitKind((Kind)k);
-                    GUI.enabled = allowed && alive < Limit[k];
-                    if (GUILayout.Button(allowed ? $"{RecruitCount((Kind)k)} {Names[k]} ({alive}/{Limit[k]})" : $"{Names[k]} (solo con castillos)")) Recruit((Kind)k);
-                    GUI.enabled = true;
-                }
-                if (GUILayout.Button("No reclutar")) phase = Phase.Move;
+                GUILayout.Label("Elegí en el centro del tablero.");
                 break;
             case Phase.Move:
                 GUILayout.Label("<b>MOVER</b>", richStyle);
@@ -1267,7 +1313,7 @@ public class RolchessV3 : MonoBehaviour
             foreach (var l in log) GUILayout.Label(l, richStyle);
         }
         GUILayout.Space(4);
-        GUILayout.Label($"Cargas de Grito de guerra: J1 {boostCharges[0]}{(boostOn[0] ? " (activo)" : "")} · J2 {boostCharges[1]}{(boostOn[1] ? " (activo)" : "")}");
+        if (boostOn[current]) GUILayout.Label($"Grito de guerra activo este turno: +{BoostAmount} ataque y +{BoostAmount} movimiento");
         GUILayout.EndScrollView();
         GUILayout.EndArea();
     }
@@ -1287,12 +1333,7 @@ public class RolchessV3 : MonoBehaviour
     void DrawBonus()
     {
         if (boostOn[current])
-        {
-            GUILayout.Label($"Grito de guerra activo: +{BoostAmount} de ataque a todas tus piezas en este turno");
-            return;
-        }
-        if (boostCharges[current] > 0 && GUILayout.Button($"Usar Grito de guerra: +{BoostAmount} ataque este turno ({boostCharges[current]} cargas)"))
-        { boostCharges[current]--; boostOn[current] = true; }
+            GUILayout.Label($"<color=#7f7>Grito de guerra activo: +{BoostAmount} de ataque y +{BoostAmount} de movimiento a todas tus piezas en este turno</color>", richStyle);
     }
 
     // The odds each player rolls with next, so both know them before the die is thrown.
@@ -1302,10 +1343,12 @@ public class RolchessV3 : MonoBehaviour
         for (int p = 0; p < 2; p++)
         {
             var band = BandFor(p);
+            var odds = EffectiveOdds(p, band);
             string who = p == 0 ? "<color=#6fa0ff>Azul</color>" : "<color=#ff7a7a>Rojo</color>";
             var parts = new List<string>();
-            for (int f = 0; f < 5; f++) parts.Add($"{f + 1}: {Odds[(int)band, f]}%");
-            GUILayout.Label($"<size=12>{who} ({PieceCount(p)} piezas vs {PieceCount(1 - p)}) · {BandNames[(int)band]}\n{string.Join(" · ", parts)}</size>", richStyle);
+            for (int f = 0; f < 5; f++) parts.Add($"{FaceNames[f]} {odds[f]}%");
+            string noRecruit = CanRecruit(p) ? "" : " · muro roto: sin reclutas";
+            GUILayout.Label($"<size=12>{who} ({PieceCount(p)} piezas vs {PieceCount(1 - p)}) · {BandNames[(int)band]}{noRecruit}\n{string.Join(" · ", parts)}</size>", richStyle);
         }
         for (int f = 1; f <= 5; f++) GUILayout.Label($"<size=11>{FaceLine(f)}</size>", richStyle);
     }
@@ -1323,8 +1366,8 @@ public class RolchessV3 : MonoBehaviour
         GUILayout.Label($"Prom. general {Fmt(Avg(all))} · más largo {Fmt(longest)} · tiempo agotado: mover {moveTimeouts}, atacar {attackTimeouts}", richStyle);
         GUILayout.Label($"Turnos perdidos (Distracción): {lostTurns} de {rolls} tiradas{(rolls > 0 ? $" ({lostTurns * 100 / rolls}%)" : "")}", richStyle);
         var fc = new List<string>();
-        for (int f = 0; f < 5; f++) fc.Add($"{f + 1}: {faceCount[f]}");
-        GUILayout.Label($"Caras: {string.Join(" · ", fc)}", richStyle);
+        for (int f = 0; f < 5; f++) fc.Add($"{FaceNames[f]} {faceCount[f]}");
+        GUILayout.Label($"Modificadores: {string.Join(" · ", fc)}", richStyle);
         var bc = new List<string>();
         for (int b = 0; b < 5; b++) if (bandCount[b] > 0) bc.Add($"{BandNames[b]} {bandCount[b]}");
         GUILayout.Label($"Tablas usadas: {string.Join(" · ", bc)}", richStyle);
