@@ -37,7 +37,7 @@ Comparar también: con y sin castillos (pendiente desde la v2).
 | Tema | En la v3 |
 |---|---|
 | Dado → **Modificador** | 5 caras: 1 Distracción (pierdes el turno) · 2 Grito de guerra (+1 carga, hasta 4; al usarla, +2 de ataque a todas tus piezas en ese turno) · 3 Llamada al servicio (reclutas 4 soldados, arqueros o escuderos) · 4 Cuerno de guerra (4 jinetes, 2 catapultas o 1 demoledor) · 5 Arremetida (mueves todas las piezas) |
-| Probabilidades | Según tus piezas comparadas con las del rival, Rey incluido y muros no: Normal 20/20/20/20/20 · Pierde con 2/3 o menos 15/20/25/25/15 · Pierde con 1/3 o menos 10/20/30/30/10 · Gana con 3/2 o más 20/25/15/15/25 · Gana con 3/1 o más 20/30/10/10/30. Las de los dos jugadores se ven siempre en el panel de información |
+| Probabilidades | Según tus piezas comparadas con las del rival, Rey incluido y muros no: Normal 20/20/20/20/20 · Pierde con 2/3 o menos 20/20/25/20/15 · Pierde con 1/3 o menos 15/20/25/25/15 · Gana con 3/2 o más 20/25/15/20/20 · Gana con 3/1 o más 20/25/15/15/25 (revisadas el 2026-11-17, antes de jugar). Las de los dos jugadores se ven siempre en el panel de información |
 | Grito de guerra | Ya no da defensa y dura solo el turno en que se usa (en la v2: +2 ataque y +2 defensa hasta el turno siguiente) |
 | Timer | 60 s para mover + 30 s para atacar; desde el minuto 10 de partida, 40 + 20. Se acaba el de mover → pasa a atacar. Se acaba el de atacar → se resuelven los ataques asignados y termina el turno. Reclutar cuenta como tiempo de mover. Opción "Sin límite" |
 | Alcance circular | Una casilla está en alcance si dx² + dy² ≤ alcance² + 1 (con 6, hasta 37). La catapulta no alcanza las 8 vecinas. Las piezas de alcance 1 siguen igual |
@@ -47,7 +47,7 @@ Comparar también: con y sin castillos (pendiente desde la v2).
 
 **Supuestos del prototipo** (no los dijo el jugador): para elegir la tabla se cuentan todas las
 piezas vivas, Rey incluido; el arquero en el muro resta su defensa y el muro recibe el daño
-completo; la tabla "pierde con 2/3" sumaba 110% y el jugador eligió bajar la Arremetida a 15%.
+completo; las cinco tablas suman 100%.
 De la v2 siguen: movimiento en cruz, solo se atacan muros enemigos.
 
 **Fuera:** escudero que cubre de flechas, torres, tirada para ver quién empieza, tablero

@@ -54,10 +54,10 @@ public class RolchessV3 : MonoBehaviour
     static readonly int[,] Odds =
     {
         { 20, 20, 20, 20, 20 },   // normal
-        { 15, 20, 25, 25, 15 },   // losing with 2/3 of the rival's pieces (player's table summed 110%: Arremetida lowered to 15)
-        { 10, 20, 30, 30, 10 },   // losing with 1/3
-        { 20, 25, 15, 15, 25 },   // winning with 3/2
-        { 20, 30, 10, 10, 30 },   // winning with 3/1
+        { 20, 20, 25, 20, 15 },   // losing with 2/3 of the rival's pieces (revised 2026-11-17)
+        { 15, 20, 25, 25, 15 },   // losing with 1/3
+        { 20, 25, 15, 20, 20 },   // winning with 3/2
+        { 20, 25, 15, 15, 25 },   // winning with 3/1
     };
 
     class Piece
