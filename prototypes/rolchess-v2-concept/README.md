@@ -4,7 +4,7 @@
 
 # rolchess-v2-concept
 
-**Status:** in progress
+**Status:** concluded — PROCEED (2026-11-17). Informe: `REPORT.md`
 
 ## Hypothesis
 
@@ -89,5 +89,12 @@ la ganó el dado.
 Después de la partida 3 el contador se hizo más exigente (ataque combinado decisivo), así que
 los 81% y 91% de arriba son del conteo simple y no se comparan con las partidas siguientes.
 
-Pendiente: partidas sin castillos (las tres jugadas son cuadrado 24 con castillos y timer de
-90 s), y la respuesta de los jugadores sobre el dado.
+**Cierre (2026-11-17).** Jugaron dos personas distintas, partidas de corrido. El ataque
+combinado "estuvo muy bien" como decisión. El dado a veces inclina la partida: hay caras que no
+sirven según el momento (perder el turno cuando vas perdiendo, un bonus de ataque sin tropas).
+Propuesta del jugador: probabilidades del dado según el estado de la partida (con pocas piezas,
+más chances de reclutar). Mejor momento, igual que en la v1: poder remontar. Turnos perdidos en
+total: 11 de 56 tiradas (20%), sin cumplir el criterio de quedar bien por debajo del 22%. No se
+probó sin castillos; la opción queda para otra tanda.
+
+Veredicto: **PROCEED**, con el rediseño del dado como primer problema. Detalle en `REPORT.md`.
