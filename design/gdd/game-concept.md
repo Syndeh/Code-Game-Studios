@@ -85,14 +85,14 @@ Este concepto reemplaza al cuaderno donde no coinciden. Cada regla se detalla en
 | Reclutas | Aparecen del lado del castillo que mira al rival. Reclutar es obligatorio cuando sale la cara (no hay "no reclutar"); si no queda nada disponible, se pasa a mover | v1 nota 4 + jugador 2026-11-17 |
 | Límite de reclutas | Por jugador y por partida. **Llamada al servicio** sale como mucho 8 veces. **Cuerno de guerra**: 4 llamadas por tipo (jinetes 4, catapultas 4, demoledores 4). Se mantienen los topes de piezas vivas (12/16/12/8/8/4) | jugador 2026-11-17 (v3, sin jugar) |
 | Modificador (el dado) | 5 caras; en pantalla se ve solo el nombre. **Distracción**: perdés el turno · **Grito de guerra**: +2 de ataque y +2 de movimiento a todas tus piezas en ese turno, no se acumula · **Llamada al servicio**: reclutás 4 soldados, arqueros o escuderos · **Cuerno de guerra**: reclutás 4 jinetes, 2 catapultas o 1 demoledor · **Arremetida**: movés todas las piezas que quieras. Las elecciones aparecen en el centro del tablero | v2 + v3 |
-| Probabilidades del Modificador | Al empezar su turno, antes de tirar, se comparan las piezas vivas del jugador (Rey incluido, muros no) con las del rival. Normal 20/20/20/20/20 · Pierde con 3/4 o menos 20/20/25/20/15 · Pierde con 1/2 o menos 15/20/25/25/15 · Gana 4 a 3 o más 20/25/15/20/20 · Gana 2 a 1 o más 20/25/15/15/25. Con un muro roto, las dos caras de reclutar bajan a 0% y su parte va mitad a Grito de guerra y el resto a Arremetida. Lo mismo con cada cara de reclutar agotada: Llamada al servicio después de 8 veces, y Cuerno de guerra cuando ningún tipo especial tiene llamadas (sin castillos, los demoledores no cuentan). Las de los dos jugadores se ven siempre en pantalla. Valores provisionales: se ajustan en el MVP | v3 |
+| Probabilidades del Modificador | Al empezar su turno, antes de tirar, se comparan las piezas vivas del jugador (Rey incluido, muros no) con las del rival. Normal 20/20/20/20/20 · Pierde con 3/4 o menos 20/20/25/20/15 · Pierde con 1/2 o menos 15/20/25/25/15 · Gana 4 a 3 o más 20/25/15/20/20 · Gana 2 a 1 o más 20/25/15/15/25. Con un muro roto, las dos caras de reclutar bajan a 0% y su parte va mitad a Grito de guerra y el resto a Arremetida. Lo mismo con cada cara de reclutar agotada: Llamada al servicio después de 8 veces, y Cuerno de guerra cuando ningún tipo especial tiene llamadas (sin castillos, los demoledores no cuentan). Las de los dos jugadores se pueden consultar en cualquier momento (ícono de signo de pregunta, arriba a la derecha). Valores provisionales: se ajustan en el MVP | v3 |
 | Timer | Por etapas: 60 s para mover (reclutar incluido) y 30 para atacar; desde el minuto 10 de partida, 40 + 20. Se acaba el de mover → pasa a atacar; se acaba el de atacar → se resuelven los ataques asignados y termina el turno. El turno también termina solo si no quedan acciones | v1 notas 14 y 15 + v3 |
 | Variante sin castillos | Rey atrás, reclutas a su alrededor, sin demoledores. Se mantiene como opción; sin probar | v1 nota 16 |
 | Estadísticas | Tabla grande del cuaderno con demoledor de ataque 30 y vidas de arquero y escudero invertidas (arquero 15, escudero 20); se ven ataque, escudo y vida en cada pieza | cuaderno + v1 nota 19 + jugador 2026-11-17 (v3, sin jugar) |
 
 **Modificador: reglas decididas, números provisionales.** La v3 implementó el rumbo acordado
 después de la v2: las probabilidades se adaptan a cómo va la partida (con menos piezas, más
-chances de reclutar), se ven antes de tirar y ninguna cara cae sin sentido (sin muros no salen
+chances de reclutar), se pueden consultar antes de tirar y ninguna cara cae sin sentido (sin muros no salen
 las caras de reclutar, ni las que ya agotaron sus llamadas; el Grito de guerra se usa en el
 mismo turno). Distracción (perder el
 turno) sigue por decisión del jugador; el director creativo la marcó en contra de los pilares
@@ -224,8 +224,9 @@ sueltos.
 El que va perdiendo tiene con qué remontar.
 
 *Design test*: una ayuda al que pierde vale solo si (a) da opciones (más chances de reclutar),
-nunca estadísticas (más daño o escudo); (b) sus probabilidades se ven en pantalla antes de
-tirar; y (c) el que tiene más piezas sigue ganando la mayoría de las partidas (umbral a fijar
+nunca estadísticas (más daño o escudo); (b) sus probabilidades se pueden consultar en
+cualquier momento antes de tirar (no hace falta tenerlas siempre a la vista: la ayuda se
+percibe jugando; ajuste del jugador, 2026-11-17); y (c) el que tiene más piezas sigue ganando la mayoría de las partidas (umbral a fijar
 en el GDD del Modificador; propuesta: 2 de cada 3).
 
 ### Pillar 4: Duelo corto
@@ -432,7 +433,7 @@ que no lo diseñaron.
    y vida.
 3. Movimiento (hasta 12 más el Rey, atravesando aliados) con deshacer.
 4. Ataques asignados con flechas, vista previa y resolución simultánea.
-5. Modificador adaptativo, con sus probabilidades visibles y sus elecciones en el centro del
+5. Modificador adaptativo, con sus probabilidades consultables y sus elecciones en el centro del
    tablero.
 6. Reclutamiento, timer de turno, fin automático y fin de partida.
 7. Arte Campo de Batalla reducido: tablero, una skin base en 1–2 orientaciones, animación por
