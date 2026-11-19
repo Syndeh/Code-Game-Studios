@@ -56,6 +56,7 @@ racha (ni a favor ni en contra).
 | Timer | Se elige al empezar: Variable 90 → 60 (60 + 30, y 40 + 20 desde el minuto 10), Fijo 90 (60 + 30), Fijo 60 (40 + 20), Sin límite |
 | Sin castillos | Opción quitada (variante descartada) |
 | Distracción | Ya no se pierde el turno: no hay fase de movimiento, se pasa directo a atacar (con el timer de ataque) |
+| Escudero | Un aliado solo puede estar cubierto por un escudero. Un aliado ya cubierto no se resalta y, si se lo elige, aparece el aviso "Ese aliado ya está cubierto por otro escudero" |
 | Métricas | Archivo por partida, tabla acumulada y racha de la compuerta de 15 min |
 
 **Supuestos del prototipo** (no los dijo el jugador):

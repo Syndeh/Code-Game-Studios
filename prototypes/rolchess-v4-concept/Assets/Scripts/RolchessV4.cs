@@ -599,7 +599,16 @@ public class RolchessV4 : MonoBehaviour
     bool CanGuard(Piece e)
     {
         if (e.kind != Kind.Escudero) return false;
-        foreach (var n in Adjacent(e.pos)) { var o = PieceAt(n); if (o != null && o.owner == e.owner) return true; }
+        foreach (var n in Adjacent(e.pos)) { var o = PieceAt(n); if (o != null && o.owner == e.owner && !CoveredByOther(o, e)) return true; }
+        return false;
+    }
+
+    // 2026-11-19 (c): an ally can have only one escudero covering it. True when some other live
+    // escudero (not `except`) already covers `target`.
+    bool CoveredByOther(Piece target, Piece except)
+    {
+        foreach (var kv in guards)
+            if (kv.Value == target && kv.Key != except && pieces.Contains(kv.Key)) return true;
         return false;
     }
 
@@ -1084,6 +1093,11 @@ public class RolchessV4 : MonoBehaviour
                 // It replaces the escudero's attack this turn.
                 if (selected.kind == Kind.Escudero && p != null && p.owner == current && p != selected && IsAdjacent(selected.pos, cell))
                 {
+                    if (CoveredByOther(p, selected))
+                    {
+                        message = "Ese aliado ya está cubierto por otro escudero.";
+                        return;
+                    }
                     plans.Remove(selected);
                     guards[selected] = p;
                     ClearSelection();
@@ -1308,7 +1322,7 @@ public class RolchessV4 : MonoBehaviour
         // Allies a selected escudero can cover (light blue).
         var guardCells = new HashSet<Vector2Int>();
         if (phase == Phase.Attack && selected != null && selected.kind == Kind.Escudero)
-            foreach (var n in Adjacent(selected.pos)) { var o = PieceAt(n); if (o != null && o.owner == selected.owner) guardCells.Add(n); }
+            foreach (var n in Adjacent(selected.pos)) { var o = PieceAt(n); if (o != null && o.owner == selected.owner && !CoveredByOther(o, selected)) guardCells.Add(n); }
 
         for (int x = 0; x < W; x++)
             for (int y = 0; y < H; y++)
