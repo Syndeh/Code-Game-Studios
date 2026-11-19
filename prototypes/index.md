@@ -11,3 +11,4 @@ Historial de lo que se probó y qué se aprendió.
 | Concept | Date | Path | Verdict | Report |
 |---------|------|------|---------|--------|
 | rolchess (Ajedrez táctico) | 2026-11-13 | Engine (Unity 6.3) | PROCEED (CD: concerns aceptadas) | [REPORT.md](rolchess-concept/REPORT.md) |
+| rolchess v4 (reglas de /map-systems, duración) | 2026-11-19 | Engine (Unity 6.3) | en curso | [README.md](rolchess-v4-concept/README.md) |
