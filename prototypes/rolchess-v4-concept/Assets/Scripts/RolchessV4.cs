@@ -20,7 +20,7 @@ public class RolchessV4 : MonoBehaviour
     const float SlowdownAfter = 600f;     // Variable mode: after 10 min the turn timer gets shorter
     static readonly int[] MoveTime   = { 60, 40 };   // seconds: 90-mode / 60-mode (Variable: before / after SlowdownAfter)
     static readonly int[] AttackTime = { 30, 20 };
-    const int CatapultAreaDamage = 10;    // 2026-11-19: 14 on the chosen cell (Atk), 10 on the 8 cells around
+    const int CatapultAreaDamage = 8;     // 2026-11-19 (b): 12 on the chosen cell (Atk), 8 on the 8 cells around (was 14/10)
     const float GateSeconds = 15 * 60f;   // pillar 4: a match in 15 min or less
     const int GateStreak = 3;             // art gate: 3 matches in a row within GateSeconds
     const int BreachesToLoseRecruit = 1; // recruiting needs every wall standing
@@ -38,7 +38,7 @@ public class RolchessV4 : MonoBehaviour
     static readonly int[] Mov    = { 4, 4, 4, 2, 6, 6, 6 };
     static readonly int[] RMin   = { 1, 1, 1, 2, 1, 1, 1 };
     static readonly int[] RMax   = { 1, 6, 1, 6, 1, 1, 1 };
-    static readonly int[] Atk    = { 8, 6, 4, 14, 8, 30, 8 };   // 2026-11-19: catapult 14 (was 10)
+    static readonly int[] Atk    = { 8, 6, 4, 12, 8, 30, 8 };   // 2026-11-19 (b): catapult 12 (v3: 10, first v4: 14)
     static readonly int[] Shield = { 2, 2, 5, 3, 3, 1, 5 };
     static readonly int[] Life   = { 25, 15, 20, 15, 20, 10, 30 };   // 2026-11-17: archer 15, escudero 20 (swapped)
     static readonly int[] Limit  = { 12, 16, 12, 8, 8, 4, 1 };
@@ -47,7 +47,7 @@ public class RolchessV4 : MonoBehaviour
     static readonly string[] FaceNames = { "Distracción", "Grito de guerra", "Llamada al servicio", "Cuerno de guerra", "Arremetida" };
     static readonly string[] FaceText =
     {
-        "pierdes el turno",
+        "no mueves este turno: pasas directo a atacar",
         "+2 de ataque y +2 de movimiento a todas tus piezas en este turno (no se acumula)",
         "reclutas 4 piezas comunes: soldados, arqueros o escuderos",
         "reclutas especiales: 4 jinetes, 2 catapultas o 1 demoledor",
@@ -572,7 +572,7 @@ public class RolchessV4 : MonoBehaviour
             if (pl.explode)
                 foreach (var n in Adjacent(a.pos)) HitCell(a, n, AttackValue(a));
             else if (pl.area)
-                // 2026-11-19: 14 on the chosen cell, 10 on the 8 cells around it.
+                // 2026-11-19 (b): 12 on the chosen cell, 8 on the 8 cells around it.
                 foreach (var n in AreaCells(pl.wall)) HitCell(a, n, n == pl.wall ? AttackValue(a) : AreaValue(a));
             else HitCell(a, pl.isWall ? pl.wall : pl.target.pos, AttackValue(a));
         }
@@ -695,7 +695,8 @@ public class RolchessV4 : MonoBehaviour
         message = FaceLine(die);
         switch (die)
         {
-            case 1: phase = Phase.LostTurn; break;
+            // 2026-11-19 (b): Distracción skips the move stage only; the player still attacks.
+            case 1: phase = Phase.Attack; break;
             case 2: boostOn[current] = true; phase = Phase.Move; break;   // Grito de guerra: applies now, never stored
             case 3:
             case 4:
@@ -1568,7 +1569,7 @@ public class RolchessV4 : MonoBehaviour
                 break;
             case Phase.Attack:
                 GUILayout.Label("<b>ATACAR</b>: asigna los ataques; se resuelven juntos cuando pulses Resolver.", richStyle);
-                GUILayout.Label("<size=11>Clic en tu pieza (resaltada) → clic en su objetivo naranja. Clic de nuevo en la pieza para quitar su flecha. Demoledor: clic en él mismo para que explote (muere al atacar). Catapulta: clic en cualquier casilla a su alcance; 14 de daño en esa casilla y 10 en las 8 de alrededor, aliados y muros incluidos.</size>", richStyle);
+                GUILayout.Label("<size=11>Clic en tu pieza (resaltada) → clic en su objetivo naranja. Clic de nuevo en la pieza para quitar su flecha. Demoledor: clic en él mismo para que explote (muere al atacar). Catapulta: clic en cualquier casilla a su alcance; 12 de daño en esa casilla y 8 en las 8 de alrededor, aliados y muros incluidos.</size>", richStyle);
                 DrawBonus();
                 GUILayout.Label("<size=11>Escudero: clic en él y luego en un aliado a un cuadro (celeste) para cubrirlo durante el turno rival; en lugar de atacar. Él recibe todos los ataques enemigos a ese aliado.</size>", richStyle);
                 int myGuards = 0; foreach (var kv in guards) if (kv.Key.owner == current) myGuards++;
@@ -1650,7 +1651,7 @@ public class RolchessV4 : MonoBehaviour
         GUILayout.Label($"Partida {Fmt(match)} · prom. J1 {Fmt(Avg(turnTimes[0]))} ({turnTimes[0].Count}) · J2 {Fmt(Avg(turnTimes[1]))} ({turnTimes[1].Count})", richStyle);
         int rolls = 0; foreach (int c in faceCount) rolls += c;
         GUILayout.Label($"Prom. general {Fmt(Avg(all))} · más largo {Fmt(longest)} · tiempo agotado: mover {moveTimeouts}, atacar {attackTimeouts}", richStyle);
-        GUILayout.Label($"Turnos perdidos (Distracción): {lostTurns} de {rolls} tiradas{(rolls > 0 ? $" ({lostTurns * 100 / rolls}%)" : "")}", richStyle);
+        GUILayout.Label($"Distracción (sin mover, solo ataque): {faceCount[0]} de {rolls} tiradas{(rolls > 0 ? $" ({faceCount[0] * 100 / rolls}%)" : "")}", richStyle);
         var fc = new List<string>();
         for (int f = 0; f < 5; f++) fc.Add($"{FaceNames[f]} {faceCount[f]}");
         GUILayout.Label($"Modificadores: {string.Join(" · ", fc)}", richStyle);

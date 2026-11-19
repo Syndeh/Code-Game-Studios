@@ -77,26 +77,26 @@ Este concepto reemplaza al cuaderno donde no coinciden. Cada regla se detalla en
 | Escudero | En la fase de ataque, en lugar de atacar, puede cubrir a un aliado a un cuadro (las 8 vecinas). Durante el turno rival, **todos** los ataques enemigos a ese aliado (área de catapulta y explosión de demoledor incluidas) los recibe el escudero (menos su escudo). Dura hasta el siguiente turno propio. El cuaderno lo limitaba a los arqueros | cuaderno + jugador 2026-11-17 (v3, sin jugar) |
 | Alcance | Circular: una casilla está en alcance si dx² + dy² ≤ alcance² + 1 (con 6, hasta 37). Catapulta 2–6: no alcanza las 8 vecinas. Las piezas de alcance 1 atacan a las 8 vecinas | v1 notas 3 y 18 + v3 |
 | Ataques | Se asignan con flechas y se resuelven todos juntos; el daño se suma por objetivo y el escudo se resta una vez; vista previa del resultado antes de resolver | v1 notas 2, 8 y 10 |
-| Catapulta | Dispara a cualquier casilla en alcance: 14 de daño ahí y 10 en las 8 casillas alrededor, a enemigos, aliados y muros | v2 + jugador 2026-11-19 |
+| Catapulta | Dispara a cualquier casilla en alcance: 12 de daño ahí y 8 en las 8 casillas alrededor, a enemigos, aliados y muros | v2 + jugador 2026-11-19 (primero 14/10, después 12/8) |
 | Demoledor | Explota sobre todas las vecinas (aliados y muros incluidos) y muere | v1 nota 12 |
 | Castillo | Muro perimetral de 5 × 5; 16 tramos de 30 de vida sin escudo; cualquier pieza enemiga en alcance lo ataca; un tramo roto abre un hueco y ese castillo deja de reclutar | v1 nota 11 + v2 |
 | Arqueros en el muro | Un arquero puede subir a un tramo libre de su propio muro (uno por tramo; el muro no se atraviesa). Arriba tiene +2 de escudo. El daño a esa casilla lo reciben el arquero (menos su escudo) y el muro (completo); si el muro se rompe, el arquero queda en el hueco | v3 |
 | Rey | Vida 30. Empieza en el centro de su castillo. Sus propios muros no lo bloquean: entra y sale con su movimiento normal, sin regla especial. No puede subir a los muros. Muere el Rey, termina la partida | cuaderno + jugador 2026-11-19 |
 | Reclutas | Aparecen del lado del castillo que mira al rival. Reclutar es obligatorio cuando sale la cara (no hay "no reclutar"); si no queda nada disponible, se pasa a mover | v1 nota 4 + jugador 2026-11-17 |
 | Límite de reclutas | Por jugador y por partida. **Llamada al servicio** sale como mucho 8 veces. **Cuerno de guerra**: 4 llamadas por tipo (jinetes 4, catapultas 4, demoledores 4). Se mantienen los topes de piezas vivas (12/16/12/8/8/4) | jugador 2026-11-17 (v3, sin jugar) |
-| Modificador (el dado) | 5 caras; en pantalla se ve solo el nombre. **Distracción**: perdés el turno · **Grito de guerra**: +2 de ataque y +2 de movimiento a todas tus piezas en ese turno, no se acumula · **Llamada al servicio**: reclutás 4 soldados, arqueros o escuderos · **Cuerno de guerra**: reclutás 4 jinetes, 2 catapultas o 1 demoledor · **Arremetida**: movés todas las piezas que quieras. Las elecciones aparecen en el centro del tablero | v2 + v3 |
+| Modificador (el dado) | 5 caras; en pantalla se ve solo el nombre. **Distracción**: no hay fase de movimiento, se pasa directo a atacar (cambio del 2026-11-19; antes: perdés el turno) · **Grito de guerra**: +2 de ataque y +2 de movimiento a todas tus piezas en ese turno, no se acumula · **Llamada al servicio**: reclutás 4 soldados, arqueros o escuderos · **Cuerno de guerra**: reclutás 4 jinetes, 2 catapultas o 1 demoledor · **Arremetida**: movés todas las piezas que quieras. Las elecciones aparecen en el centro del tablero | v2 + v3 |
 | Probabilidades del Modificador | Al empezar su turno, antes de tirar, se comparan las piezas vivas del jugador (Rey incluido, muros no) con las del rival. Normal 20/20/20/20/20 · Pierde con 3/4 o menos 20/20/25/20/15 · Pierde con 1/2 o menos 15/20/25/25/15 · Gana 4 a 3 o más 20/25/15/20/20 · Gana 2 a 1 o más 20/25/15/15/25. Con un muro roto, las dos caras de reclutar bajan a 0% y su parte va mitad a Grito de guerra y el resto a Arremetida. Lo mismo con cada cara de reclutar agotada: Llamada al servicio después de 8 veces, y Cuerno de guerra cuando ningún tipo especial tiene llamadas (sin castillos, los demoledores no cuentan). Las de los dos jugadores se pueden consultar en cualquier momento (ícono de signo de pregunta, arriba a la derecha). Valores provisionales: se ajustan en el MVP | v3 |
 | Timer | Por etapas: 60 s para mover (reclutar incluido) y 30 para atacar; desde el minuto 10 de partida, 40 + 20 (modo Variable 90 → 60). Se acaba el de mover → pasa a atacar; se acaba el de atacar → se resuelven los ataques asignados y termina el turno. El turno también termina solo si no quedan acciones. En partidas locales se elige el modo: Variable 90 → 60, Fijo 90, Fijo 60 o Sin límite; online usa el Variable | v1 notas 14 y 15 + v3 + jugador 2026-11-19 |
 | Variante sin castillos | Descartada | jugador 2026-11-19 |
-| Estadísticas | Tabla grande del cuaderno con demoledor de ataque 30, catapulta de ataque 14 y vidas de arquero y escudero invertidas (arquero 15, escudero 20); se ven ataque, escudo y vida en cada pieza | cuaderno + v1 nota 19 + jugador 2026-11-17 y 2026-11-19 |
+| Estadísticas | Tabla grande del cuaderno con demoledor de ataque 30, catapulta de ataque 12 y vidas de arquero y escudero invertidas (arquero 15, escudero 20); se ven ataque, escudo y vida en cada pieza | cuaderno + v1 nota 19 + jugador 2026-11-17 y 2026-11-19 |
 
 **Modificador: reglas decididas, números provisionales.** La v3 implementó el rumbo acordado
 después de la v2: las probabilidades se adaptan a cómo va la partida (con menos piezas, más
 chances de reclutar), se pueden consultar antes de tirar y ninguna cara cae sin sentido (sin muros no salen
 las caras de reclutar, ni las que ya agotaron sus llamadas; el Grito de guerra se usa en el
-mismo turno). Distracción (perder el
-turno) sigue por decisión del jugador; el director creativo la marcó en contra de los pilares
-1 y 3. En la primera partida de la v3 salió en el 19% de las tiradas y nadie sintió que el dado
+mismo turno). Distracción sigue por decisión del jugador; el director creativo la marcó en
+contra de los pilares 1 y 3 cuando hacía perder el turno. Desde el 2026-11-19 solo quita la
+fase de movimiento: el jugador sigue atacando con lo que ya tiene posicionado. En la primera partida de la v3 salió en el 19% de las tiradas y nadie sintió que el dado
 decidiera. Porcentajes y umbrales se ajustan con partidas del MVP; se documentan en
 `/design-system modificador`.
 
@@ -245,8 +245,9 @@ lo acota el timer). A vigilar: 3 contra 4 (cada remontada alarga la partida).
 ### Anti-Pillars (What This Game Is NOT)
 
 - **NOT un dado que decide golpes**: el dado no decide si un ataque acierta ni cuánto daña,
-  solo ofrece recursos; rompería el pilar 1. Excepción vigente: Distracción (perder el turno),
-  que el jugador decidió mantener.
+  solo ofrece recursos; rompería el pilar 1. Excepción vigente: Distracción (sin fase de
+  movimiento; desde el 2026-11-19 ya no hace perder el turno y el ataque se mantiene), que el
+  jugador decidió mantener.
 - **NOT información oculta al resolver**: ni niebla de guerra ni cartas ocultas; protege el
   pilar 1.
 - **NOT pagar para ganar**: las skins son solo estéticas y todos juegan con el mismo ejército;

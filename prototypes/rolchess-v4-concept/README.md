@@ -51,15 +51,17 @@ racha (ni a favor ni en contra).
 | Tema | En la v4 |
 |---|---|
 | Rey | Empieza en el centro de su castillo. Atraviesa sus propios muros con su movimiento normal; no puede quedarse sobre ellos. Se quitó la regla de entrar y salir (casillas celestes, "ese turno no se mueve más") |
-| Catapulta | 14 de daño en la casilla elegida y 10 en las 8 de alrededor (antes: 10 y la mitad). Ataque de la ficha: 14 |
+| Catapulta | 12 de daño en la casilla elegida y 8 en las 8 de alrededor (v3: 10 y la mitad; primera v4: 14 y 10). Ataque de la ficha: 12 |
 | Deshacer | Se pueden deshacer todos los movimientos del turno, del último al primero. El botón muestra cuántos hay. (La pila ya existía en la v3; el botón decía "último movimiento") |
 | Timer | Se elige al empezar: Variable 90 → 60 (60 + 30, y 40 + 20 desde el minuto 10), Fijo 90 (60 + 30), Fijo 60 (40 + 20), Sin límite |
 | Sin castillos | Opción quitada (variante descartada) |
+| Distracción | Ya no se pierde el turno: no hay fase de movimiento, se pasa directo a atacar (con el timer de ataque) |
 | Métricas | Archivo por partida, tabla acumulada y racha de la compuerta de 15 min |
 
 **Supuestos del prototipo** (no los dijo el jugador):
 - Los timers fijos mantienen la proporción 2 a 1 entre mover y atacar.
-- El Grito de guerra suma +2 también al daño de área de la catapulta (10 → 12).
+- El Grito de guerra suma +2 también al daño de área de la catapulta (8 → 10).
+- Con Distracción tampoco se recluta (la cara no es de reclutar); el turno empieza en la fase de ataque.
 - La pila de deshacer solo tiene movimientos. Ni el reclutamiento ni la asignación de ataques entran en ella; las flechas ya se pueden cambiar antes de resolver. Esto quedó acordado con el jugador.
 - "Remontada" es que el ganador haya tirado con una tabla "Pierde" al menos una vez. "Líder a mitad" se mide en el turno del medio de la partida.
 

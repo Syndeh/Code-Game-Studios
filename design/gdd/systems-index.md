@@ -59,8 +59,10 @@ Ya pasadas al concepto (`design/gdd/game-concept.md`).
   regla de entrar ni salir. Se mueve con su alcance de movimiento y no sube a los muros. Sin
   GDD propio: sus reglas se reparten en Catálogo (2), Máquina de turno (3, fin de partida),
   Castillo (5) y Movimiento (6).
-- **Catapulta:** 14 de daño en el punto elegido y 10 en el área alrededor (reemplaza "la
-  mitad hacia abajo"); el ataque de su ficha pasa a 14.
+- **Catapulta:** 12 de daño en el punto elegido y 8 en el área alrededor (reemplaza "la
+  mitad hacia abajo"; primero se decidió 14/10); el ataque de su ficha pasa a 12.
+- **Distracción:** ya no hace perder el turno: no hay fase de movimiento y se pasa directo
+  a atacar.
 - **Variante sin castillos:** descartada.
 - **Timer:** cuatro modos, solo en partidas locales: Variable 90 → 60 (60 + 30 y luego
   40 + 20 desde el minuto 10), Fijo 90, Fijo 60, Sin límite. Online usa el Variable.
@@ -120,7 +122,7 @@ Ya pasadas al concepto (`design/gdd/game-concept.md`).
   un aliado vecino: todos los ataques enemigos a ese aliado los recibe él hasta su siguiente
   turno.
 - **9 Resolución simultánea del daño.** La fórmula central del pilar 2: daño sumado por
-  objetivo, escudo restado una vez, área de catapulta (14/10) y explosión del demoledor,
+  objetivo, escudo restado una vez, área de catapulta (12/8) y explosión del demoledor,
   redirección por cobertura, daño a muros, muertes, en orden determinista.
 - **10 Reclutamiento y límites.** Obligatorio cuando sale la cara; aparecen del lado del
   castillo que mira al rival; topes de llamadas (Llamada al servicio 8, Cuerno de guerra 4
@@ -462,8 +464,8 @@ Los cuatro ciclos encontrados se cortaron con contratos; ninguno queda abierto.
   (cara disponible, llamadas restantes) que el Modificador solo lee. Reclutamiento se diseña
   primero.
 - **Modificador ↔ Máquina de turno:** la Máquina tiene la fase "Modificador" y la
-  Distracción hace perder el turno. Corte: la Máquina define un pipeline de fases con
-  resultados tipados (seguir, perder el turno, cambiar el límite de movimientos), sin
+  Distracción saltea la fase de movimiento. Corte: la Máquina define un pipeline de fases con
+  resultados tipados (seguir, saltear la fase de movimiento, cambiar el límite de movimientos), sin
   conocer al Modificador por nombre.
 - **Modificador → Movimiento y Resolución** (Grito de guerra +2 de ataque y +2 de
   movimiento). Corte: los bonos viven en el estado de la partida; Movimiento y Resolución
@@ -480,7 +482,7 @@ Los cuatro ciclos encontrados se cortaron con contratos; ninguno queda abierto.
 | System | Risk Type | Risk Description | Mitigation |
 |--------|-----------|-----------------|------------|
 | Duración de partida (dueño: Máquina de turno, 3) | Design | La primera partida de la v3 duró 33 min contra la meta de 10–15; romper el pilar 4 obliga a cambiar reglas y todo lo que depende de ellas | Presupuesto de duración en el GDD del 3 (con posible cierre por tiempo); 9, 10 y 11 declaran su aporte; medido con las Métricas locales (19); **compuerta del arte:** no se produce arte final hasta que 3 partidas seguidas duren 15 min o menos |
-| Modificador | Design | La remontada puede volverse injusta o el dado puede sentirse decisivo; la Distracción va contra los pilares 1 y 3 | Probabilidades consultables; umbral "el que tiene más piezas gana 2 de cada 3" a fijar en su GDD; calibración con partidas humanas y propuesta de cambios después de 20 partidas online |
+| Modificador | Design | La remontada puede volverse injusta o el dado puede sentirse decisivo; la Distracción (ahora sin fase de movimiento, con ataque) fue marcada contra los pilares 1 y 3 | Probabilidades consultables; umbral "el que tiene más piezas gana 2 de cada 3" a fijar en su GDD; calibración con partidas humanas y propuesta de cambios después de 20 partidas online |
 | Resolución simultánea del daño | Design / Technical | Es la fórmula central; área, cobertura y muros interactúan; un orden no determinista rompe online y repeticiones | Orden estable por ID; tests de casos borde; vista previa como verificación visual |
 | Librería de reglas | Technical | Tiene que compilar igual en Unity WebGL/IL2CPP y en .NET para Cloud Run | ADR antes de escribir código; target `netstandard2.1`; prohibiciones del contrato |
 | Render y skins (18, 37, 38, 39) | Scope | 105–168 animaciones por pack en 8 direcciones; el arte no estaba contado en la primera estimación | Render del MVP reducido; formato de skin como datos desde el MVP; Kit con validador para que la comunidad aporte packs |
