@@ -85,8 +85,9 @@ En curso. Partidas jugadas:
 | Fecha | Reglas | Timer | Duración | Tiradas | Turno prom. (J1 / J2) | Tiempo agotado (mover / atacar) | Combinado decisivo | Distracción | Ganó | En 25 min |
 |---|---|---|---|---|---|---|---|---|---|---|
 | 2026-11-19 | Primera v4: catapulta 14/10, Distracción pierde el turno | Variable 90 → 60 | 23:01 | 28 (24 jugados + 4 perdidos) | 0:56 / 0:58 | 7 / 19 de 24 | 19 de 24 (79%) | 4 de 28 (14%) | Rojo | sí |
+| 2026-11-19 | Catapulta 12/8, Distracción con ataque; sin el cambio del escudero ni los límites nuevos de reclutamiento | Variable 90 → 60 | 22:52 | 34 (todos jugados) | 0:42 / 0:38 | 1 / 11 de 34 | 24 de 34 (70%) | 6 de 34 (17%) | Rojo | sí |
 
-**Partida 1 (2026-11-19).** Comparada con la v3: 30% más corta (23:01 contra 32:45) porque hubo
+**Partida 1 (2026-11-19), el diseñador contra un jugador nuevo** (con muchas consultas). Comparada con la v3: 30% más corta (23:01 contra 32:45) porque hubo
 menos turnos (28 tiradas contra 42), no turnos más rápidos (0:57 en las dos). El timer marca el
 ritmo: el tiempo de atacar se agotó en 19 de 24 turnos. Combinado decisivo 79% (v3: 61%).
 Tablas "Pierde" en 11 de 28 tiradas. El golpe final fue de 70 contra un Rey de 30 de vida.
@@ -95,3 +96,28 @@ agotar el tiempo de mover o atacar presiona y concentra: no es un problema. A pa
 se revisó el pilar 4 (meta 15–20 min, techo 25). Después de esta partida cambiaron la
 catapulta (12/8), la Distracción (sin fase de movimiento, con ataque) y el escudero (un aliado,
 un solo escudero): la próxima partida ya no es comparable uno a uno.
+
+*Partida 1 turno por turno* (`partida-20261119-134345-turnos.csv`): parejos hasta el turno 6
+(17 contra 17). En el turno 6 rojo sacó Grito de guerra y azul pasó de 17 a 7 piezas en una
+sola resolución. Desde el turno 7 azul tiró siempre con tablas "Pierde" (1/2 o menos 7 veces,
+3/4 o menos 6), reclutó 6 veces, llegó a 12 contra 16 en el turno 23 y nunca pasó adelante:
+rojo ganó en el turno 28. Esa cola de 22 turnos fue unos 16 de los 23 minutos. El pilar 3
+funcionó (el que tenía más piezas ganó, y el que perdía siguió jugando), pero ese sostén
+cuesta tiempo: es la tensión entre los pilares 3 y 4 que el concepto marcaba "a vigilar". El
+jugador nuevo se ve en los datos: 7 movimientos deshechos en el turno 17 y 7 tiempos de mover
+agotados. Salieron 8 Llamadas al servicio y 6 Cuernos de guerra.
+
+**Partida 2 (2026-11-19), dos jugadores que ya conocían el juego**, sin saber las reglas
+nuevas y sin el cambio del escudero. Misma duración que la partida 1 (22:52) con turnos más
+rápidos (0:40 contra 0:57) y más turnos jugados (34; la Distracción ya no hace perder el
+turno). Tiempo de atacar agotado en 11 de 34 turnos. Combinado decisivo 70%. Golpe final de 48
+contra un Rey de 30. De esta partida salieron los límites nuevos de reclutamiento (Llamada al
+servicio 6, jinetes 3). Su archivo de turnos no se cargó.
+
+*Pruebas que no cuentan:* `partida-20261119-111506` (2 turnos) y `partida-20261119-131953`
+(7 turnos, sin límite) quedaron sin terminar; se usaron para probar que el juego anda.
+
+**A mirar en las próximas partidas:** cuántos turnos pasan entre el turno que decide la
+partida y el final (si la cola sigue larga, las palancas son Rendirse, un cierre por tiempo
+de la Máquina de turno o menos refuerzos para el que pierde) y si Grito de guerra decide
+partidas solo (en la partida 1 una sola cara se llevó 10 piezas).
