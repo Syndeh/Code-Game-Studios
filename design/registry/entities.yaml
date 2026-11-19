@@ -134,10 +134,10 @@ formulas:
       - k
       - p_i
     output_range: [1, 10]
-    expression: "primera cara f tal que n < p_1 + ... + p_f; las p_i suman 100"
-    notes: "n es la tirada inyectada (0-99). Tabla que no suma 100 -> ProbabilidadesInvalidas. La usa el Modificador (#11)."
+    expression: "primera cara f tal que n < p_1 + ... + p_f; las p_i suman tirada_rango (100)"
+    notes: "Salida 1..k, con k = largo de la tabla (1-10). n es la tirada inyectada (0-99). Cada p_i se valida en 0-100 antes de sumar; tabla que no suma 100 -> ProbabilidadesInvalidas en CrearPartida. La usa el Modificador (#11)."
     added: 2026-11-19
-    revised: ""
+    revised: 2026-11-19
   - name: opcion_por_sorteo
     status: active
     source: design/gdd/libreria-de-reglas.md
@@ -147,10 +147,10 @@ formulas:
       - n
       - k
     output_range: [0, 99]
-    expression: "(n * k) / 100, division entera hacia abajo"
-    notes: "Salida 0 a k-1. Con k = 3 el reparto es 34/33/33 (aceptado). La usa el Tablero (#4) para el sorteo de castillos."
+    expression: "(n * k) / tirada_rango, division entera hacia abajo"
+    notes: "Salida 0..k-1 (el rango [0, 99] es el maximo, con k = 100). Las opciones con un numero de mas dependen de k (k = 3: 34/33/33; k = 7: 15/14/14/15/14/14/14). La usa el Tablero (#4) para el sorteo de castillos."
     added: 2026-11-19
-    revised: ""
+    revised: 2026-11-19
 
 # Example:
 #
@@ -184,6 +184,15 @@ formulas:
 # Required fields: name, status, source, referenced_by, value, unit, added
 
 constants:
+  - name: tirada_rango
+    status: active
+    source: design/gdd/libreria-de-reglas.md
+    referenced_by:
+      - design/gdd/libreria-de-reglas.md
+    value: 100
+    unit: "cantidad de valores posibles de la tirada (0-99); divisor de opcion_por_sorteo y suma de cada tabla de cara_por_tirada"
+    added: 2026-11-19
+    revised: ""
   - name: tirada_max
     status: active
     source: design/gdd/libreria-de-reglas.md

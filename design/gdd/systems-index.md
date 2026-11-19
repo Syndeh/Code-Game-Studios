@@ -246,7 +246,7 @@ servidor.
 
 | # | System Name | Category | Priority | Status | Design Doc | Depends On |
 |---|-------------|----------|----------|--------|------------|------------|
-| 1 | Librería de reglas (contrato) (inferred) | Core | MVP | Designed | design/gdd/libreria-de-reglas.md | — |
+| 1 | Librería de reglas (contrato) (inferred) | Core | MVP | In Review | design/gdd/libreria-de-reglas.md | — |
 | 2 | Catálogo de piezas | Core | MVP | Not Started | — | — |
 | 3 | Máquina de turno y fin de partida | Core | MVP | Not Started | — | Librería de reglas |
 | 4 | Tablero y despliegue inicial | Core | MVP | Not Started | — | Librería de reglas, Catálogo de piezas |
@@ -524,7 +524,7 @@ Los cuatro ciclos encontrados se cortaron con contratos; ninguno queda abierto.
 |--------|-------|
 | Total systems identified | 41 |
 | Design docs started | 1 |
-| Design docs reviewed | 0 |
+| Design docs reviewed | 1 |
 | Design docs approved | 0 |
 | MVP systems designed | 1/19 |
 | Vertical Slice systems designed | 0/6 |
