@@ -127,8 +127,8 @@ Ya pasadas al concepto (`design/gdd/game-concept.md`).
   objetivo, escudo restado una vez, área de catapulta (12/8) y explosión del demoledor,
   redirección por cobertura, daño a muros, muertes, en orden determinista.
 - **10 Reclutamiento y límites.** Obligatorio cuando sale la cara; aparecen del lado del
-  castillo que mira al rival; topes de llamadas (Llamada al servicio 8, Cuerno de guerra 4
-  por tipo) y de piezas vivas. Expone la consulta "¿cara disponible? ¿llamadas restantes?"
+  castillo que mira al rival; topes de llamadas (Llamada al servicio 6; Cuerno de guerra: jinetes 3,
+  catapultas 4, demoledores 4) y de piezas vivas. Expone la consulta "¿cara disponible? ¿llamadas restantes?"
   que lee el Modificador.
 - **11 Modificador (dado adaptativo).** Cinco caras con probabilidades que dependen del
   estado (piezas vivas, muros rotos, caras agotadas). Se engancha a la fase de la Máquina de

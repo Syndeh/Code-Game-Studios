@@ -27,8 +27,10 @@ public class RolchessV4 : MonoBehaviour
     const int BreachesToLoseRecruit = 1; // recruiting needs every wall standing
     // Recruit calls per player for the whole match. Llamada al servicio can come up 8 times;
     // Cuerno de guerra allows 4 calls of each special kind. Once used up, that face drops to 0%.
-    const int MaxCommonCalls = 8;
-    const int MaxSpecialCallsPerKind = 4;
+    const int MaxCommonCalls = 6;   // 2026-11-19 (d): was 8
+    // Cuerno de guerra calls per special kind, indexed by Kind. 2026-11-19 (d): riders 3 (was 4).
+    static readonly int[] MaxSpecialCalls = { 0, 0, 0, 4, 3, 4, 0 };   // catapulta 4, jinete 3, demoledor 4
+    static int MaxSpecialCallsPerKind(Kind k) => MaxSpecialCalls[(int)k];
     const float AutoDelay = 2f;
     const float DieOverlayTime = 2.5f;
 
@@ -680,7 +682,7 @@ public class RolchessV4 : MonoBehaviour
     bool SpecialCallsLeft(int owner)
     {
         for (int k = 0; k < (int)Kind.Rey; k++)
-            if (IsSpecial((Kind)k) && CanRecruitKind((Kind)k) && specialCalls[owner, k] < MaxSpecialCallsPerKind) return true;
+            if (IsSpecial((Kind)k) && CanRecruitKind((Kind)k) && specialCalls[owner, k] < MaxSpecialCallsPerKind((Kind)k)) return true;
         return false;
     }
 
@@ -745,7 +747,7 @@ public class RolchessV4 : MonoBehaviour
     bool RecruitableKind(Kind k)
     {
         if (!CanRecruitKind(k) || IsSpecial(k) != recruitSpecial) return false;
-        if (IsSpecial(k) && specialCalls[current, (int)k] >= MaxSpecialCallsPerKind) return false;
+        if (IsSpecial(k) && specialCalls[current, (int)k] >= MaxSpecialCallsPerKind(k)) return false;
         int alive = 0;
         foreach (var p in pieces) if (p.owner == current && p.kind == k) alive++;
         return alive < Limit[(int)k] && SpawnCells(current).Count > 0;
@@ -762,7 +764,7 @@ public class RolchessV4 : MonoBehaviour
         if (!CanRecruitKind(k) || IsSpecial(k) != recruitSpecial) return;
         if (IsSpecial(k))
         {
-            if (specialCalls[current, (int)k] >= MaxSpecialCallsPerKind) return;
+            if (specialCalls[current, (int)k] >= MaxSpecialCallsPerKind(k)) return;
             specialCalls[current, (int)k]++;
         }
         int alive = 0;
@@ -1499,7 +1501,7 @@ public class RolchessV4 : MonoBehaviour
         else
         {
             GUILayout.Label(recruitSpecial
-                ? "¿Qué reclutas? (aparecen del lado que mira al rival; cada tipo se puede llamar 4 veces)"
+                ? "¿Qué reclutas? (aparecen del lado que mira al rival; jinetes 3 llamadas, catapultas y demoledores 4)"
                 : $"¿Qué reclutas? (aparecen del lado que mira al rival; Llamada al servicio {commonCalls[current]}/{MaxCommonCalls})", centerWrapStyle);
             for (int k = 0; k < 6; k++)
             {
@@ -1507,7 +1509,7 @@ public class RolchessV4 : MonoBehaviour
                 int alive = 0;
                 foreach (var p in pieces) if (p.owner == current && p.kind == (Kind)k) alive++;
                 bool allowed = CanRecruitKind((Kind)k);
-                string calls = IsSpecial((Kind)k) ? $" · llamadas {specialCalls[current, k]}/{MaxSpecialCallsPerKind}" : "";
+                string calls = IsSpecial((Kind)k) ? $" · llamadas {specialCalls[current, k]}/{MaxSpecialCallsPerKind((Kind)k)}" : "";
                 GUI.enabled = RecruitableKind((Kind)k);
                 if (GUILayout.Button(allowed ? $"{RecruitCount((Kind)k)} {Names[k]} ({alive}/{Limit[k]}{calls})" : $"{Names[k]} (solo con castillos)", GUILayout.Height(34))) Recruit((Kind)k);
                 GUI.enabled = true;
@@ -1648,9 +1650,9 @@ public class RolchessV4 : MonoBehaviour
             var parts = new List<string>();
             for (int f = 0; f < 5; f++) parts.Add($"{FaceNames[f]} {odds[f]}%");
             string noRecruit = CanRecruit(p) ? "" : " · muro roto: sin reclutas";
-            string calls = $"Llamadas: comunes {commonCalls[p]}/{MaxCommonCalls} · J {specialCalls[p, (int)Kind.Jinete]}/{MaxSpecialCallsPerKind}" +
-                           $" · C {specialCalls[p, (int)Kind.Catapulta]}/{MaxSpecialCallsPerKind}" +
-                           (castles ? $" · D {specialCalls[p, (int)Kind.Demoledor]}/{MaxSpecialCallsPerKind}" : "");
+            string calls = $"Llamadas: comunes {commonCalls[p]}/{MaxCommonCalls} · J {specialCalls[p, (int)Kind.Jinete]}/{MaxSpecialCallsPerKind(Kind.Jinete)}" +
+                           $" · C {specialCalls[p, (int)Kind.Catapulta]}/{MaxSpecialCallsPerKind(Kind.Catapulta)}" +
+                           (castles ? $" · D {specialCalls[p, (int)Kind.Demoledor]}/{MaxSpecialCallsPerKind(Kind.Demoledor)}" : "");
             GUILayout.Label($"<size=12>{who} ({PieceCount(p)} piezas vs {PieceCount(1 - p)}) · {BandNames[(int)band]}{noRecruit}\n{string.Join(" · ", parts)}\n{calls}</size>", richStyle);
         }
         for (int f = 1; f <= 5; f++) GUILayout.Label($"<size=11>{FaceLine(f)}</size>", richStyle);
