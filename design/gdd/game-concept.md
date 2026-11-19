@@ -11,7 +11,7 @@
 ## Elevator Pitch
 
 > Como el ajedrez, pero todos tus ataques caen a la vez: los golpes se suman, el escudo se
-> resta una sola vez y la victoria está en combinar. Duelos tácticos 1 contra 1 de 10 a 15
+> resta una sola vez y la victoria está en combinar. Duelos tácticos 1 contra 1 de 15 a 20
 > minutos donde movés tu ejército, planeás cada golpe y derribás al Rey rival.
 
 *Por qué este pitch y no el del brief* ("ajedrez con vida, escudo y dado"): el director
@@ -29,7 +29,7 @@ que el pitch vende ahora.
 | **Platform** | Web primero, hasta completar el juego (local, online, tienda y torneos) → móvil (iOS / Android) con online en la Fase 5 → PC (Steam) y consolas en la Fase 6, solo si tiene éxito en teléfonos |
 | **Target Audience** | Estrategas y competidores que quieren duelos cortos (ver Target Player Profile) |
 | **Player Count** | 2 jugadores: local en la misma pantalla (Fase 1), online 1 contra 1 con cuenta de Google (Fase 2). Modo de 3 jugadores, sin plan por ahora |
-| **Session Length** | Partida de 10–15 min (meta; la primera de la v3, con jugadores nuevos, duró 33); timer por defecto de 60 s para mover + 30 para atacar, 40 + 20 desde el minuto 10; en partidas locales también Fijo 90, Fijo 60 y Sin límite |
+| **Session Length** | Partida de 15–20 min, nunca más de 25 (meta revisada el 2026-11-19; la primera de la v3 duró 33 y la primera de la v4, 23); timer por defecto de 60 s para mover + 30 para atacar, 40 + 20 desde el minuto 10; en partidas locales también Fijo 90, Fijo 60 y Sin límite |
 | **Monetization** | Fase 1 gratis. Desde la Fase 3: skins cosméticas (packs de compra directa, logros, packs de la comunidad). Sin pagar para ganar ni cajas aleatorias |
 | **Estimated Scope** | Large (4–6 años para la visión completa, solo, <15 h/semana). Fase 1: 14–22 meses, ~18 esperados (PR-SCOPE 2026-11-19) |
 | **Comparable Titles** | Ajedrez; Into the Breach; The Battle of Polytopia. Cifras de ventas: no investigado |
@@ -169,7 +169,7 @@ partidas largas de 4X.
   (más tiempo para principiantes).
 - **Feedback clarity**: flechas de ataque, vista previa del daño y de lo que muere, dado grande
   con su efecto.
-- **Recovery from failure**: la partida dura 10–15 min; perder no cuesta nada y se juega otra.
+- **Recovery from failure**: la partida dura 15–20 min; perder no cuesta nada y se juega otra.
 
 ---
 
@@ -186,7 +186,7 @@ propio, decidir cuándo gastar la carga de refuerzo, buscar el hueco hacia el Re
 las remontadas: un reclutamiento a tiempo da vuelta la partida.
 
 ### Session-Level (30-120 minutes)
-Una partida dura 10–15 min, así que una sesión son 2 a 6 partidas. Cada caída del Rey es un
+Una partida dura 15–20 min, así que una sesión son 2 a 6 partidas. Cada caída del Rey es un
 punto natural para cortar o para pedir la revancha. Más adelante, los torneos (dos horarios
 por día de torneo) dan una sesión con forma.
 
@@ -232,11 +232,17 @@ percibe jugando; ajuste del jugador, 2026-11-17); y (c) el que tiene más piezas
 en el GDD del Modificador; propuesta: 2 de cada 3).
 
 ### Pillar 4: Duelo corto
-La partida dura entre 10 y 15 minutos.
+La partida dura entre 15 y 20 minutos y nunca pasa de 25 (jugador, 2026-11-19, después de la primera partida de la v4).
 
 *Design test*: si una mecánica alarga la partida, pierde; si enriquece la decisión dentro del
 turno sin alargarla, gana. Las remontadas entran en el presupuesto: aun con remontada, la
-partida no pasa de 15 minutos.
+partida no pasa de 25 minutos. El timer es presión buscada: quedarse sin tiempo para mover o
+para atacar no es una falla sino lo que obliga a concentrarse; los jugadores lo dijeron así
+después de la primera partida de la v4.
+
+*Por qué 15–20 y no 10–15:* la primera partida de la v4 duró 23 minutos, se sintió pareja y
+los jugadores dijeron que se divirtieron más que en las anteriores. El techo de 25 mantiene
+el duelo dentro de una sesión corta.
 
 **Tensiones buscadas:** 1 contra 3 (el plan pesa, pero la suerte puede dar vuelta la partida;
 se concilian con "el dado da recursos, no decide golpes"), 2 contra 4 (coordinar lleva tiempo;
@@ -253,7 +259,7 @@ lo acota el timer). A vigilar: 3 contra 4 (cada remontada alarga la partida).
 - **NOT pagar para ganar**: las skins son solo estéticas y todos juegan con el mismo ejército;
   si no, el plan deja de mandar (pilar 1) y el duelo deja de ser justo.
 - **NOT cajas aleatorias pagas**: pedido del jugador en el brief.
-- **NOT partidas de más de 15 minutos ni campañas**: rompería el pilar 4.
+- **NOT partidas de más de 25 minutos ni campañas**: rompería el pilar 4.
 
 ---
 
@@ -303,7 +309,7 @@ desplazamiento, o vida siempre visible y el resto al tocar: lo deciden el GDD de
 | ---- | ---- | ---- | ---- |
 | Ajedrez | Duelo 1 contra 1, Rey como objetivo, información a la vista | Las piezas tienen vida y escudo; se mueven muchas por turno y los golpes se combinan | Valida que un duelo de tablero sin azar en la resolución engancha |
 | Into the Breach | Resultado determinista y visible antes de actuar | Es PvP y el centro es combinar contra el escudo, no empujar | Valida que mostrar el resultado no quita tensión |
-| The Battle of Polytopia | Estrategia en sesiones cortas, en web y móvil | Sin economía 4X; todo pasa en un duelo de 15 min | Valida sesiones cortas de estrategia en las plataformas objetivo |
+| The Battle of Polytopia | Estrategia en sesiones cortas, en web y móvil | Sin economía 4X; todo pasa en un duelo de 15–20 min | Valida sesiones cortas de estrategia en las plataformas objetivo |
 | Advance Wars / Fire Emblem | Ejército por turnos con tipos de unidad | Sin porcentajes de acierto; escala de duelo corto | Contraste: lo que el pilar 1 evita |
 
 **Non-game inspirations**: soldaditos y miniaturas pintadas sobre un campo de batalla; el
@@ -317,10 +323,10 @@ tablero de ajedrez como lenguaje común. Cifras de mercado de estos títulos: no
 | ---- | ---- |
 | **Age range** | 16–40 *(supuesto)* |
 | **Gaming experience** | Mid-core |
-| **Time availability** | Ratos de 15 min; sesiones de varias partidas los días de torneo |
+| **Time availability** | Ratos de 20 min; sesiones de varias partidas los días de torneo |
 | **Platform preference** | Navegador y móvil; PC después |
 | **Current games they play** | Ajedrez online, juegos tácticos por turnos *(supuesto)* |
-| **What they're looking for** | Un duelo táctico profundo que entre en 15 minutos y que se gane pensando |
+| **What they're looking for** | Un duelo táctico profundo que entre en 20 minutos y que se gane pensando |
 | **What would turn them away** | Que la partida la gane el dado; pagar para ganar; partidas largas; no encontrar rival |
 
 ---
@@ -357,12 +363,11 @@ móvil.
 - **La remontada puede volverse injusta** si el dado adaptativo es demasiado generoso u oculto
   (sensible en online competitivo). Mitigación: los límites del pilar 3.
 - **La partida dura el doble que la meta.** La primera de la v3, con jugadores nuevos, duró
-  32:45 (meta: 15 min o menos), con mucho ida y vuelta por muchas caras de reclutar. Puede ser
-  la curva de aprendizaje; si con jugadores que ya conocen el juego sigue arriba de 15 min, hay
-  que revisar el pilar 4 o las reglas que alargan. Los jugadores no notaron que pasó media
-  hora: se entusiasmaron. Mitigación (2026-11-19): la Máquina de turno es dueña del
-  presupuesto de duración; el arte final no se produce hasta que 3 partidas seguidas duren
-  15 min o menos.
+  32:45 (meta de entonces: 15 min o menos), con mucho ida y vuelta por muchas caras de
+  reclutar. La primera de la v4 duró 23:01, con menos turnos (28 tiradas contra 42) y el mismo
+  turno promedio (0:57). Mitigación (2026-11-19): meta revisada a 15–20 min con techo de 25;
+  la Máquina de turno es dueña del presupuesto de duración; el arte final no se produce hasta
+  que 3 partidas seguidas duren 25 min o menos.
 - **Mover 12 o 13 piezas en 60–90 s en pantalla táctil** puede ser pesado (TD). Probar en un
   teléfono real antes de cerrar las reglas.
 - **Dos demoledores matan a un Rey de 30 de vida de una vez** (v2, partida 1). A vigilar en
@@ -430,7 +435,7 @@ mitades publicables. Detalle por sistema en `design/gdd/systems-index.md`.
 
 ## MVP Definition
 
-**Core hypothesis**: un duelo local de 10–15 minutos, con ataques combinados y un dado
+**Core hypothesis**: un duelo local de 15–20 minutos, con ataques combinados y un dado
 adaptativo, es divertido y se siente decidido por el plan y no por el dado, para jugadores
 que no lo diseñaron.
 
@@ -464,7 +469,7 @@ Estimaciones del productor (PR-SCOPE, 2026-11-19, sobre el índice de sistemas):
 | Tier | Content | Features | Timeline |
 | ---- | ---- | ---- | ---- |
 | **MVP (Fase 1, publicable sola)** | 1 tablero, 7 piezas, 1 skin base reducida | Partida local completa en web, tutoriales | 14–22 meses (~18) |
-| **Vertical Slice** | Una partida completa con el arte final de una pieza en 8 direcciones | Núcleo + dado final + medir el costo de arte por animación; solo después de pasar la compuerta de duración (3 partidas seguidas de 15 min o menos) | Dentro de la Fase 1 |
+| **Vertical Slice** | Una partida completa con el arte final de una pieza en 8 direcciones | Núcleo + dado final + medir el costo de arte por animación; solo después de pasar la compuerta de duración (3 partidas seguidas de 25 min o menos) | Dentro de la Fase 1 |
 | **Fases 1 y 2** | MVP + online | 2a: online 1 contra 1 con cuentas, validación en servidor, reconexión y timer del servidor · 2b: lobby, chat, repeticiones y ranking | 24–34 meses (~29) |
 | **Full Vision** | Packs de skins en 8 direcciones, kit de skins para la comunidad, facciones | Fases 1 a 4 en web (local, online, tienda, torneos) → Fase 5 móvil con online → Fase 6 PC (Steam) y consolas si el móvil tiene éxito | 4–6 años o más |
 

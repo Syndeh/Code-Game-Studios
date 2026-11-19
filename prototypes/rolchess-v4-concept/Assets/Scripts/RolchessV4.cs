@@ -2,7 +2,8 @@
 // Question: With the v4 rules (King starts in the castle centre and walks through its own walls,
 //           catapult 14 on the target and 10 around, undo stack for every move of the turn,
 //           selectable timer), do players who know the game finish 3 matches in a row in
-//           15 min or less without feeling rushed? Every match is saved to a metrics file.
+//           25 min or less (target 15-20, revised 2026-11-19)? Timer timeouts are wanted pressure.
+//           Every match is saved to a metrics file.
 // Date: 2026-11-19 (built on rolchess-v3-concept, 2026-11-17)
 //
 // Hotseat 2 players, drawn entirely with IMGUI. Press Play in any scene: it creates itself.
@@ -21,7 +22,7 @@ public class RolchessV4 : MonoBehaviour
     static readonly int[] MoveTime   = { 60, 40 };   // seconds: 90-mode / 60-mode (Variable: before / after SlowdownAfter)
     static readonly int[] AttackTime = { 30, 20 };
     const int CatapultAreaDamage = 8;     // 2026-11-19 (b): 12 on the chosen cell (Atk), 8 on the 8 cells around (was 14/10)
-    const float GateSeconds = 15 * 60f;   // pillar 4: a match in 15 min or less
+    const float GateSeconds = 25 * 60f;   // pillar 4 (revised 2026-11-19): target 15-20 min, never more than 25
     const int GateStreak = 3;             // art gate: 3 matches in a row within GateSeconds
     const int BreachesToLoseRecruit = 1; // recruiting needs every wall standing
     // Recruit calls per player for the whole match. Llamada al servicio can come up 8 times;
@@ -186,7 +187,7 @@ public class RolchessV4 : MonoBehaviour
         public bool completed;
         public int winner = -1;              // 0 blue, 1 red, -1 not finished
         public float durationSeconds;
-        public bool within15Min;
+        public bool withinCap;   // durationSeconds <= GateSeconds (25 min)
         public int turns, lostTurns, moveTimeouts, attackTimeouts, undos;
         public float avgTurnBlue, avgTurnRed, longestTurn;
         public int[] faces = new int[5];     // Distracción, Grito, Llamada, Cuerno, Arremetida
@@ -899,7 +900,7 @@ public class RolchessV4 : MonoBehaviour
         rec.completed = completed;
         rec.winner = completed ? winner : -1;
         rec.durationSeconds = end - matchStart;
-        rec.within15Min = completed && rec.durationSeconds <= GateSeconds;
+        rec.withinCap = completed && rec.durationSeconds <= GateSeconds;
         rec.turns = turnNumber; rec.lostTurns = lostTurns; rec.undos = undoCount;
         rec.moveTimeouts = moveTimeouts; rec.attackTimeouts = attackTimeouts;
         rec.avgTurnBlue = Avg(turnTimes[0]); rec.avgTurnRed = Avg(turnTimes[1]);
@@ -943,10 +944,10 @@ public class RolchessV4 : MonoBehaviour
 
         string all = System.IO.Path.Combine(dir, "partidas.csv");
         if (!System.IO.File.Exists(all))
-            System.IO.File.WriteAllText(all, "fecha,timer,castillos,terminada,ganador,duracion_seg,en_15_min,turnos,prom_turno_azul,prom_turno_rojo,turno_mas_largo,perdidos,tiempo_mover,tiempo_atacar,deshacer,distraccion,grito,llamada,cuerno,arremetida,turnos_con_ataque,combinado,decisivo,turnos_ganador_atras,remontada,lider_a_mitad_gano\n", System.Text.Encoding.UTF8);
+            System.IO.File.WriteAllText(all, "fecha,timer,castillos,terminada,ganador,duracion_seg,en_25_min,turnos,prom_turno_azul,prom_turno_rojo,turno_mas_largo,perdidos,tiempo_mover,tiempo_atacar,deshacer,distraccion,grito,llamada,cuerno,arremetida,turnos_con_ataque,combinado,decisivo,turnos_ganador_atras,remontada,lider_a_mitad_gano\n", System.Text.Encoding.UTF8);
         string w = rec.winner == 0 ? "azul" : rec.winner == 1 ? "rojo" : "-";
         System.IO.File.AppendAllText(all,
-            $"{rec.startedAt},{rec.timerMode},{rec.castleSectors},{B(rec.completed)},{w},{rec.durationSeconds:0},{B(rec.within15Min)},{rec.turns}," +
+            $"{rec.startedAt},{rec.timerMode},{rec.castleSectors},{B(rec.completed)},{w},{rec.durationSeconds:0},{B(rec.withinCap)},{rec.turns}," +
             $"{rec.avgTurnBlue:0.0},{rec.avgTurnRed:0.0},{rec.longestTurn:0.0},{rec.lostTurns},{rec.moveTimeouts},{rec.attackTimeouts},{rec.undos}," +
             $"{rec.faces[0]},{rec.faces[1]},{rec.faces[2]},{rec.faces[3]},{rec.faces[4]},{rec.attackTurns},{rec.combinedTurns},{rec.decisiveTurns}," +
             $"{rec.winnerTrailedTurns},{B(rec.comeback)},{(rec.leaderAtHalf < 0 ? "empate" : B(rec.leaderAtHalfWon))}\n", System.Text.Encoding.UTF8);
@@ -961,7 +962,8 @@ public class RolchessV4 : MonoBehaviour
         Application.OpenURL("file:///" + MetricsDir.Replace('\\', '/'));
     }
 
-    // Reads partidas.csv and counts the current streak of completed matches within 15 min.
+    // Reads partidas.csv and counts the current streak of completed matches within GateSeconds.
+    // Uses the duration column, so rows written under the old 15-min gate count with the new cap.
     // Unfinished matches are skipped (they are neither a pass nor a fail).
     int GateStreakNow(out int completedMatches)
     {
@@ -975,7 +977,7 @@ public class RolchessV4 : MonoBehaviour
             var c = lines[i].Split(',');
             if (c.Length < 7 || c[3] != "si") continue;
             completedMatches++;
-            streak = c[6] == "si" ? streak + 1 : 0;
+            streak = float.TryParse(c[5], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float sec) && sec <= GateSeconds ? streak + 1 : 0;
         }
         return streak;
     }
@@ -1206,7 +1208,7 @@ public class RolchessV4 : MonoBehaviour
         GUILayout.Label($"<size=11>{TimerHelp[(int)timerMode]}</size>", richStyle);
         GUILayout.Space(10);
         int streak = GateStreakNow(out int done);
-        GUILayout.Label($"<b>Compuerta de 15 min</b>: {Mathf.Min(streak, GateStreak)}/{GateStreak} partidas seguidas en 15 min o menos " +
+        GUILayout.Label($"<b>Compuerta de 25 min</b> (meta 15–20): {Mathf.Min(streak, GateStreak)}/{GateStreak} partidas seguidas en 25 min o menos " +
                         $"({done} partidas terminadas registradas){(streak >= GateStreak ? " · <color=#7f7>CUMPLIDA</color>" : "")}", richStyle);
         GUILayout.Label($"<size=11>Métricas en: {MetricsDir}</size>", richStyle);
         if (GUILayout.Button("Abrir carpeta de métricas")) OpenMetricsFolder();
@@ -1527,8 +1529,8 @@ public class RolchessV4 : MonoBehaviour
             DrawStats(true);
             int streak = GateStreakNow(out int done);
             float dur = matchEnd - matchStart;
-            GUILayout.Label($"<b>Esta partida: {Fmt(dur)} {(dur <= GateSeconds ? "<color=#7f7>(15 min o menos)</color>" : "<color=#f77>(más de 15 min)</color>")}</b>", richStyle);
-            GUILayout.Label($"Compuerta de 15 min: {Mathf.Min(streak, GateStreak)}/{GateStreak} seguidas ({done} partidas registradas){(streak >= GateStreak ? " · <color=#7f7>CUMPLIDA</color>" : "")}", richStyle);
+            GUILayout.Label($"<b>Esta partida: {Fmt(dur)} {(dur <= GateSeconds ? (dur <= 20 * 60f ? "<color=#7f7>(en la meta de 15–20 min)</color>" : "<color=#ff5>(sobre la meta, dentro del techo de 25)</color>") : "<color=#f77>(más de 25 min)</color>")}</b>", richStyle);
+            GUILayout.Label($"Compuerta de 25 min: {Mathf.Min(streak, GateStreak)}/{GateStreak} seguidas ({done} partidas registradas){(streak >= GateStreak ? " · <color=#7f7>CUMPLIDA</color>" : "")}", richStyle);
             GUILayout.Label($"<size=11>Métricas guardadas: {lastSavedPath}</size>", richStyle);
             if (GUILayout.Button("Abrir carpeta de métricas")) OpenMetricsFolder();
             if (GUILayout.Button("Nueva partida", GUILayout.Height(32))) phase = Phase.Setup;

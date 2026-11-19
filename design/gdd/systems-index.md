@@ -70,8 +70,10 @@ Ya pasadas al concepto (`design/gdd/game-concept.md`).
   duración; su GDD decide si hace falta un cierre de partida por tiempo dentro de
   `EvaluateMatchEnd`. Los GDD de Resolución (9), Reclutamiento (10) y Modificador (11)
   declaran cuánto suma cada uno a la duración.
+- **Duración revisada (pilar 4):** la partida dura 15–20 minutos y nunca pasa de 25. El timer
+  es presión buscada: agotar el tiempo de mover o de atacar no es una falla.
 - **Compuerta del arte:** no se produce arte final hasta que 3 partidas seguidas duren
-  15 min o menos, con piezas provisorias. Se mide con las Métricas locales (19).
+  25 min o menos, con piezas provisorias. Se mide con las Métricas locales (19).
 - **Calibración:** con partidas humanas, sin simulador. Después de las primeras 20 partidas
   online se escribe una propuesta de cambios (Modificador, umbral 2 de 3, duración,
   Distracción) con los datos de la Analítica online (32) y el Registro de partida (26).
@@ -157,7 +159,7 @@ Ya pasadas al concepto (`design/gdd/game-concept.md`).
   de partida y de turno, caras del Modificador, piezas vivas por turno (remontadas, umbral 2
   de 3), piezas usadas, ataques combinados, uso del deshacer y del timer. Uso: pasos del
   tutorial completados o abandonados. Técnico: fps, tiempos de carga, errores. Es lo que mide
-  la compuerta de 15 min desde los primeros playtests del MVP.
+  la compuerta de 25 min desde los primeros playtests del MVP.
 
 **Fase 1 publicable (Vertical Slice)**
 
@@ -316,7 +318,7 @@ Sin Narrative: el juego no tiene historia.
 
 > **Creative Director Note** (MVP): CD-SYSTEMS dio CONCERNS el 2026-11-19. Resuelto así:
 > el pilar 4 tiene dueño (la Máquina de turno, 3, con el presupuesto de duración) y la
-> compuerta del arte se alineó a 15 min; la calibración del Modificador y de la duración se
+> compuerta del arte se alineó al pilar 4 (15 min, revisado después a 15–20 con techo de 25); la calibración del Modificador y de la duración se
 > hace con partidas humanas, con una propuesta de cambios después de 20 partidas online (sin
 > simulador, por decisión del jugador); la numeración de la enumeración y del orden de diseño
 > quedó unificada. Las Métricas locales (19), sumadas después del gate, dan cómo medir la
@@ -481,7 +483,7 @@ Los cuatro ciclos encontrados se cortaron con contratos; ninguno queda abierto.
 
 | System | Risk Type | Risk Description | Mitigation |
 |--------|-----------|-----------------|------------|
-| Duración de partida (dueño: Máquina de turno, 3) | Design | La primera partida de la v3 duró 33 min contra la meta de 10–15; romper el pilar 4 obliga a cambiar reglas y todo lo que depende de ellas | Presupuesto de duración en el GDD del 3 (con posible cierre por tiempo); 9, 10 y 11 declaran su aporte; medido con las Métricas locales (19); **compuerta del arte:** no se produce arte final hasta que 3 partidas seguidas duren 15 min o menos |
+| Duración de partida (dueño: Máquina de turno, 3) | Design | La primera partida de la v3 duró 33 min contra la meta de entonces (10–15); la primera de la v4, 23 min; meta revisada a 15–20 con techo de 25; romper el pilar 4 obliga a cambiar reglas y todo lo que depende de ellas | Presupuesto de duración en el GDD del 3 (con posible cierre por tiempo); 9, 10 y 11 declaran su aporte; medido con las Métricas locales (19); **compuerta del arte:** no se produce arte final hasta que 3 partidas seguidas duren 25 min o menos |
 | Modificador | Design | La remontada puede volverse injusta o el dado puede sentirse decisivo; la Distracción (ahora sin fase de movimiento, con ataque) fue marcada contra los pilares 1 y 3 | Probabilidades consultables; umbral "el que tiene más piezas gana 2 de cada 3" a fijar en su GDD; calibración con partidas humanas y propuesta de cambios después de 20 partidas online |
 | Resolución simultánea del daño | Design / Technical | Es la fórmula central; área, cobertura y muros interactúan; un orden no determinista rompe online y repeticiones | Orden estable por ID; tests de casos borde; vista previa como verificación visual |
 | Librería de reglas | Technical | Tiene que compilar igual en Unity WebGL/IL2CPP y en .NET para Cloud Run | ADR antes de escribir código; target `netstandard2.1`; prohibiciones del contrato |
@@ -535,7 +537,7 @@ Los cuatro ciclos encontrados se cortaron con contratos; ninguno queda abierto.
 - [ ] Prototipo v4 con todos los cambios de reglas de esta sesión
 - [ ] Diseñar los sistemas del MVP en orden (`/design-system librería-de-reglas` primero)
 - [ ] Correr `/design-review` en cada GDD terminado
-- [ ] Medir la duración de partida con piezas provisorias: 3 partidas seguidas de 15 min o menos antes de producir arte
+- [ ] Medir la duración de partida con piezas provisorias: 3 partidas seguidas de 25 min o menos antes de producir arte
 - [ ] Después de las primeras 20 partidas online: propuesta de cambios del Modificador y la duración
 - [ ] Correr `/gate-check technical-setup` cuando los sistemas del MVP estén diseñados
 - [ ] Validar los sistemas de mayor riesgo con `/vertical-slice` antes de entrar en producción

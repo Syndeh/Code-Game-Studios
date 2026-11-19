@@ -59,8 +59,8 @@ daño es fijo y se ve antes de resolver).
 - *Prueba de diseño:* cuando es ambiguo si resaltar cada golpe o el conjunto, gana el
   conjunto. Tres arqueros contra un escudo se leen como una jugada, no como tres.
 
-**3. El ritmo del turno manda sobre la animación.** Sirve al **pilar 4: Duelo corto** (10 a
-15 minutos).
+**3. El ritmo del turno manda sobre la animación.** Sirve al **pilar 4: Duelo corto** (15 a
+20 minutos, nunca más de 25).
 - Cómo se hace: todos los ataques de una resolución se animan a la vez, no uno detrás de
   otro. Propuesta a validar en prototipo: la resolución completa de un turno no pasa de ~2 s.
   Esto también ayuda a que el MVP reducido (movimiento y ataque por código, 1 o 2
