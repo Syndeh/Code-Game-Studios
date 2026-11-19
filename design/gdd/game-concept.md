@@ -1,7 +1,7 @@
 # Game Concept: Ajedrez táctico (título provisional; código rolchess)
 
 *Created: 2026-11-17*
-*Status: Draft (2026-11-17, después de la v3)*
+*Status: Draft (2026-11-17, después de la v3; actualizado 2026-11-19 con `/map-systems`)*
 *Fuentes: `design/game-brief.md`, `design/reglas-cuaderno.md`,
 `prototypes/rolchess-concept/REPORT.md`, `prototypes/rolchess-v2-concept/REPORT.md`,
 `prototypes/rolchess-v3-concept/README.md`*
@@ -26,12 +26,12 @@ que el pitch vende ahora.
 | Aspect | Detail |
 | ---- | ---- |
 | **Genre** | Estrategia táctica por turnos sobre tablero; duelo PvP |
-| **Platform** | Web primero, hasta completar el juego (local, online, tienda y torneos) → móvil (iOS / Android) con online en la Fase 6 → PC (Steam) y consolas en la Fase 7, solo si tiene éxito en teléfonos |
+| **Platform** | Web primero, hasta completar el juego (local, online, tienda y torneos) → móvil (iOS / Android) con online en la Fase 5 → PC (Steam) y consolas en la Fase 6, solo si tiene éxito en teléfonos |
 | **Target Audience** | Estrategas y competidores que quieren duelos cortos (ver Target Player Profile) |
-| **Player Count** | 2 jugadores: local en la misma pantalla (Fase 1), online 1 contra 1 (Fase 2), con cuenta de Google desde la Fase 3. Modo de 3 jugadores, sin plan por ahora |
-| **Session Length** | Partida de 10–15 min (meta; la primera de la v3, con jugadores nuevos, duró 33); turno de 60 s para mover + 30 para atacar, 40 + 20 desde el minuto 10 |
-| **Monetization** | Fase 1 gratis. Desde la Fase 4: skins cosméticas (packs de compra directa, logros, packs de la comunidad). Sin pagar para ganar ni cajas aleatorias |
-| **Estimated Scope** | Large (4–6 años para la visión completa, solo, <15 h/semana). Fase 1: 6–13 meses, ~8 esperados |
+| **Player Count** | 2 jugadores: local en la misma pantalla (Fase 1), online 1 contra 1 con cuenta de Google (Fase 2). Modo de 3 jugadores, sin plan por ahora |
+| **Session Length** | Partida de 10–15 min (meta; la primera de la v3, con jugadores nuevos, duró 33); timer por defecto de 60 s para mover + 30 para atacar, 40 + 20 desde el minuto 10; en partidas locales también Fijo 90, Fijo 60 y Sin límite |
+| **Monetization** | Fase 1 gratis. Desde la Fase 3: skins cosméticas (packs de compra directa, logros, packs de la comunidad). Sin pagar para ganar ni cajas aleatorias |
+| **Estimated Scope** | Large (4–6 años para la visión completa, solo, <15 h/semana). Fase 1: 14–22 meses, ~18 esperados (PR-SCOPE 2026-11-19) |
 | **Comparable Titles** | Ajedrez; Into the Breach; The Battle of Polytopia. Cifras de ventas: no investigado |
 
 ---
@@ -72,23 +72,23 @@ Este concepto reemplaza al cuaderno donde no coinciden. Cada regla se detalla en
 | Tablero | Cuadrado, 24 × 15 (pensado para 16:9). Hexagonal descartado por ahora | v2 |
 | Ejército inicial | 4 soldados, 4 arqueros, 4 escuderos y el Rey; en 3 columnas de 4 (arqueros atrás, escuderos al frente), mirando al rival | cuaderno + v2 |
 | Turno | Modificador (automático) → mover hasta 12 piezas más el Rey → asignar ataques → resolver | cuaderno + v2 + v3 |
-| Movimiento | En cruz en el tablero cuadrado; se atraviesan aliados, nunca enemigos (salvo el jinete); se puede deshacer el último movimiento | v1 notas 1 y 7 (cruz: supuesto del prototipo) |
+| Movimiento | En cruz en el tablero cuadrado; se atraviesan aliados, nunca enemigos (salvo el jinete); se pueden deshacer todos los movimientos del turno, como una pila, del último al primero | v1 notas 1 y 7 (cruz: supuesto del prototipo) + jugador 2026-11-19 |
 | Jinete | Pasa por encima de los enemigos: no lo bloquean, pero no termina el movimiento sobre ellos. Los muros sí lo frenan | jugador 2026-11-17 (v3, sin jugar) |
 | Escudero | En la fase de ataque, en lugar de atacar, puede cubrir a un aliado a un cuadro (las 8 vecinas). Durante el turno rival, **todos** los ataques enemigos a ese aliado (área de catapulta y explosión de demoledor incluidas) los recibe el escudero (menos su escudo). Dura hasta el siguiente turno propio. El cuaderno lo limitaba a los arqueros | cuaderno + jugador 2026-11-17 (v3, sin jugar) |
 | Alcance | Circular: una casilla está en alcance si dx² + dy² ≤ alcance² + 1 (con 6, hasta 37). Catapulta 2–6: no alcanza las 8 vecinas. Las piezas de alcance 1 atacan a las 8 vecinas | v1 notas 3 y 18 + v3 |
 | Ataques | Se asignan con flechas y se resuelven todos juntos; el daño se suma por objetivo y el escudo se resta una vez; vista previa del resultado antes de resolver | v1 notas 2, 8 y 10 |
-| Catapulta | Dispara a cualquier casilla en alcance: daño completo ahí y la mitad (hacia abajo) alrededor, a enemigos, aliados y muros | v2 |
+| Catapulta | Dispara a cualquier casilla en alcance: 14 de daño ahí y 10 en las 8 casillas alrededor, a enemigos, aliados y muros | v2 + jugador 2026-11-19 |
 | Demoledor | Explota sobre todas las vecinas (aliados y muros incluidos) y muere | v1 nota 12 |
 | Castillo | Muro perimetral de 5 × 5; 16 tramos de 30 de vida sin escudo; cualquier pieza enemiga en alcance lo ataca; un tramo roto abre un hueco y ese castillo deja de reclutar | v1 nota 11 + v2 |
 | Arqueros en el muro | Un arquero puede subir a un tramo libre de su propio muro (uno por tramo; el muro no se atraviesa). Arriba tiene +2 de escudo. El daño a esa casilla lo reciben el arquero (menos su escudo) y el muro (completo); si el muro se rompe, el arquero queda en el hueco | v3 |
-| Rey | Vida 30. Entra y sale del castillo con la regla del cuaderno (ese turno no se mueve más); al seleccionarlo se marcan las casillas de salida o de entrada. Muere el Rey, termina la partida | cuaderno + v3 |
+| Rey | Vida 30. Empieza en el centro de su castillo. Sus propios muros no lo bloquean: entra y sale con su movimiento normal, sin regla especial. No puede subir a los muros. Muere el Rey, termina la partida | cuaderno + jugador 2026-11-19 |
 | Reclutas | Aparecen del lado del castillo que mira al rival. Reclutar es obligatorio cuando sale la cara (no hay "no reclutar"); si no queda nada disponible, se pasa a mover | v1 nota 4 + jugador 2026-11-17 |
 | Límite de reclutas | Por jugador y por partida. **Llamada al servicio** sale como mucho 8 veces. **Cuerno de guerra**: 4 llamadas por tipo (jinetes 4, catapultas 4, demoledores 4). Se mantienen los topes de piezas vivas (12/16/12/8/8/4) | jugador 2026-11-17 (v3, sin jugar) |
 | Modificador (el dado) | 5 caras; en pantalla se ve solo el nombre. **Distracción**: perdés el turno · **Grito de guerra**: +2 de ataque y +2 de movimiento a todas tus piezas en ese turno, no se acumula · **Llamada al servicio**: reclutás 4 soldados, arqueros o escuderos · **Cuerno de guerra**: reclutás 4 jinetes, 2 catapultas o 1 demoledor · **Arremetida**: movés todas las piezas que quieras. Las elecciones aparecen en el centro del tablero | v2 + v3 |
 | Probabilidades del Modificador | Al empezar su turno, antes de tirar, se comparan las piezas vivas del jugador (Rey incluido, muros no) con las del rival. Normal 20/20/20/20/20 · Pierde con 3/4 o menos 20/20/25/20/15 · Pierde con 1/2 o menos 15/20/25/25/15 · Gana 4 a 3 o más 20/25/15/20/20 · Gana 2 a 1 o más 20/25/15/15/25. Con un muro roto, las dos caras de reclutar bajan a 0% y su parte va mitad a Grito de guerra y el resto a Arremetida. Lo mismo con cada cara de reclutar agotada: Llamada al servicio después de 8 veces, y Cuerno de guerra cuando ningún tipo especial tiene llamadas (sin castillos, los demoledores no cuentan). Las de los dos jugadores se pueden consultar en cualquier momento (ícono de signo de pregunta, arriba a la derecha). Valores provisionales: se ajustan en el MVP | v3 |
-| Timer | Por etapas: 60 s para mover (reclutar incluido) y 30 para atacar; desde el minuto 10 de partida, 40 + 20. Se acaba el de mover → pasa a atacar; se acaba el de atacar → se resuelven los ataques asignados y termina el turno. El turno también termina solo si no quedan acciones | v1 notas 14 y 15 + v3 |
-| Variante sin castillos | Rey atrás, reclutas a su alrededor, sin demoledores. Se mantiene como opción; sin probar | v1 nota 16 |
-| Estadísticas | Tabla grande del cuaderno con demoledor de ataque 30 y vidas de arquero y escudero invertidas (arquero 15, escudero 20); se ven ataque, escudo y vida en cada pieza | cuaderno + v1 nota 19 + jugador 2026-11-17 (v3, sin jugar) |
+| Timer | Por etapas: 60 s para mover (reclutar incluido) y 30 para atacar; desde el minuto 10 de partida, 40 + 20 (modo Variable 90 → 60). Se acaba el de mover → pasa a atacar; se acaba el de atacar → se resuelven los ataques asignados y termina el turno. El turno también termina solo si no quedan acciones. En partidas locales se elige el modo: Variable 90 → 60, Fijo 90, Fijo 60 o Sin límite; online usa el Variable | v1 notas 14 y 15 + v3 + jugador 2026-11-19 |
+| Variante sin castillos | Descartada | jugador 2026-11-19 |
+| Estadísticas | Tabla grande del cuaderno con demoledor de ataque 30, catapulta de ataque 14 y vidas de arquero y escudero invertidas (arquero 15, escudero 20); se ven ataque, escudo y vida en cada pieza | cuaderno + v1 nota 19 + jugador 2026-11-17 y 2026-11-19 |
 
 **Modificador: reglas decididas, números provisionales.** La v3 implementó el rumbo acordado
 después de la v2: las probabilidades se adaptan a cómo va la partida (con menos piezas, más
@@ -150,7 +150,7 @@ decidiera. Porcentajes y umbrales se ajustan con partidas del MVP; se documentan
 
 ### Player Type Appeal (Bartle Taxonomy)
 
-- [ ] **Achievers** — Secundario: logros que dan skins (Fase 4).
+- [ ] **Achievers** — Secundario: logros que dan skins (Fase 3).
 - [ ] **Explorers** — Menor: entender las combinaciones y el dado adaptativo.
 - [ ] **Socializers** — Menor: jugar con amigos, packs de skins de la comunidad.
 - [x] **Killers/Competitors** — Principal: ganarle a otra persona, torneos, ranking.
@@ -162,7 +162,9 @@ partidas largas de 4X.
 ### Flow State Design
 
 - **Onboarding curve**: la primera partida empieza con pocas piezas y el dado explicado en
-  pantalla; la vista previa del daño enseña la regla del escudo sin texto. Tutorial: abierto.
+  pantalla; la vista previa del daño enseña la regla del escudo sin texto. Tutorial básico de 3 pasos (turno, piezas
+  comunes, piezas especiales) con las estadísticas de todas las piezas, y aparte una partida
+  tutorial completa contra un Rival IA básico.
 - **Difficulty scaling**: la dificultad la pone el rival. El timer se ajusta por experiencia
   (más tiempo para principiantes).
 - **Feedback clarity**: flechas de ataque, vista previa del daño y de lo que muere, dado grande
@@ -335,7 +337,7 @@ abajo conviene tomarlas temprano.
 | **Art Pipeline Complexity** | Alta en la visión completa (unos 2.000 cuadros por pack en 8 direcciones); media en el MVP reducido |
 | **Audio Needs** | Moderado: golpes, resolución combinada con acento que crece con los atacantes, dado; música ambiente |
 | **Networking** | Cliente-servidor con autoridad en el servidor (Fase 2): Firebase Realtime Database y validación de jugadas (Cloud Run con la librería C# recomendado por el TD, o Cloud Functions en JS con pruebas compartidas) |
-| **Content Volume** | 7 tipos de pieza, 1 tablero (más la variante sin castillos), 1 skin base en el MVP |
+| **Content Volume** | 7 tipos de pieza, 1 tablero, 1 skin base en el MVP |
 | **Procedural Systems** | Ninguno (salvo la posición de los castillos por sectores al azar) |
 
 Presupuestos propuestos por el TD: primera descarga web menor a 20 MB; menos de 40 MB de
@@ -349,14 +351,17 @@ móvil.
 ### Design Risks
 - **El dado inclina partidas.** 20% de tiradas perdidas en la v2. En la v3 (Modificador con
   probabilidades por estado) fue 19% y la partida se sintió pareja, pero es una sola partida.
-  Mitigación: ajustar con partidas del MVP.
+  Mitigación: calibrar con partidas humanas (sin simulador); después de las primeras 20
+  partidas online, propuesta de cambios del Modificador y la duración.
 - **La remontada puede volverse injusta** si el dado adaptativo es demasiado generoso u oculto
   (sensible en online competitivo). Mitigación: los límites del pilar 3.
 - **La partida dura el doble que la meta.** La primera de la v3, con jugadores nuevos, duró
   32:45 (meta: 15 min o menos), con mucho ida y vuelta por muchas caras de reclutar. Puede ser
-  la curva de aprendizaje; si con jugadores que ya conocen el juego sigue arriba de 20 min, hay
+  la curva de aprendizaje; si con jugadores que ya conocen el juego sigue arriba de 15 min, hay
   que revisar el pilar 4 o las reglas que alargan. Los jugadores no notaron que pasó media
-  hora: se entusiasmaron.
+  hora: se entusiasmaron. Mitigación (2026-11-19): la Máquina de turno es dueña del
+  presupuesto de duración; el arte final no se produce hasta que 3 partidas seguidas duren
+  15 min o menos.
 - **Mover 12 o 13 piezas en 60–90 s en pantalla táctil** puede ser pesado (TD). Probar en un
   teléfono real antes de cerrar las reglas.
 - **Dos demoledores matan a un Rey de 30 de vida de una vez** (v2, partida 1). A vigilar en
@@ -374,8 +379,8 @@ móvil.
 - **Pocos jugadores para el online y los torneos** (productor): sin rival disponible, el
   online se vacía. No investigado. Pregunta abierta: rival IA o partidas asincrónicas.
 - **Pagos por plataforma**: Stripe solo sirve en web; iOS, Android y Steam exigen su propio
-  sistema de compras. La tienda de la Fase 4 (web) se rehace en parte para móvil (Fase 6) y,
-  si llega, para Steam (Fase 7). Conviene que la lógica de la tienda no dependa de Stripe.
+  sistema de compras. La tienda de la Fase 3 (web) se rehace en parte para móvil (Fase 5) y,
+  si llega, para Steam (Fase 6). Conviene que la lógica de la tienda no dependa de Stripe.
 - Tamaño del público de táctica PvP de sesión corta: no investigado.
 
 ### Scope Risks
@@ -384,14 +389,14 @@ móvil.
 - **Visión completa de 4–6 años** a menos de 15 h por semana. Mitigación: publicar la Fase 1
   sola; reordenar después de la Fase 2.
 - **Corte a mitad de la Fase 2** con un producto roto si la Fase 1 no se publicó antes
-  (mitigado: se publica sola).
+  (mitigado: se publica sola) o con un online a medio hacer (mitigado: la Fase 2 se parte en
+  2a y 2b, cada una publicable).
 
 ### Open Questions
 - **Modificador:** reglas cerradas en la v3; porcentajes y umbrales a ajustar con partidas del
   MVP. → `/design-system modificador`.
 - **¿Qué tanto se combina de verdad?** Primera medición (v3): ataque combinado decisivo en 21
   de 34 turnos (61%). Falta confirmarlo con más partidas.
-- **Variante sin castillos:** ¿mejor, peor o modo aparte? Sin probar en ninguna versión.
 - **¿Remontada o inexperiencia?** En la v3 ganó el que estuvo acorralado al principio, con
   jugadores nuevos.
 - **Movimiento en cruz o en las 8 direcciones** (en cruz fue un supuesto del prototipo). →
@@ -399,25 +404,26 @@ móvil.
 - **Estadísticas en móvil:** zoom o dos niveles. → GDD de interfaz y `/art-bible`.
 - **Validación en el servidor:** Cloud Run con C# o Cloud Functions en JS. → ADR antes de la
   Fase 2.
-- **Rival IA o partidas asincrónicas** para cuando haya pocos jugadores online.
-- **Tutorial / primera partida.**
+- **Rival IA o partidas asincrónicas** para cuando haya pocos jugadores online. (La Fase 1
+  ya suma un Rival IA básico, solo para la partida tutorial completa.)
 
 ---
 
 ## Plan por fases
 
 Orden del jugador (2026-11-17): el juego se completa en web antes de llegar a los teléfonos.
-Se conserva la numeración del brief.
+Renumerado el 2026-11-19: las cuentas (antes Fase 3) pasan a la Fase 2, que se parte en dos
+mitades publicables. Detalle por sistema en `design/gdd/systems-index.md`.
 
 | Fase | Contenido |
 |---|---|
-| 1 | Web local: partida de 2 jugadores en la misma pantalla (el MVP) |
-| 2 | Web online 1 contra 1: salas, validación en servidor, reconexión, timer del servidor |
-| 3 | Cuentas: inicio de sesión con Google y estadísticas del jugador |
-| 4 | Tienda y skins en web (Stripe) |
-| 5 | Torneos automatizados (jueves y sábados, dos horarios, brackets, premios) |
-| 6 | Móvil (iOS / Android) con online, con las compras dentro de la app de cada tienda |
-| 7 | PC (Steam) y consolas, solo si el juego tiene éxito en teléfonos |
+| 1 | Web local: partida de 2 jugadores en la misma pantalla, tutorial básico de 3 pasos, partida tutorial contra un Rival IA básico y métricas de cada partida guardadas en un archivo exportable |
+| 2a | Web online mínimo: servidor de partida, cuentas con Google, partida rápida e invitación, emotes y frases predefinidas, analítica online con tablero (balance, retención y rendimiento) |
+| 2b | Web online social: lobby con estados y desafíos, chat global con filtro, repeticiones (últimas 10 partidas), estadísticas y ranking |
+| 3 | Tienda y skins en web (Stripe, con el proveedor de pago abstraído) y kit de creación de skins para la comunidad |
+| 4 | Torneos automatizados (jueves, viernes y sábados, 21 y 23 hora del servidor, brackets, premios) |
+| 5 | Móvil (iOS / Android) con online, con las compras dentro de la app de cada tienda |
+| 6 | PC (Steam) y consolas, solo si el juego tiene éxito en teléfonos |
 
 ---
 
@@ -428,7 +434,7 @@ adaptativo, es divertido y se siente decidido por el plan y no por el dado, para
 que no lo diseñaron.
 
 **Required for MVP** (Fase 1, partida local de 2 jugadores en web):
-1. Tablero de 24 × 15 con castillos con muros (y la variante sin castillos como opción).
+1. Tablero de 24 × 15 con castillos con muros.
 2. Los 7 tipos de pieza con la tabla de estadísticas; ficha con ícono de tipo, ataque, escudo
    y vida.
 3. Movimiento (hasta 12 más el Rey, atravesando aliados) con deshacer.
@@ -441,38 +447,37 @@ que no lo diseñaron.
 8. Build web dentro del presupuesto (menos de 20 MB).
 
 **Explicitly NOT in MVP** (defer to later):
-- Online, cuentas, tienda, skins adicionales, torneos (Fases 2 a 5).
+- Online, cuentas, tienda, skins adicionales, torneos (Fases 2 a 4).
 - Animación en 8 direcciones (primer pack de skins).
-- Móvil (Fase 6, con el juego completo en web).
-- PC (Steam) y consolas (Fase 7, solo si el juego tiene éxito en teléfonos).
+- Móvil (Fase 5, con el juego completo en web).
+- PC (Steam) y consolas (Fase 6, solo si el juego tiene éxito en teléfonos).
 - Facciones con terreno y modo de 3 jugadores (sin plan).
-- Rival IA (pregunta abierta).
+- Rival IA fuera del tutorial (pregunta abierta).
 
 ### Scope Tiers (if budget/time shrinks)
 
-Estimaciones del productor (PR-SCOPE, 2026-11-17) ajustadas a menos de 15 h por semana
-(×2–2,5). Confianza baja: no hay historial de ritmo.
+Estimaciones del productor (PR-SCOPE, 2026-11-19, sobre el índice de sistemas): solo, unas
+45 h efectivas por mes. Confianza baja: no hay historial de ritmo; se recalibran después de
+2–3 sprints con horas reales. No cuentan el Rival IA básico, sumado después.
 
 | Tier | Content | Features | Timeline |
 | ---- | ---- | ---- | ---- |
-| **MVP (Fase 1, publicable sola)** | 1 tablero, 7 piezas, 1 skin base reducida | Partida local completa en web | 6–13 meses (~8) |
-| **Vertical Slice** | Una partida completa con el arte final de una pieza en 8 direcciones | Núcleo + dado final + medir el costo de arte por animación | Dentro de la Fase 1 (preproducción y primer tramo) |
-| **Fases 1 y 2** | MVP + salas | Online 1 contra 1 en web con validación en servidor, reconexión y timer del servidor (sin cuentas: llegan en la Fase 3) | 9–20 meses (~13) |
-| **Full Vision** | Packs de skins en 8 direcciones, facciones | Fases 1 a 5 en web (local, online, cuentas con Google y estadísticas, tienda, torneos) → Fase 6 móvil con online → Fase 7 PC (Steam) y consolas si el móvil tiene éxito | 4–6 años |
+| **MVP (Fase 1, publicable sola)** | 1 tablero, 7 piezas, 1 skin base reducida | Partida local completa en web, tutoriales | 14–22 meses (~18) |
+| **Vertical Slice** | Una partida completa con el arte final de una pieza en 8 direcciones | Núcleo + dado final + medir el costo de arte por animación; solo después de pasar la compuerta de duración (3 partidas seguidas de 15 min o menos) | Dentro de la Fase 1 |
+| **Fases 1 y 2** | MVP + online | 2a: online 1 contra 1 con cuentas, validación en servidor, reconexión y timer del servidor · 2b: lobby, chat, repeticiones y ranking | 24–34 meses (~29) |
+| **Full Vision** | Packs de skins en 8 direcciones, kit de skins para la comunidad, facciones | Fases 1 a 4 en web (local, online, tienda, torneos) → Fase 5 móvil con online → Fase 6 PC (Steam) y consolas si el móvil tiene éxito | 4–6 años o más |
 
 ---
 
 ## Next Steps
 
-- [ ] `/art-bible` — la guía de arte Campo de Batalla (obligatoria antes del gate de
-      Technical Setup a rigor `full`)
+- [x] `/art-bible` — la guía de arte Campo de Batalla (`design/art/art-bible.md`)
 - [ ] `/design-review design/gdd/game-concept.md`
-- [ ] `/map-systems` — sistemas, dependencias y prioridades
-- [ ] `/design-system modificador` — primero, con las reglas de la v3; después combate,
-      movimiento, castillo, reclutamiento, timer, interfaz
-- [ ] Probar la variante sin castillos (pendiente desde la v2)
+- [x] `/map-systems` — `design/gdd/systems-index.md` (2026-11-19)
+- [ ] `/design-system` en el orden del índice: librería de reglas primero; el Modificador va
+      después de Reclutamiento
 - [ ] `/create-architecture` — con la librería de reglas en C# pura desde el inicio
 - [ ] `/architecture-decision` — reglas y validación en el servidor; backend por plataforma;
-      pagos multiplataforma (antes de la Fase 4); presupuesto de arte
+      pagos multiplataforma (antes de la Fase 3); presupuesto de arte
 - [ ] `/architecture-review`, `/gate-check`
 - [ ] Volver a pasar PR-SCOPE después de `/map-systems`, con plazo concreto
