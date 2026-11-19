@@ -54,7 +54,7 @@
 #   in any other shape is reported as unsupported layout, with its number.
 
 version: 1
-last_updated: ""
+last_updated: "2026-11-19"
 
 # ─── ENTITIES ────────────────────────────────────────────────────────────────
 # Named game-world objects: enemies, NPCs, characters, factions, bosses.
@@ -123,7 +123,34 @@ items: []
 #   output_range[min, max], added
 # Optional: expression (the actual formula), notes
 
-formulas: []
+formulas:
+  - name: cara_por_tirada
+    status: active
+    source: design/gdd/libreria-de-reglas.md
+    referenced_by:
+      - design/gdd/libreria-de-reglas.md
+    variables:
+      - n
+      - k
+      - p_i
+    output_range: [1, 10]
+    expression: "primera cara f tal que n < p_1 + ... + p_f; las p_i suman 100"
+    notes: "n es la tirada inyectada (0-99). Tabla que no suma 100 -> ProbabilidadesInvalidas. La usa el Modificador (#11)."
+    added: 2026-11-19
+    revised: ""
+  - name: opcion_por_sorteo
+    status: active
+    source: design/gdd/libreria-de-reglas.md
+    referenced_by:
+      - design/gdd/libreria-de-reglas.md
+    variables:
+      - n
+      - k
+    output_range: [0, 99]
+    expression: "(n * k) / 100, division entera hacia abajo"
+    notes: "Salida 0 a k-1. Con k = 3 el reparto es 34/33/33 (aceptado). La usa el Tablero (#4) para el sorteo de castillos."
+    added: 2026-11-19
+    revised: ""
 
 # Example:
 #
@@ -156,7 +183,34 @@ formulas: []
 #
 # Required fields: name, status, source, referenced_by, value, unit, added
 
-constants: []
+constants:
+  - name: tirada_max
+    status: active
+    source: design/gdd/libreria-de-reglas.md
+    referenced_by:
+      - design/gdd/libreria-de-reglas.md
+    value: 99
+    unit: "valor maximo de la tirada inyectada (rango 0-99)"
+    added: 2026-11-19
+    revised: ""
+  - name: vista_previa_presupuesto_ms
+    status: active
+    source: design/gdd/libreria-de-reglas.md
+    referenced_by:
+      - design/gdd/libreria-de-reglas.md
+    value: 5
+    unit: ms
+    added: 2026-11-19
+    revised: ""
+  - name: comando_presupuesto_ms
+    status: active
+    source: design/gdd/libreria-de-reglas.md
+    referenced_by:
+      - design/gdd/libreria-de-reglas.md
+    value: 1
+    unit: ms
+    added: 2026-11-19
+    revised: ""
 
 # Example:
 #
