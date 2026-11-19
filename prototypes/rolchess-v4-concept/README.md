@@ -112,7 +112,26 @@ nuevas y sin el cambio del escudero. Misma duración que la partida 1 (22:52) co
 rápidos (0:40 contra 0:57) y más turnos jugados (34; la Distracción ya no hace perder el
 turno). Tiempo de atacar agotado en 11 de 34 turnos. Combinado decisivo 70%. Golpe final de 48
 contra un Rey de 30. De esta partida salieron los límites nuevos de reclutamiento (Llamada al
-servicio 6, jinetes 3). Su archivo de turnos no se cargó.
+servicio 6, jinetes 3).
+
+*Partida 2 turno por turno* (`partida-20261119-141511-turnos.csv`): azul dominó la primera
+mitad (reclutó en el turno 3; 11 contra 5 en el 14, con un Grito de guerra en el 13). Rojo
+remontó con 4 y 5 piezas: tabla "Pierde 1/2", Llamada al servicio en el 16 y Cuerno de guerra
+en el 18 y el 20; en el 18 se llevó 5 piezas y en el 19 igualó 6 a 6. Del 19 al 30 se
+alternaron el liderazgo (6–6, 9–9, 6–6); rojo se despegó en el 31 con otra Llamada al servicio
+y cerró con Grito de guerra. El ganador estuvo 17 turnos detrás y el que iba adelante a mitad
+de partida perdió. Con Distracción, azul igual hizo ataques combinados decisivos (turnos 5
+y 7): el jugador sigue cosechando.
+
+*Las dos partidas juntas:* duraron 23 minutos por caminos distintos (partida 1: un turno
+decide y 22 de cola sin remontada; partida 2: dominio, remontada y un tramo largo y parejo).
+Las dos veces el sostén del pilar 3 es lo que lleva la partida más allá de 20 minutos. Pilar
+3c (el que tiene más piezas gana 2 de cada 3): va 1 de 2, a vigilar.
+
+*Roce del prototipo:* en los turnos 1, 5 y 7 de la partida 2 (los tres con Distracción) la
+fase de ataque duró exactamente 30 s hasta agotar el reloj, y en el turno 1 no hubo ningún
+ataque. Lo más probable es que un escudero con un aliado al lado cuente como acción posible y
+evite que el turno se cierre solo. No cambia reglas, pero suma medio minuto vacío.
 
 *Pruebas que no cuentan:* `partida-20261119-111506` (2 turnos) y `partida-20261119-131953`
 (7 turnos, sin límite) quedaron sin terminar; se usaron para probar que el juego anda.
