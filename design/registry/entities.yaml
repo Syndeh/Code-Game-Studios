@@ -135,7 +135,7 @@ formulas:
       - p_i
     output_range: [1, 10]
     expression: "primera cara f tal que n < p_1 + ... + p_f; las p_i suman tirada_rango (100)"
-    notes: "Salida 1..k, con k = largo de la tabla (1-10). n es la tirada inyectada (0-99). Cada p_i se valida en 0-100 antes de sumar; tabla que no suma 100 -> ProbabilidadesInvalidas en CrearPartida. La usa el Modificador (#11)."
+    notes: "Salida 1..k, con k = largo de la tabla (2-10; la regla 2 exige caras de Grito y Arremetida; antes 1-10, cambiado 2026-11-19). n es la tirada inyectada (0-99). Cada p_i se valida en 0-100 antes de sumar; tabla que no suma 100 -> ProbabilidadesInvalidas en CrearPartida. La usa el Modificador (#11)."
     added: 2026-11-19
     revised: 2026-11-19
   - name: opcion_por_sorteo
