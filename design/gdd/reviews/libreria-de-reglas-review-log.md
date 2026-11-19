@@ -122,3 +122,87 @@ Note: the GDD is deliberately not stamped. Its reviewed version was an uncommitt
 Reviewed-Content-Hash: design/registry/entities.yaml 09f3afc9fa59c98361ab76eaa45980a115eae095
 Reviewed-Content-Hash: .claude/skills/design-review/SKILL.md 4dcc8b81162613c757144532f1b72708ab3ba27f
 Reviewed-Content-Hash: design/gdd/game-concept.md 590e85748059dfb71f99b94cd04d2b367360de33
+
+## Review — 2026-11-19 — Verdict: NEEDS REVISION
+Review mode: full · Workflow: full
+Scope signal: M
+Specialists: game-designer, systems-designer, qa-lead, unity-specialist, network-programmer, creative-director (senior)
+Blocking items: 6 | Recommended: 9
+Summary: Convergence continues (9 blockers to 6); all formulas, examples and the registry were re-verified by hand and are correct. The remaining blockers were local contract holes: Aplicar did not receive the Catalog (implicit input), no definition of a valid loaded/resynced state (a well-formed state with counters at int.MaxValue made every command ErrorInterno, contradicting rule 5), and a mandatory recruit with no available type stalling a timer-less local match; plus three incorrect ACs. The creative director ruled NEEDS REVISION and kept the narrowed bar; if the sixth pass finds only recommendations, it should be APPROVED. All 6 were revised in the same session with the user's decisions: the impossible recruit is lost when the recruit phase starts, C_MAX = 1,000,000 (provisional), CierrePorTiempo mid-turn left in Open Questions.
+Prior verdict resolved: Yes (all 9 fourth-pass blockers stayed closed; new blockers found)
+Findings:
+- [BLOCKING] Core Rules 1/2/11/12: Aplicar(estado, comando) had no Catalog input; now Aplicar(contexto, estado, comando), context hash checked at row 1.
+- [BLOCKING] Core Rules 5/11/14, AC-21/AC-43: no valid-state invariants for Cargar/Resincronizar; a hash-correct state could hit ErrorInterno on every command.
+- [BLOCKING] Core Rules 17: a pending recruit with no available type counted as a possible action and stalled a match with no timer.
+- [BLOCKING] Acceptance Criteria: AC-25 used an attack-phase fixture for Mover (FaseIncorrecta).
+- [BLOCKING] Acceptance Criteria/Edge Cases: AC-29 TiradaVieja case lacked a pending roll; edge case said TiradaVieja where it is TiradaNoEsperada.
+- [BLOCKING] Acceptance Criteria: AC-58 unreachable (row 14 codes belong to unwritten GDDs; row 1 needs a test constructor).
+- [RECOMMENDED] Core Rules 5/AC-43: exception-free checked arithmetic on WebGL; removed "en todas las plataformas por igual" (web leg to ADR).
+- [RECOMMENDED] Acceptance Criteria: AC-56 fuzz died at row 10; strengthened (copies, fixed xorshift seed, half-correct counters, CrearPartida/Resincronizar fuzz).
+- [RECOMMENDED] Core Rules 14: false claim "una divergencia real nunca se oculta" removed; counter monotonicity left to #28 (it could block correcting a real divergence).
+- [RECOMMENDED] Player Fantasy/UI: "no silent rejections" vs internal codes; reworded to a neutral notice for discarded player actions.
+- [RECOMMENDED] Game: CierrePorTiempo can land mid-turn with the preview showing MUERE; tie-break invisible (Open Questions, #3/#12).
+- [RECOMMENDED] Network: ComandoAdelantado, Resincronizar with an identical state, Rendirse without match id (Open Questions, #28).
+- [RECOMMENDED] Rules: config caps for board size, Catalog size, max bonus (Open Questions).
+- [RECOMMENDED] QA: AC-44 missing orders, AC-29 not a generated table, AC-45 ambiguous THEN, AC-59 vs provisional golden regeneration (open); AC-47/51/52/53/54 and PROVISIONAL marks (done).
+- [RECOMMENDED] Engine: 0-GC on IL2CPP, nightly web runner does not exist yet, AC that both projects compile the same files (ADR).
+Note: the hashes below are of the files as reviewed (commit 29d89f3), taken before the same-session revisions, so the next check reads CHANGED and runs a full re-review. Size: 82,251 bytes before, 82,232 after (net-zero met). Deviation from the senior verdict: the creative director asked the sixth pass to focus on the changes; this skill forbids partial re-reviews, so it will be a full review with the same bar. Disagreements: unity-specialist rated the WebGL overflow blocking (CD: ADR); qa-lead rated AC-56 blocking (CD: weak, not wrong); game-designer found no blockers (CD agreed for its findings).
+Reviewed-Content-Hash: design/gdd/libreria-de-reglas.md f4eb9a8296f0a47bed2fb53bc63e01433ca7331e
+Reviewed-Content-Hash: design/registry/entities.yaml 09f3afc9fa59c98361ab76eaa45980a115eae095
+Reviewed-Content-Hash: .claude/skills/design-review/SKILL.md 4dcc8b81162613c757144532f1b72708ab3ba27f
+Reviewed-Content-Hash: design/gdd/game-concept.md 590e85748059dfb71f99b94cd04d2b367360de33
+Reviewed-Content-Hash: design/game-brief.md 1f759b960d5955f6eb96f0f0f6f8c3802b1e2c0c
+
+## Review — 2026-11-19 — Verdict: NEEDS REVISION
+Review mode: full · Workflow: full
+Scope signal: M
+Specialists: game-designer, systems-designer, qa-lead, unity-specialist, network-programmer, creative-director (senior)
+Blocking items: 6 groups (14 findings) | Recommended: 7 groups
+Summary: Formulas, examples and registry re-verified by hand and correct; all fifth-pass blockers stayed closed. The remaining blockers are one family the creative director called a method problem, not a design problem: "valid state" was an enumerated list, so each pass found the missing case (a hash-correct state with an unbounded bonus or a dangling attack ID reached ErrorInterno; Aplicar could produce a state past C_MAX that Cargar rejects). Plus four one-line totality/determinism holes and five incorrect ACs. Revised in the same session: a per-field domain table with EsValido as an iff, a closure rule (LimitePartida, row 15), concept-tight caps, and the user's decisions: LimitePartida with room for Rendirse/CerrarPartida, CierrePorTiempo rejected before the castle draw, caps from the concept (24 × 15 board, 61 pieces, bonus 0-10).
+Prior verdict resolved: Yes (all 6 fifth-pass blockers stayed closed; new blockers found)
+Findings:
+- [BLOCKING] Core Rules 5/11: valid-state list incomplete (life, bonuses, types vs Catalog, enums, attack/cover refs, undo stack, walls, castle pair, pending roll); hash-correct states could reach ErrorInterno. Now a domain table.
+- [BLOCKING] Core Rules 4/11: Aplicar not closed under the valid-state list (counter past C_MAX accepted, then unloadable). Now LimitePartida (row 15), En curso implies contadorComandos <= C_MAX - 1.
+- [BLOCKING] Core Rules 11/16: motive-to-winner mapping undefined; decoder had no per-collection count cap (50,000,000 prefix allocates). Both now in the table/rule 16.
+- [BLOCKING] Core Rules 3: CierrePorTiempo while waiting for the castle draw had no Kings to compare (now CierreInvalido).
+- [BLOCKING] Core Rules 4: emitter outside {0, 1, authority} had no rejection code (now EmisorInvalido, row 4).
+- [BLOCKING] Core Rules 5: checked arithmetic made the serializer's narrowing casts throw on valid values (exception now covers writer, reader and hash, with masks).
+- [BLOCKING] Core Rules 1/2: CrearPartida accepted a declared Catalog hash (now PrepararContexto computes it; Cargar signature; Resincronizar checks the context).
+- [BLOCKING] Acceptance Criteria: AC-43 (command x counter impossible), AC-56 (uniform int32 never accepted), AC-38 case 2 (unreachable, contradicted rule 17), AC-16 k = 1 (Tirada is TiradaNoEsperada), AC-42/AC-48 (assumed both players attack in one resolution).
+- [RECOMMENDED] Text: row 5 visibility for TurnTimeout, TimeoutObsoleto in UI Requirements, timer mode not in state (done).
+- [RECOMMENDED] QA: preconditions (AC-2/9/20/37/38), PROVISIONAL marks, missing cases in AC-44/47/50/57, AC-58 helper (done); AC-29 generated, AC-45 mutant, AC-54 insertion order, AC-59 vs provisional goldens (Open Questions).
+- [RECOMMENDED] Engine: AC-6 Mono/IL2CPP leg, WebGL exceptionSupport, destination after Rechazado, single-byte hash injectivity, JIT warm-up, embedded web golden, custom analyzer (ADR, Open Questions).
+- [RECOMMENDED] Network: EstadoViejo dead end, TurnTimeout/CerrarPartida without counter under reordering, server-assigned unique match id, identical Resincronizar (Open Questions, #28).
+- [RECOMMENDED] Game: CierrePorTiempo mid-turn, passive-play tiebreak, invisible auto-recruit, friendly fire on own King without an AC (Open Questions).
+- [RECOMMENDED] Network/Game: Resincronizar with a foreign context (CD downgraded from blocking; fixed anyway in rule 14 step 2).
+Note: the GDD is deliberately not stamped. Its reviewed version was an uncommitted working copy that the same-session revisions overwrote, so no hash of it exists; leaving it unstamped makes the next check run a full re-review. Size: 82,232 bytes before, about 92,300 after (+10 KB; the net-zero rule of earlier passes was not met, mostly the domain table and new ACs). Disagreements: network-programmer found no incorrect AC (CD sided with qa-lead); unity-specialist rated AC-6 without IL2CPP blocking (CD: ADR); game-designer rated the Resincronizar context blocking (CD: recommended). The creative director keeps the bar for the seventh pass: if the domain table and these fixes hold and no blocker outside this family appears, the verdict should be APPROVED; reviewers should start with a mechanical check that every canonical-form field has a table row and every AC has a reachable precondition.
+Reviewed-Content-Hash: design/registry/entities.yaml 09f3afc9fa59c98361ab76eaa45980a115eae095
+Reviewed-Content-Hash: .claude/skills/design-review/SKILL.md 4dcc8b81162613c757144532f1b72708ab3ba27f
+Reviewed-Content-Hash: design/gdd/game-concept.md 590e85748059dfb71f99b94cd04d2b367360de33
+
+## Review — 2026-11-19 — Verdict: NEEDS REVISION
+Review mode: full · Workflow: full
+Scope signal: M
+Specialists: game-designer, systems-designer, qa-lead, unity-specialist, network-programmer, creative-director (senior)
+Blocking items: 8 | Recommended: 5 groups
+Summary: The domain table held almost entirely, but two closure cells failed (closing a match during the castle draw left a Terminada state with an empty castle pair that the table rejects; row 15 and AC-43 gave two answers for a match-ending Resolver at C_MAX - 1), plus four incorrect ACs. The creative director called it a method problem: the GDD asserted closure without proving it per transition. Revised in the same session with a closure matrix and a generative closure AC, and the user's decisions: an empty pair is valid in a Terminada state, LimitePartida rejects everything at C_MAX - 1 except Rendirse/CerrarPartida, the saved stream ends with its 8-byte hash, and the state stores the turn's base table.
+Prior verdict resolved: Yes (all sixth-pass blockers stayed closed; new blockers found)
+Findings:
+- [BLOCKING] Core Rules 3/11: Rendirse/CerrarPartida during the castle draw produced a Terminada state with an empty pair outside the domain table (now valid; equivalence pair-empty <=> 0 pieces/walls; AC-50 round trip).
+- [BLOCKING] Core Rules 4 row 15/Edge Cases/AC-43: LimitePartida criterion contradicted itself at C_MAX - 1 (now a closed list).
+- [BLOCKING] Core Rules 1/11, AC-21: saved stream did not state it carries the hash; a flipped bit in match id or mode loaded as another valid state (now 8-byte trailing hash checked by Cargar).
+- [BLOCKING] Acceptance Criteria: AC-49 used an invalid state (1 wall, counter C_MAX while En curso).
+- [BLOCKING] Acceptance Criteria/Core Rules 5: AC-12b case 2 unreachable (bonuses are 0-10); negative-bonus text removed.
+- [BLOCKING] Acceptance Criteria: AC-56 unachievable quotas and circular oracle (now robustness fuzz with a test-side domain oracle; quotas in new AC-62).
+- [BLOCKING] Core Rules 11: numeroTurno bound broken by turn-1 cascades and no start value; Modifier face row unverifiable (now starts at 1, <= contadorComandos + 2; new turn base-table field).
+- [BLOCKING] Core Rules 5/11, Open Questions: explicit overflow detection without exceptions; replay log stores the emitter; owners named for prediction/pipelining/relay (#28) and event presentation (#16).
+- [RECOMMENDED] QA: AC-29 full pair matrix, AC-44 test double and missing orders, fixture reachability tag, AC-11/12a/17/42/43/50/54/58/59 details (open).
+- [RECOMMENDED] Systems: rule 5 bound and Grito/Arremetida L = 1 text (done); call caps without numbers, undo stack 256 vs legal play, cover expiry (open).
+- [RECOMMENDED] Network (to #28): pipelining vs contadorEsperado, relay with emitter, counter padding DoS, LimitePartida on authority commands (edge case done), Resincronizar dead ends, total byte cap, roll commitment as an online requirement.
+- [RECOMMENDED] Engine (to ADR): WebGL/IL2CPP overflow, Mono/IL2CPP legs of AC-6, dual-compilation options, reference platform for 0-GC and budgets, Math.Abs(int.MinValue).
+- [RECOMMENDED] Game (to #28/#16/#3/#12): predicted events shown then rolled back, ComandoViejo cascades, CierrePorTiempo vs preview MUERE, DobleRey favours the resolver, auto-recruit not previewed, "El tablero no hace trampa" overclaims.
+Note: the GDD is deliberately not stamped. Its reviewed version was an uncommitted working copy that the same-session revisions overwrote, so the next check runs a full re-review. Size: 92,256 bytes before, 98,468 after (+6 KB; the creative director's near-zero target was not met, mostly the closure matrix and AC-62). Disagreements: game-designer rated its three points blocking (CD: name owners in Open Questions); network-programmer rated pipelining and relay blocking (CD: #28); unity-specialist rated four engine points blocking (CD: ADR, plus one line in rule 5); qa-lead rated AC-29/AC-44 blocking (CD: recommended). Bar for the eighth pass: start with the closure matrix; only (a) an accepted sequence reaching a state outside the table or two outcomes for one command, or (b) an AC with an unreachable precondition or unverifiable oracle, blocks; if both are clean, APPROVED.
+Reviewed-Content-Hash: design/registry/entities.yaml 09f3afc9fa59c98361ab76eaa45980a115eae095
+Reviewed-Content-Hash: .claude/skills/design-review/SKILL.md 4dcc8b81162613c757144532f1b72708ab3ba27f
+Reviewed-Content-Hash: design/gdd/game-concept.md 590e85748059dfb71f99b94cd04d2b367360de33
+Reviewed-Content-Hash: design/game-brief.md 1f759b960d5955f6eb96f0f0f6f8c3802b1e2c0c
