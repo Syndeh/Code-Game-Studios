@@ -151,6 +151,19 @@ formulas:
     notes: "Salida 0..k-1 (el rango [0, 99] es el maximo, con k = 100). Las opciones con un numero de mas dependen de k (k = 3: 34/33/33; k = 7: 15/14/14/15/14/14/14). La usa el Tablero (#4) para el sorteo de castillos."
     added: 2026-11-19
     revised: 2026-11-19
+  - name: reparto_liberado
+    status: active
+    source: design/gdd/libreria-de-reglas.md
+    referenced_by:
+      - design/gdd/libreria-de-reglas.md
+    variables:
+      - p_i
+      - L
+    output_range: [0, 100]
+    expression: "L = suma de las caras de reclutar que no pueden salir (pasan a 0); p_Grito += L / 2 (division entera hacia abajo); p_Arremetida += L - L / 2"
+    notes: "Arma la tabla efectiva del Modificador (#11) al entrar en esperando tirada. Un solo redondeo sobre el total liberado; el punto impar va a Arremetida. La tabla resultante siempre suma tirada_rango (100) y se valida como en CrearPartida. Ejemplos: 15/20/25/25/15 con muro roto -> 15/45/0/0/40; 20/25/15/20/20 con Llamada agotada -> 20/32/0/20/28."
+    added: 2026-11-19
+    revised: ""
 
 # Example:
 #
