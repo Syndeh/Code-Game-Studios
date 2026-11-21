@@ -2,7 +2,7 @@
 
 > **Status**: Draft
 > **Created**: 2026-11-19
-> **Last Updated**: 2026-11-19
+> **Last Updated**: 2026-11-20
 > **Source Concept**: design/gdd/game-concept.md
 
 ---
@@ -247,33 +247,33 @@ servidor.
 | # | System Name | Category | Priority | Status | Design Doc | Depends On |
 |---|-------------|----------|----------|--------|------------|------------|
 | 1 | Librería de reglas (contrato) (inferred) | Core | MVP | In Review | design/gdd/libreria-de-reglas.md | — |
-| 2 | Catálogo de piezas | Core | MVP | Not Started | — | — |
-| 3 | Máquina de turno y fin de partida | Core | MVP | Not Started | — | Librería de reglas |
+| 2 | Catálogo de piezas | Core | MVP | Designed | design/gdd/catalogo-de-piezas.md | — |
+| 3 | Máquina de turno y fin de partida | Core | MVP | Designed | design/gdd/maquina-de-turno.md | Librería de reglas, Catálogo de piezas |
 | 4 | Tablero y despliegue inicial | Core | MVP | Not Started | — | Librería de reglas, Catálogo de piezas |
 | 5 | Castillo y muros | Gameplay | MVP | Not Started | — | Tablero, Catálogo de piezas |
 | 6 | Movimiento | Gameplay | MVP | Not Started | — | Tablero, Catálogo de piezas, Máquina de turno, Castillo y muros |
 | 7 | Alcance y asignación de ataques | Gameplay | MVP | Not Started | — | Tablero, Catálogo de piezas, Máquina de turno |
-| 8 | Cobertura del escudero | Gameplay | MVP | Not Started | — | Alcance y asignación, Tablero |
-| 9 | Resolución simultánea del daño | Gameplay | MVP | Not Started | — | Alcance y asignación, Cobertura del escudero, Castillo y muros, Catálogo de piezas |
-| 10 | Reclutamiento y límites | Gameplay | MVP | Not Started | — | Castillo y muros, Tablero, Catálogo de piezas |
+| 8 | Cobertura del escudero | Gameplay | MVP | Not Started | — | Alcance y asignación, Tablero, Máquina de turno, Catálogo de piezas (solo ID del Escudero) |
+| 9 | Resolución simultánea del daño | Gameplay | MVP | Not Started | — | Alcance y asignación, Cobertura del escudero, Castillo y muros, Máquina de turno, Catálogo de piezas |
+| 10 | Reclutamiento y límites | Gameplay | MVP | Not Started | — | Castillo y muros, Tablero, Máquina de turno, Catálogo de piezas |
 | 11 | Modificador (dado adaptativo) | Gameplay | MVP | Not Started | — | Máquina de turno, Reclutamiento, Castillo y muros |
 | 12 | Timer de turno | Core | MVP | Not Started | — | Máquina de turno |
 | 13 | Entrada y selección (inferred) | Core | MVP | Not Started | — | — |
-| 14 | Localización (inferred) | Meta | MVP | Not Started | — | — |
+| 14 | Localización (inferred) | Meta | MVP | Not Started | — | Catálogo de piezas (solo ID de tipo) |
 | 15 | Ficha de pieza y HUD | UI | MVP | Not Started | — | Catálogo de piezas, Máquina de turno, Timer, Modificador |
 | 16 | Vista previa de ataques | UI | MVP | Not Started | — | Alcance y asignación, Resolución, Cobertura del escudero |
 | 17 | Interfaz del Modificador | UI | MVP | Not Started | — | Modificador, Reclutamiento |
 | 18 | Render, animación y feedback de combate | UI | MVP | Not Started | — | Tablero, Catálogo de piezas, Movimiento, Resolución |
-| 19 | Métricas locales de partida | Meta | MVP | Not Started | — | Máquina de turno, Resolución, Reclutamiento, Modificador, Timer |
+| 19 | Métricas locales de partida | Meta | MVP | Not Started | — | Máquina de turno, Resolución, Reclutamiento, Modificador, Timer, Catálogo de piezas (versionBalance) |
 | 20 | Ajustes (inferred) | Persistence | Vertical Slice | Not Started | — | Localización |
 | 21 | Menú principal y flujo de pantallas (inferred) | UI | Vertical Slice | Not Started | — | Máquina de turno, Ajustes, Localización |
 | 22 | Audio y SFX | Audio | Vertical Slice | Not Started | — | Resolución, Modificador, Render |
 | 23 | Accesibilidad (inferred) | Meta | Vertical Slice | Not Started | — | Ficha y HUD, Render, Ajustes |
 | 24 | Tutorial básico de 3 pasos | Meta | Vertical Slice | Not Started | — | Movimiento, Alcance y asignación, Resolución, Reclutamiento, Modificador, Ficha y HUD, Vista previa, Interfaz del Modificador, Menú principal |
 | 25 | Rival IA básico (partida tutorial) | Gameplay | Vertical Slice | Not Started | — | Librería de reglas, Máquina de turno, Movimiento, Alcance y asignación, Cobertura del escudero, Resolución, Reclutamiento, Modificador, Menú principal |
-| 26 | Registro de partida y serialización (inferred) | Persistence | Alpha | Not Started | — | Librería de reglas |
+| 26 | Registro de partida y serialización (inferred) | Persistence | Alpha | Not Started | — | Librería de reglas, Catálogo de piezas (tabla en la config) |
 | 27 | Backend online y presencia | Core | Alpha | Not Started | — | — |
-| 28 | Servidor autoritativo de partida | Core | Alpha | Not Started | — | Librería de reglas, Máquina de turno, Timer, Modificador, Registro de partida, Backend online |
+| 28 | Servidor autoritativo de partida | Core | Alpha | Not Started | — | Librería de reglas, Máquina de turno, Timer, Modificador, Registro de partida, Backend online, Catálogo de piezas (mismo archivo y huella) |
 | 29 | Cuentas (Google) | Persistence | Alpha | Not Started | — | Backend online |
 | 30 | Partida rápida e invitación | Meta | Alpha | Not Started | — | Backend online, Cuentas, Servidor de partida |
 | 31 | Emotes y frases predefinidas | UI | Alpha | Not Started | — | Backend online, Localización |
@@ -342,7 +342,7 @@ Sin Narrative: el juego no tiene historia.
 
 ### Core Layer (depends on foundation)
 
-1. Máquina de turno y fin de partida — depends on: Librería de reglas
+1. Máquina de turno y fin de partida — depends on: Librería de reglas, Catálogo
 2. Tablero y despliegue inicial — depends on: Librería de reglas, Catálogo
 3. Timer de turno — depends on: Máquina de turno (fuera del núcleo; emite `TurnTimeout`)
 4. Ajustes — depends on: Localización
@@ -355,9 +355,9 @@ Reglas del duelo (núcleo):
 1. Castillo y muros — depends on: Tablero, Catálogo
 2. Movimiento — depends on: Tablero, Catálogo, Máquina de turno, Castillo
 3. Alcance y asignación de ataques — depends on: Tablero, Catálogo, Máquina de turno
-4. Cobertura del escudero — depends on: Alcance y asignación, Tablero
-5. Resolución simultánea del daño — depends on: Alcance y asignación, Cobertura, Castillo, Catálogo
-6. Reclutamiento y límites — depends on: Castillo, Tablero, Catálogo
+4. Cobertura del escudero — depends on: Alcance y asignación, Tablero, Máquina de turno
+5. Resolución simultánea del daño — depends on: Alcance y asignación, Cobertura, Castillo, Máquina de turno, Catálogo
+6. Reclutamiento y límites — depends on: Castillo, Tablero, Máquina de turno, Catálogo
 7. Modificador — depends on: Máquina de turno, Reclutamiento, Castillo
 
 Medición:
@@ -523,10 +523,10 @@ Los cuatro ciclos encontrados se cortaron con contratos; ninguno queda abierto.
 | Metric | Count |
 |--------|-------|
 | Total systems identified | 41 |
-| Design docs started | 1 |
+| Design docs started | 3 |
 | Design docs reviewed | 1 |
 | Design docs approved | 0 |
-| MVP systems designed | 1/19 |
+| MVP systems designed | 3/19 |
 | Vertical Slice systems designed | 0/6 |
 
 ---

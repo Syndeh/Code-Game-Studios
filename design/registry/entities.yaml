@@ -54,7 +54,7 @@
 #   in any other shape is reported as unsupported layout, with its number.
 
 version: 1
-last_updated: "2026-11-19"
+last_updated: "2026-11-20"
 
 # ─── ENTITIES ────────────────────────────────────────────────────────────────
 # Named game-world objects: enemies, NPCs, characters, factions, bosses.
@@ -65,7 +65,126 @@ last_updated: "2026-11-19"
 # Attribute fields: any key stats that could appear in another GDD
 #   (health, damage, drops, faction, etc.)
 
-entities: []
+entities:
+  - name: soldado
+    status: active
+    source: design/gdd/catalogo-de-piezas.md
+    referenced_by:
+      - design/gdd/catalogo-de-piezas.md
+      - design/gdd/maquina-de-turno.md
+    id: 0
+    movimiento: 4
+    alcance_min: 1
+    alcance_max: 1
+    ataque: 8
+    escudo: 2
+    vida: 25
+    dano_area: 0
+    tope_vivas: 12
+    added: 2026-11-20
+    revised: ""
+  - name: arquero
+    status: active
+    source: design/gdd/catalogo-de-piezas.md
+    referenced_by:
+      - design/gdd/catalogo-de-piezas.md
+      - design/gdd/maquina-de-turno.md
+    id: 1
+    movimiento: 4
+    alcance_min: 1
+    alcance_max: 6
+    ataque: 6
+    escudo: 2
+    vida: 15
+    dano_area: 0
+    tope_vivas: 16
+    added: 2026-11-20
+    revised: ""
+  - name: escudero
+    status: active
+    source: design/gdd/catalogo-de-piezas.md
+    referenced_by:
+      - design/gdd/catalogo-de-piezas.md
+      - design/gdd/maquina-de-turno.md
+    id: 2
+    movimiento: 4
+    alcance_min: 1
+    alcance_max: 1
+    ataque: 4
+    escudo: 5
+    vida: 20
+    dano_area: 0
+    tope_vivas: 12
+    added: 2026-11-20
+    revised: ""
+  - name: catapulta
+    status: active
+    source: design/gdd/catalogo-de-piezas.md
+    referenced_by:
+      - design/gdd/catalogo-de-piezas.md
+      - design/gdd/maquina-de-turno.md
+    id: 3
+    movimiento: 2
+    alcance_min: 2
+    alcance_max: 6
+    ataque: 12
+    escudo: 3
+    vida: 15
+    dano_area: 8
+    tope_vivas: 8
+    added: 2026-11-20
+    revised: ""
+  - name: jinete
+    status: active
+    source: design/gdd/catalogo-de-piezas.md
+    referenced_by:
+      - design/gdd/catalogo-de-piezas.md
+      - design/gdd/maquina-de-turno.md
+    id: 4
+    movimiento: 6
+    alcance_min: 1
+    alcance_max: 1
+    ataque: 8
+    escudo: 3
+    vida: 20
+    dano_area: 0
+    tope_vivas: 8
+    added: 2026-11-20
+    revised: ""
+  - name: demoledor
+    status: active
+    source: design/gdd/catalogo-de-piezas.md
+    referenced_by:
+      - design/gdd/catalogo-de-piezas.md
+      - design/gdd/maquina-de-turno.md
+    id: 5
+    movimiento: 6
+    alcance_min: 1
+    alcance_max: 1
+    ataque: 30
+    escudo: 1
+    vida: 10
+    dano_area: 0
+    tope_vivas: 4
+    added: 2026-11-20
+    revised: ""
+  - name: rey
+    status: active
+    source: design/gdd/catalogo-de-piezas.md
+    referenced_by:
+      - design/gdd/catalogo-de-piezas.md
+      - design/gdd/maquina-de-turno.md
+    id: 6
+    movimiento: 6
+    alcance_min: 1
+    alcance_max: 1
+    ataque: 8
+    escudo: 5
+    vida: 30
+    dano_area: 0
+    tope_vivas: 1
+    added: 2026-11-20
+    revised: ""
 
 # Example (remove when first real entry is added):
 #
@@ -164,6 +283,87 @@ formulas:
     notes: "Arma la tabla efectiva del Modificador (#11) al entrar en esperando tirada. Un solo redondeo sobre el total liberado; el punto impar va a Arremetida. La tabla resultante siempre suma tirada_rango (100) y se valida como en CrearPartida. Ejemplos: 15/20/25/25/15 con muro roto -> 15/45/0/0/40; 20/25/15/20/20 con Llamada agotada -> 20/32/0/20/28."
     added: 2026-11-19
     revised: ""
+  - name: tope_total
+    status: active
+    source: design/gdd/catalogo-de-piezas.md
+    referenced_by:
+      - design/gdd/catalogo-de-piezas.md
+    variables:
+      - topeVivas_t
+      - t
+    output_range: [7, 61]
+    expression: "suma de topeVivas_t para t = 0 a 6"
+    notes: "Regla F6 del Catalogo: la suma no puede pasar de 61 (tope_vivas_por_jugador). Valores vigentes: 12+16+12+8+8+4+1 = 61."
+    added: 2026-11-20
+    revised: ""
+  - name: piezas_para_matar
+    status: active
+    source: design/gdd/catalogo-de-piezas.md
+    referenced_by:
+      - design/gdd/catalogo-de-piezas.md
+    variables:
+      - ataque_a
+      - escudo_t
+      - vida_t
+    output_range: [1, 2000]
+    expression: "(escudo_t + vida_t + ataque_a - 1) / ataque_a, division entera hacia abajo"
+    notes: "Oraculo de tests de balance (chequeos I1 a I3 del Catalogo); no entra al nucleo ni a la vista previa. El calculo real del dano es de Resolucion (#9)."
+    added: 2026-11-20
+    revised: ""
+  - name: umbral_cierre_s
+    status: active
+    source: design/gdd/maquina-de-turno.md
+    referenced_by:
+      - design/gdd/maquina-de-turno.md
+    variables:
+      - T_tope
+      - turno_max_s
+    output_range: [1410, 1440]
+    expression: "T_tope - turno_max_s"
+    notes: "D2. Desde este t_partida la autoridad cierra con CierrePorTiempo en el primer entre-turnos. Variable tras el minuto 10 = 1440 s, Fijo 90 = 1410, Fijo 60 = 1440, Sin limite exento. La usan el Timer (#12) y el Servidor (#28); no corre en el nucleo (no tiene reloj)."
+    added: 2026-11-20
+    revised: ""
+  - name: ganador_tiempo
+    status: active
+    source: design/gdd/maquina-de-turno.md
+    referenced_by:
+      - design/gdd/maquina-de-turno.md
+    variables:
+      - vidaRey_j
+      - piezasVivas_j
+      - vidaQuitada_j
+    output_range: [0, 1]
+    expression: "gana el jugador de mayor (vidaRey, piezasVivas, vidaQuitada) en orden lexicografico; claves iguales = sin ganador"
+    notes: "D3. Desempate de CierrePorTiempo (decision 2026-11-20, cambia la Libreria: vidaQuitada es un campo nuevo del estado y sube la version de reglas). vidaQuitada es la vida realmente perdida por piezas y muros rivales, sin fuego amigo, escrita por Resolucion (#9). Salida: jugador 0 o 1, o vacio."
+    added: 2026-11-20
+    revised: ""
+  - name: pila_max
+    status: active
+    source: design/gdd/maquina-de-turno.md
+    referenced_by:
+      - design/gdd/maquina-de-turno.md
+    variables:
+      - tope_vivas_t
+      - movimiento_t
+      - t
+    output_range: [7, 256]
+    expression: "suma de tope_vivas_t * movimiento_t para t = 0 a 6; invariante pila_max <= pila_tope"
+    notes: "D4. Peor caso de entradas de la pila de deshacer en un turno (Arremetida, un paso por comando). Valores vigentes 48+64+48+16+48+24+6 = 254 de 256; PrepararContexto rechaza con ConfigInvalida un Catalogo que supere 256. PROVISIONAL hasta Movimiento (#6)."
+    added: 2026-11-20
+    revised: ""
+  - name: turnos_presupuesto
+    status: active
+    source: design/gdd/maquina-de-turno.md
+    referenced_by:
+      - design/gdd/maquina-de-turno.md
+    variables:
+      - T_tope
+      - seg_medio
+    output_range: [1, 1500]
+    expression: "T_tope / seg_medio, division entera hacia abajo; seg_medio minimo 1"
+    notes: "D1. Cuantos turnos caben en el tope de partida (1500 s) al promedio medido por turno. v4: 57 s -> 26 turnos, 40 s -> 37. Formula de diseno que usan las Metricas (#19); no corre en el nucleo. Resolucion (#9), Reclutamiento (#10) y Modificador (#11) declaran su delta de turnos contra este presupuesto."
+    added: 2026-11-20
+    revised: ""
 
 # Example:
 #
@@ -229,9 +429,59 @@ constants:
     source: design/gdd/libreria-de-reglas.md
     referenced_by:
       - design/gdd/libreria-de-reglas.md
+      - design/gdd/maquina-de-turno.md
     value: 1
     unit: ms
     added: 2026-11-19
+    revised: ""
+  - name: tope_vivas_por_jugador
+    status: active
+    source: design/gdd/catalogo-de-piezas.md
+    referenced_by:
+      - design/gdd/catalogo-de-piezas.md
+      - design/gdd/libreria-de-reglas.md
+      - design/gdd/maquina-de-turno.md
+    value: 61
+    unit: "piezas vivas por jugador; suma maxima de los topeVivas del Catalogo (adoptado de la Libreria, antes PROVISIONAL)"
+    added: 2026-11-20
+    revised: ""
+  - name: estadistica_max
+    status: active
+    source: design/gdd/catalogo-de-piezas.md
+    referenced_by:
+      - design/gdd/catalogo-de-piezas.md
+      - design/gdd/libreria-de-reglas.md
+      - design/gdd/maquina-de-turno.md
+    value: 1000
+    unit: "valor maximo de una estadistica del Catalogo (rango 0-1.000; adoptado de la Libreria, antes PROVISIONAL)"
+    added: 2026-11-20
+    revised: ""
+  - name: tipos_de_pieza
+    status: active
+    source: design/gdd/catalogo-de-piezas.md
+    referenced_by:
+      - design/gdd/catalogo-de-piezas.md
+    value: 7
+    unit: "tipos de pieza del Catalogo (IDs 0 a 6, conjunto cerrado)"
+    added: 2026-11-20
+    revised: ""
+  - name: pila_tope
+    status: active
+    source: design/gdd/maquina-de-turno.md
+    referenced_by:
+      - design/gdd/maquina-de-turno.md
+    value: 256
+    unit: "entradas de la pila de deshacer por turno (el duenio pasa de la Libreria a la Maquina de turno; cambiarlo es un cambio de contrato y sube la version de reglas)"
+    added: 2026-11-20
+    revised: ""
+  - name: tope_partida_s
+    status: active
+    source: design/gdd/maquina-de-turno.md
+    referenced_by:
+      - design/gdd/maquina-de-turno.md
+    value: 1500
+    unit: "segundos de partida (25 min, pilar 4); rango seguro 1290-1500; el cierre por tiempo se dispara en tope_partida_s - turno_max_s"
+    added: 2026-11-20
     revised: ""
 
 # Example:
