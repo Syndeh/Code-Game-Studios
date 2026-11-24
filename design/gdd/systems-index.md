@@ -111,8 +111,8 @@ Ya pasadas al concepto (`design/gdd/game-concept.md`).
 - **4 Tablero y despliegue inicial.** 24 × 15, castillos en sectores al azar (azar
   registrado), ejército de 4 soldados, 4 arqueros, 4 escuderos y el Rey en el centro del
   castillo.
-- **5 Castillo y muros.** 16 tramos de 30 de vida sin escudo; un tramo roto abre un hueco y
-  ese castillo deja de reclutar. Arqueros sobre el muro (+2 de escudo, daño compartido con el
+- **5 Castillo y muros.** 16 tramos de 30 de vida sin escudo; un tramo roto abre un hueco y,
+  con 2 tramos rotos, ese castillo deja de reclutar (v5, 2026-11-24; antes 1). Arqueros sobre el muro (+2 de escudo, daño compartido con el
   tramo). Los muros propios no bloquean al Rey; el Rey no sube a ellos.
 - **6 Movimiento.** Hasta 12 piezas más el Rey, en cruz, atravesando aliados; el jinete pasa
   por encima de enemigos sin terminar sobre ellos. Lee las estadísticas efectivas (Grito de

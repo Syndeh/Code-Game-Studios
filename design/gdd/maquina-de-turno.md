@@ -2,10 +2,19 @@
 
 > **Status**: In Design
 > **Author**: jugador + Claude (design-system)
-> **Last Updated**: 2026-11-20
+> **Last Updated**: 2026-11-24 (reloj de partida por jugador; reglas 14 y 15, D2 y D3 reemplazadas: NEEDS REVISION)
 > **Last Verified**: 2026-11-20
 > **Implements Pillar**: 4 Duelo corto (dueña del presupuesto de duración); sirve a 1 Planificar y cosechar
 > **Creative Director Review (CD-GDD-ALIGN)**: REVISED 2026-11-20 — la fantasía promete "no te quita lo ya hecho" y declara el límite del timeout en Reclutar; el aviso del cierre por tiempo es requisito (regla 14, AC-30)
+
+> **Cambio del 2026-11-24 (jugador, prototipo v5).** El tope de 25 minutos pasa a ser un **reloj
+> de 12:30 por jugador** que corre solo en su turno, junto al timer de cada etapa; quien lo agota
+> pierde. Reemplaza el cierre por tiempo con umbral anticipado (regla 14, D2) y el desempate por
+> vida del Rey, piezas y vida quitada (regla 15, D3). Las reglas 14 y 15 ya están reescritas; el
+> resto de las menciones a `CierrePorTiempo`, `umbral_cierre_s` y al desempate (estados, Edge
+> Cases, Dependencies, Tuning Knobs, Visual/Audio, UI, AC-20, AC-21, AC-26, Open Questions)
+> queda pendiente de una pasada de revisión. También del 2026-11-24: Arremetida solo sale con más
+> de 12 piezas sin el Rey (regla 5) y el primer turno sin Modificador (regla 3) queda confirmado.
 
 ## Summary
 
@@ -83,7 +92,7 @@ de mover se pierde; se mide en playtest (Open Questions).
    `Atacar` y abre el turno siguiente en un solo paso. La **etapa del timer** es *mover*
    para `Reclutar` y `Mover`, y *atacar* para `Atacar`; en `EsperandoTirada` no corre
    ninguna.
-3. **Primer turno (decisión del 2026-11-20).** Lo juega el jugador 0 y no tira el
+3. **Primer turno (decisión del 2026-11-20, confirmada por el jugador el 2026-11-24).** Lo juega el jugador 0 y no tira el
    Modificador: empieza directo en `Mover`, sin `Reclutar`, porque sin tirada no hay cara de
    reclutar. *(Quién empieza es PROVISIONAL; ver Open Questions.)*
 4. **Abrir un turno T del jugador J** (el cierre del turno anterior y esta apertura salen
@@ -103,7 +112,9 @@ de mover se pierde; se mide en playtest (Open Questions).
    | `LimiteMovimientos(sin límite)` | abre `Mover` sin tope | Arremetida |
 
    El límite normal de movimientos (hoy 12 piezas más el Rey) es de Movimiento (#6); la
-   Máquina solo guarda el límite del turno en el estado.
+   Máquina solo guarda el límite del turno en el estado. **Arremetida solo puede salir si el
+   jugador tiene más de 12 piezas sin contar el Rey** (decisión del 2026-11-24): con 12 o menos
+   no cambia nada, y el Modificador (#11) pasa su probabilidad entera a Grito de guerra.
 6. **Fase `Reclutar`.** Solo existe con `ReclutarObligatorio`. Si al abrirla ningún tipo
    está disponible → `ReclutaPerdido` y pasa a `Mover`. Si no, solo sale con
    `Reclutar(tipo)` o con el timeout (recluta automático). No hay "no reclutar".
@@ -141,25 +152,23 @@ de mover se pierde; se mide en playtest (Open Questions).
     jugador del turno (**confirmado el 2026-11-20**: es quien planeó y vio la vista previa,
     pilar 1). Un solo Rey vivo → `ReyMuerto`, gana su dueño. Un Rey propio muerto por fuego
     amigo cuenta igual: gana el rival.
-14. **Tope de 25 minutos (decisión del 2026-11-20: solo entre turnos, con umbral
-    anticipado).** El tiempo lo mide la autoridad (Timer #12 local, Servidor #28 online); el
-    núcleo no tiene reloj. Cuando `t_partida` llega al `umbral_cierre_s` (Formulas, D2:
-    25:00 menos el turno máximo del modo), la autoridad envía
-    `CerrarPartida(CierrePorTiempo)` **en el primer momento en que la partida está entre
-    turnos** (en `EsperandoTirada` de un turno ≥ 2), nunca a mitad de un plan. Así ninguna
-    partida con timer pasa de 25:00. **El modo Sin límite está exento** (no hay umbral). La
-    Librería acepta el cierre en cualquier momento; esta restricción es política de quien
-    envía y se verifica en las pruebas del Timer y del Servidor. **El jugador ve cuánto
-    falta:** el aviso del cierre está visible desde `umbral_cierre_s − turno_max_s`
-    (Variable: 1.380 s, 23:00), así que el último turno completo antes del cierre ya lo
-    muestra y el corte nunca sorprende. El diseño del aviso es de Ficha y HUD (#15).
-15. **Desempate de `CierrePorTiempo` (decisión del 2026-11-20, cambia la Librería).** Gana
-    quien tenga: (1) más vida en el Rey; si empatan, (2) más piezas vivas (Rey incluido,
-    muros no); si empatan, (3) más **vida realmente quitada al rival** (piezas y muros
-    rivales, acumulada en la partida; el fuego amigo no cuenta; el daño que absorbe un
-    escudero al cubrir cuenta); si también empatan, nadie. Resolución (#9) escribe el
-    contador `vidaQuitada` por jugador. Es un campo nuevo del estado, así que sube la versión
-    de reglas.
+14. **Reloj de partida por jugador (decisión del 2026-11-24; reemplaza el cierre por tiempo
+    del 2026-11-20).** Cada jugador tiene `reloj_jugador_s` = `T_tope` / 2 = **750 s (12:30)**
+    para toda la partida. Corre solo durante sus turnos, desde que se abre hasta que se
+    cierra, y **convive con el timer de cada etapa** (mover y atacar). Así ninguna partida con
+    timer pasa de 25:00. El tiempo lo mide la autoridad (Timer #12 local, Servidor #28
+    online); el núcleo no tiene reloj. Cuando el reloj de un jugador llega a 0, en cualquier
+    fase, la autoridad envía `CerrarPartida` con ganador = el rival (motivo **RelojAgotado**;
+    agregarlo a la lista de motivos de la Librería, regla 3, es un cambio de contrato y sube la
+    versión de reglas). Lo ya movido queda; los ataques asignados y no resueltos no se
+    resuelven. **El modo Sin límite no tiene reloj.** **El jugador ve los dos relojes** en todo
+    momento (diseño: Ficha y HUD, #15).
+15. **Desempate de `CierrePorTiempo`: reemplazado el 2026-11-24.** Con el reloj por jugador la
+    partida siempre termina por Rey muerto, reloj agotado, rendición, abandono o tablas, así que
+    no hace falta desempatar. El contador `vidaQuitada` (vida realmente quitada al rival,
+    sin fuego amigo, contando lo que absorbe un escudero) se sigue registrando como métrica
+    (#19). *Texto anterior (2026-11-20), para la revisión:* ganaba quien tuviera más vida en el
+    Rey; si empataban, más piezas vivas; si empataban, más `vidaQuitada`; si no, nadie.
 16. **Eventos de la Máquina (lista cerrada).** `TurnoIniciado(numeroTurno, jugador)`,
     `FaseIniciada(fase)`, `FaseSaltada(fase)`, `ReclutaPerdido`, `TurnoTerminado` y
     `PartidaTerminada(ganador, motivo)`.
@@ -256,7 +265,7 @@ declaran en su GDD cuántos turnos suman por partida (`Δturnos`).
 dos v4 incluyen remontadas y no hay partida sin ellas. Se fija con las Métricas (#19) en el
 MVP.
 
-### D2. Umbral de cierre por tiempo
+### D2. Umbral de cierre por tiempo (reemplazada el 2026-11-24 por el reloj por jugador, regla 14)
 
 La fórmula `umbral_cierre_s` se define así:
 
@@ -287,7 +296,7 @@ mismo turno cerraría hasta en 26:00.
 turno máximo del modo Fijo 90): por debajo, el umbral cae bajo 20:00 y corta partidas que
 están dentro de la meta.
 
-### D3. Desempate de `CierrePorTiempo`
+### D3. Desempate de `CierrePorTiempo` (reemplazada el 2026-11-24, regla 15)
 
 La fórmula `ganador_tiempo` se define así:
 

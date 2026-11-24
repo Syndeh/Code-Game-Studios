@@ -2,7 +2,7 @@
 
 > **Status**: In Design
 > **Author**: jugador + Claude (design-system)
-> **Last Updated**: 2026-11-19
+> **Last Updated**: 2026-11-24 (valores v5: arquero 1–4, escudero 1–2, catapulta 10/6 con escudo 2, soldado escudo 3)
 > **Last Verified**: 2026-11-19
 > **Implements Pillar**: 2 La fuerza está en combinar (con 1 Planificar y cosechar y 3 Siempre hay vuelta, con límites)
 > **Creative Director Review (CD-GDD-ALIGN)**: CONCERNS (accepted) 2026-11-20 — punto 1 (Player Fantasy: "ninguna vía" frente a los bonos temporales) REVISED; punto 2 (el demoledor mata solo a cualquier pieza menos el Rey, contra el pilar 2) aceptado con sus contrapesos
@@ -63,19 +63,20 @@ El Catálogo **no tiene lógica ni estado**: no calcula daño, no mueve piezas y
    | `danoArea` | Daño en las 8 casillas alrededor del punto elegido; 0 si el tipo no tiene área | Resolución (#9) |
    | `topeVivas` | Máximo de piezas vivas de ese tipo por jugador | Reclutamiento (#10), Tablero (#4) |
 
-4. **Valores vigentes** (tabla del concepto, partidas v4; se calibran con partidas humanas, así que son provisionales hasta la compuerta de duración).
+4. **Valores vigentes** (tabla del concepto, prototipo v5 desde el 2026-11-24, decididos con las partidas v4; se calibran con partidas humanas, así que son provisionales hasta la compuerta de duración).
 
    | ID | Tipo | Mov. | Alc. mín. | Alc. máx. | Ataque | Escudo | Vida | Daño área | Tope |
    |---|---|---|---|---|---|---|---|---|---|
-   | 0 | Soldado | 4 | 1 | 1 | 8 | 2 | 25 | 0 | 12 |
-   | 1 | Arquero | 4 | 1 | 6 | 6 | 2 | 15 | 0 | 16 |
-   | 2 | Escudero | 4 | 1 | 1 | 4 | 5 | 20 | 0 | 12 |
-   | 3 | Catapulta | 2 | 2 | 6 | 12 | 3 | 15 | 8 | 8 |
+   | 0 | Soldado | 4 | 1 | 1 | 8 | 3 | 25 | 0 | 12 |
+   | 1 | Arquero | 4 | 1 | 4 | 6 | 2 | 15 | 0 | 16 |
+   | 2 | Escudero | 4 | 1 | 2 | 4 | 5 | 20 | 0 | 12 |
+   | 3 | Catapulta | 2 | 2 | 6 | 10 | 2 | 15 | 6 | 8 |
    | 4 | Jinete | 6 | 1 | 1 | 8 | 3 | 20 | 0 | 8 |
    | 5 | Demoledor | 6 | 1 | 1 | 30 | 1 | 10 | 0 | 4 |
    | 6 | Rey | 6 | 1 | 1 | 8 | 5 | 30 | 0 | 1 |
 
    - La explosión del demoledor no usa `danoArea` (queda en 0). La regla de que daña las 8 vecinas con su `ataque` (supuesto del prototipo) es de Resolución (#9), que la confirma.
+   - Cambios de la v5 (2026-11-24), decididos por el jugador después de las partidas v4 del 2026-11-21: alcance máximo del arquero 6 → 4, alcance máximo del escudero 1 → 2 (su cobertura sigue siendo a un aliado vecino, regla del Escudero), ataque de la catapulta 12 → 10, su daño de área 8 → 6 y su escudo 3 → 2, escudo del soldado 2 → 3.
    - Los topes suman 60 más el Rey, igual que las 61 piezas vivas de la Librería.
 5. **Estático.** El Catálogo no cambia durante la partida. Los bonos de turno (Grito de guerra +2) viven en el estado y se combinan con `EffectiveStats(estado, pieza)`. El +2 de escudo del arquero sobre el muro es del Castillo (#5), no del Catálogo.
 6. **Formato válido.** Cualquier violación da `ConfigInvalida` al preparar el contexto (Librería, regla 2):
@@ -165,12 +166,12 @@ con división entera hacia abajo (todos los valores son no negativos, como exige
 
 **Matriz con los valores vigentes** (entre paréntesis, escudo + vida del objetivo):
 
-| Atacante \ Objetivo | Soldado (27) | Arquero (17) | Escudero (25) | Catapulta (18) | Jinete (23) | Demoledor (11) | Rey (35) |
+| Atacante \ Objetivo | Soldado (28) | Arquero (17) | Escudero (25) | Catapulta (17) | Jinete (23) | Demoledor (11) | Rey (35) |
 |---|---|---|---|---|---|---|---|
 | Soldado (8) | 4 | 3 | 4 | 3 | 3 | 2 | 5 |
 | Arquero (6) | 5 | 3 | 5 | 3 | 4 | 2 | 6 |
 | Escudero (4) | 7 | 5 | 7 | 5 | 6 | 3 | 9 |
-| Catapulta (12) | 3 | 2 | 3 | 2 | 2 | **1** | 3 |
+| Catapulta (10) | 3 | 2 | 3 | 2 | 3 | 2 | 4 |
 | Jinete (8) | 4 | 3 | 4 | 3 | 3 | 2 | 5 |
 | Demoledor (30) | **1** | **1** | **1** | **1** | **1** | **1** | 2 |
 | Rey (8) | 4 | 3 | 4 | 3 | 3 | 2 | 5 |
@@ -179,9 +180,9 @@ con división entera hacia abajo (todos los valores son no negativos, como exige
 
 **Chequeos de balance sobre el Catálogo** (los hace un test; el pilar 2 es *"ninguna pieza gana sola"*):
 
-- **I1, excepciones aprobadas (2026-11-19).** Los únicos pares con `piezasParaMatar = 1` son: demoledor contra cualquier tipo menos el Rey (a cambio muere al explotar, hay 4 y daña a los aliados vecinos) y catapulta contra demoledor (contrajuego a distancia de 6 casillas). Cualquier otro par en 1 hace fallar el test hasta que se apruebe.
+- **I1, excepciones aprobadas (2026-11-19).** Los únicos pares con `piezasParaMatar = 1` son: demoledor contra cualquier tipo menos el Rey (a cambio muere al explotar, hay 4 y daña a los aliados vecinos) y catapulta contra demoledor (contrajuego a distancia de 6 casillas). Con los valores v5 este último par ya no se da (catapulta 10 contra escudo + vida 11): la excepción sigue aprobada, pero hoy el demoledor es el único que mata solo. Cualquier otro par en 1 hace fallar el test hasta que se apruebe.
 - **I2, el Rey (regla dura, sin excepciones).** `piezasParaMatar(a, Rey) ≥ 2` para todo atacante `a`. Con las cifras vigentes el mínimo es 2 (el demoledor): ninguna pieza gana la partida sola.
-- **I3, el área no mata sola.** Para todo tipo con `danoArea > 0` y todo objetivo `t`, `danoArea − escudo_t < vida_t`: el área ablanda y no reemplaza a los demás (*"las piezas de área habilitan combos, no los reemplazan"*, pilar 2). Con la catapulta (8) el daño neto máximo es 7, contra 10 de vida mínima del demoledor.
+- **I3, el área no mata sola.** Para todo tipo con `danoArea > 0` y todo objetivo `t`, `danoArea − escudo_t < vida_t`: el área ablanda y no reemplaza a los demás (*"las piezas de área habilitan combos, no los reemplazan"*, pilar 2). Con la catapulta (6) el daño neto máximo es 5, contra 10 de vida mínima del demoledor.
 
 **Bucles de retroalimentación:** ninguno. El Catálogo es una tabla estática.
 
@@ -257,15 +258,15 @@ Todas las cifras están en el archivo de datos del Catálogo; ninguna está en e
 | Perilla | Vigente | Techo seguro | Piso | Si es demasiado alto | Si es demasiado bajo |
 |---|---|---|---|---|---|
 | `ataque` de soldado, arquero, escudero, jinete y Rey | 8 / 6 / 4 / 8 / 8 | 10 | ≥ 1 (F2); piso útil sin medir | Con 11 o más mata sola al demoledor (escudo + vida = 11): nuevo "gana sola" que rompe I1 | Hacen falta más piezas por golpe: partida más larga (pilar 4) |
-| `ataque` de la catapulta | 12 | 16 | ≥ 1 (F2); sin medir | Con 17 o más mata sola también al arquero (escudo + vida = 17): rompe I1 | Pierde el contrajuego contra el demoledor y se achica su rol de ablandar |
+| `ataque` de la catapulta | 10 | 16 | ≥ 1 (F2); sin medir | Con 11 a 16 vuelve a matar sola al demoledor (excepción aprobada de I1); con 17 o más mata sola también al arquero y a la catapulta (escudo + vida = 17): rompe I1 | Con 10 (v5) ya no mata sola al demoledor; más abajo se achica su rol de ablandar |
 | `ataque` del demoledor | 30 | 34 | ≥ 1 (F2); sin medir | Con 35 o más mata sola al Rey (escudo + vida = 35): rompe I2, el único chequeo sin excepciones | Deja de ser una amenaza que mata sola; baja el costo de ignorarlo |
-| `escudo + vida` de cada tipo (no demoledor, no Rey) | 17 a 27 | sin techo duro | 13 | Las piezas se vuelven demasiado resistentes para combinar: partida más larga | Por debajo de 13 la catapulta (12) las mata sola: rompe I1 |
-| `escudo + vida` del demoledor | 11 | sin techo duro | 9 | Con 13 o más ya no lo mata sola la catapulta (se pierde el contrajuego aprobado) | Por debajo de 9 lo matan solas piezas de ataque 8 (soldado, jinete, Rey): rompe I1 |
+| `escudo + vida` de cada tipo (no demoledor, no Rey) | 17 a 28 | sin techo duro | 11 | Las piezas se vuelven demasiado resistentes para combinar: partida más larga | Por debajo de 11 la catapulta (10) las mata sola: rompe I1 |
+| `escudo + vida` del demoledor | 11 | sin techo duro | 9 | Con 11 o más (vigente) ya no lo mata sola la catapulta (10): el contrajuego aprobado no se da | Por debajo de 9 lo matan solas piezas de ataque 8 (soldado, jinete, Rey): rompe I1 |
 | `escudo + vida` del Rey | 35 | sin techo duro | 31 | Partida más larga: el Rey tarda más en caer | Con 30 o menos lo mata sola el demoledor: rompe I2 |
 | `escudo` de un tipo | 1 a 5 | sin techo duro | 0 (F4) | Con `escudo` ≥ `ataque` de un atacante, ese atacante solo no hace daño (válido, empuja a combinar: pilar 2); con escudos de 30 o más ninguna pieza suelta hace daño | Sube el valor de las piezas sueltas y debilita el pilar 2 |
-| `danoArea` | 8 (catapulta); 0 el resto | 10 | 0 (F4); el piso útil se calibra | Con 11 o más mata sola al demoledor (vida 10, escudo 1): rompe I3 | Con 0 la catapulta pierde su rol de ablandar |
+| `danoArea` | 6 (catapulta); 0 el resto | 10 | 0 (F4); el piso útil se calibra | Con 11 o más mata sola al demoledor (vida 10, escudo 1): rompe I3 | Con 0 la catapulta pierde su rol de ablandar |
 | `movimiento` | 4 / 4 / 4 / 2 / 6 / 6 / 6 | no verificable: depende de la distancia entre castillos (Tablero, #4) | ≥ 1 (F2) | Una pieza llega al castillo rival el mismo turno en que aparece (a confirmar con #4) | Cuesta llegar a atacar: partida más larga |
-| `alcanceMax` | 1 / 6 / 1 / 6 / 1 / 1 / 1 | no verificable: el costo de la vista previa crece con el área del círculo; lo mide la Librería (presupuesto 5 ms) | ≥ `alcanceMin` (F3) | Más objetivos posibles por pieza: la vista previa pesa más y el tablero se vuelve ilegible | Menos objetivos posibles |
+| `alcanceMax` | 1 / 4 / 2 / 6 / 1 / 1 / 1 | no verificable: el costo de la vista previa crece con el área del círculo; lo mide la Librería (presupuesto 5 ms) | ≥ `alcanceMin` (F3) | Más objetivos posibles por pieza: la vista previa pesa más y el tablero se vuelve ilegible | Menos objetivos posibles |
 | `alcanceMin` | 1 (todos menos la catapulta: 2) | ≤ `alcanceMax` (F3) | 1 (F3) | Agranda la zona ciega alrededor de la pieza (su geometría la define Alcance, #7) | Con 1 la pieza ataca también a las 8 casillas vecinas |
 | `topeVivas` | 12 / 16 / 12 / 8 / 8 / 4 / 1 | La suma no puede pasar de 61 (F6); la suma vigente ya es 61 | ≥ 1 (F5); soldados, arqueros y escuderos ≥ 4 (despliegue inicial) | Subir uno exige bajar otro o cambiar el tope de 61 (revisar el desborde de la Librería) | Un tope menor que 4 en esos tres tipos hace inválido el despliegue |
 
@@ -299,7 +300,7 @@ Sin pantalla propia. Las cifras de cada tipo se muestran en la ficha de pieza y 
 | Documento | Qué se referencia | Cómo |
 |---|---|---|
 | `design/gdd/libreria-de-reglas.md` | Regla 2 (`PrepararContexto`, `ConfigInvalida`), regla 7 (IDs por orden de tipos), regla 10 (`EffectiveStats`), regla 12 (huella y versión), tabla de dominios | Este GDD define el formato que la Librería valida y adopta sus topes 0–1.000 y 61 |
-| `design/gdd/game-concept.md`, "Reglas vigentes" | Estadísticas, catapulta 12/8, demoledor, límites de reclutas | Fuente de la tabla de valores vigentes |
+| `design/gdd/game-concept.md`, "Reglas vigentes" | Estadísticas, catapulta 10/6, demoledor, límites de reclutas | Fuente de la tabla de valores vigentes |
 | `design/gdd/game-concept.md`, pilares y anti-pilares | Pilares 1, 2 y 3; "NOT pagar para ganar" | Base de Player Fantasy y de los chequeos I1 a I3 |
 | `design/reglas-cuaderno.md` | Tabla de estadísticas y límites por jugador | Origen de los valores; el concepto manda donde difieren |
 | `design/gdd/systems-index.md` | Sistema #2 y sus dependientes | Faltan en el índice las aristas #8, #14, #19, #26, #28 |
@@ -322,7 +323,7 @@ Sin pantalla propia. Las cifras de cada tipo se muestran en la ficha de pieza y 
 - **AC-9 (F5)** — **GIVEN** el Catálogo vigente, **WHEN** el `topeVivas` de cualquier tipo es 0, **o** el del Rey es 2 (con otro tope bajado para que la suma no pase de 61), **o** el del Rey es 0, **THEN** `ConfigInvalida` en los tres casos.
 - **AC-10 (F6, suma)** — **GIVEN** el Catálogo vigente (suma 61), **WHEN** se sube el tope de demoledores de 4 a 5 (suma 62), **THEN** `ConfigInvalida`; con soldados de 12 a 11 (suma 60) se acepta.
 - **AC-11 (F7)** — **GIVEN** el Catálogo vigente, **WHEN** `versionBalance` es 0, 1, 1.000 y 1.001, **THEN** 0 y 1.001 dan `ConfigInvalida`; 1 y 1.000 se aceptan.
-- **AC-12 (regla 7, identidad)** — **GIVEN** el Catálogo vigente cargado dos veces en procesos distintos, **WHEN** se calcula la huella, **THEN** son iguales. **GIVEN** dos Catálogos que difieren solo en el `escudo` del Soldado (2 y 3), **THEN** las huellas son distintas; lo mismo si difieren solo en `versionBalance`. *(El formato en bytes lo prueba el ADR de la Librería.)*
+- **AC-12 (regla 7, identidad)** — **GIVEN** el Catálogo vigente cargado dos veces en procesos distintos, **WHEN** se calcula la huella, **THEN** son iguales. **GIVEN** dos Catálogos que difieren solo en el `escudo` del Soldado (3 y 4), **THEN** las huellas son distintas; lo mismo si difieren solo en `versionBalance`. *(El formato en bytes lo prueba el ADR de la Librería.)*
 - **AC-13 (regla 8, un solo Catálogo)** — **GIVEN** una partida creada, **WHEN** se consulta `EffectiveStats` de un Soldado del jugador 0 y de uno del jugador 1 sin bonos, **THEN** devuelven los mismos 7 valores. Un test de forma verifica que ninguna consulta del Catálogo recibe un jugador como parámetro.
 - **AC-14 (regla 9, sin texto ni arte)** — **GIVEN** el esquema del Catálogo, **WHEN** se recorren sus campos, **THEN** todos son enteros de 32 bits (ninguno es texto ni decimal).
 - **AC-15 (regla 10, versión registrada)** — **GIVEN** el registro de pares (`versionBalance` → huella) con el par del Catálogo vigente, **WHEN** se cambia una cifra sin cambiar `versionBalance`, **THEN** el test de integridad falla; **WHEN** además se sube `versionBalance` sin registrar el par nuevo, **THEN** también falla; **WHEN** el par se registra, **THEN** pasa.
@@ -332,9 +333,9 @@ Sin pantalla propia. Las cifras de cada tipo se muestran en la ficha de pieza y 
 - **AC-16 (`topeTotal`)** — **GIVEN** topes {12, 16, 12, 8, 8, 4, 1} y topes {1, 1, 1, 1, 1, 1, 1}, **WHEN** se calcula `topeTotal`, **THEN** 61 y 7.
 - **AC-17 (`piezasParaMatar`, valores)** — **GIVEN** el Catálogo vigente, **WHEN** se calcula la matriz de 7 × 7, **THEN** coincide celda por celda con la matriz de Formulas (49 valores). **GIVEN** `ataque` 1, `escudo` 1.000 y `vida` 1.000, **THEN** 2.000; con `ataque` 1.000, `escudo` 0 y `vida` 1, **THEN** 1; sin desborde en ningún caso.
 - **AC-18 (`piezasParaMatar`, contra la regla real)** — *(Integration, PROVISIONAL hasta #9)* **GIVEN** cada par (atacante, objetivo) de la matriz con N = `piezasParaMatar`, **WHEN** se resuelve con la Resolución real N ataques y N − 1 ataques, **THEN** con N el objetivo muere y con N − 1 no (el oráculo coincide con la regla de #9).
-- **AC-19 (I1)** — **GIVEN** el Catálogo vigente, **WHEN** se evalúa I1, **THEN** los pares con `piezasParaMatar` = 1 son exactamente 7: demoledor contra Soldado, Arquero, Escudero, Catapulta, Jinete y Demoledor, y catapulta contra Demoledor. **GIVEN** el `ataque` del Soldado en 11, **THEN** I1 falla y nombra el par Soldado → Demoledor.
+- **AC-19 (I1)** — **GIVEN** el Catálogo vigente, **WHEN** se evalúa I1, **THEN** los pares con `piezasParaMatar` = 1 son exactamente 6: demoledor contra Soldado, Arquero, Escudero, Catapulta, Jinete y Demoledor. **GIVEN** el `ataque` de la Catapulta en 11, **THEN** I1 pasa y el par catapulta → Demoledor aparece como excepción aprobada. **GIVEN** el `ataque` del Soldado en 11, **THEN** I1 falla y nombra el par Soldado → Demoledor.
 - **AC-20 (I2)** — **GIVEN** el Catálogo vigente, **WHEN** se evalúa I2, **THEN** el mínimo contra el Rey es 2 (demoledor) y pasa. **GIVEN** el `ataque` del Demoledor en 34, **THEN** pasa; en 35, **THEN** falla y nombra Demoledor → Rey.
-- **AC-21 (I3)** — **GIVEN** el Catálogo vigente, **WHEN** se evalúa I3, **THEN** pasa (daño neto máximo 7 contra la vida mínima 10). **GIVEN** `danoArea` de la Catapulta en 10, **THEN** pasa; en 11, **THEN** falla. **GIVEN** `danoArea` 8 en el Arquero, **THEN** I3 lo evalúa y pasa.
+- **AC-21 (I3)** — **GIVEN** el Catálogo vigente, **WHEN** se evalúa I3, **THEN** pasa (daño neto máximo 5 contra la vida mínima 10). **GIVEN** `danoArea` de la Catapulta en 10, **THEN** pasa; en 11, **THEN** falla. **GIVEN** `danoArea` 8 en el Arquero, **THEN** I3 lo evalúa y pasa.
 - **AC-22 (techos y pisos de Tuning Knobs)** — **GIVEN** cada techo y piso de la tabla de Tuning Knobs, **WHEN** se prueba en el valor límite y uno más allá, **THEN** el chequeo I1, I2 o I3 que corresponde pasa en el límite y falla uno más allá (por ejemplo `escudo + vida` del Rey: 31 pasa, 30 falla).
 
 **Casos borde (Edge Cases)**

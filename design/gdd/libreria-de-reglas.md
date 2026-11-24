@@ -7,6 +7,15 @@
 > **Implements Pillar**: 1 Planificar y cosechar (y la base del duelo justo para el online)
 > **Creative Director Review (CD-GDD-ALIGN)**: REVISED 2026-11-19 — regla 8 marca el golpe combinado (pilar 2); AC-26 cubre el desacuerdo entre cliente y servidor
 
+> **Cambios del 2026-11-24 (jugador, prototipo v5) pendientes de propagar en esta Librería:**
+> (1) el cierre por tiempo con desempate (regla 3, `CierrePorTiempo`) se reemplaza por un reloj
+> de 12:30 por jugador; quien lo agota pierde (nuevo motivo `RelojAgotado`, Máquina de turno
+> regla 14). (2) Arremetida solo puede salir con más de 12 piezas sin el Rey; si no, su
+> probabilidad, incluida la que recibe en `reparto_liberado`, va entera a Grito de guerra.
+> (3) Rendirse sigue valiendo en cualquier momento en el núcleo; la interfaz solo lo ofrece al
+> jugador del turno con la mitad de las piezas del rival o menos (concepto, «Rendirse»).
+> (4) Con 2 muros rotos (no 1) se dejan de reclutar (ya actualizado abajo).
+
 ## Summary
 
 La Librería de reglas es el núcleo, sin gráficos ni Unity, que decide qué pasa en cada
@@ -236,7 +245,7 @@ la pantalla del otro pasó distinto", "perdí por algo que no se veía".
    salvo el primero (Modificador, regla 2; el momento exacto lo define la Máquina de turno, #3).
    - **Tabla efectiva del Modificador.** La librería calcula la tabla al entrar en
      "esperando tirada" y la guarda en el estado: elige la tabla base según la regla del
-     Modificador (#11) y pone en 0 las caras de reclutar que no pueden salir (muro roto o
+     Modificador (#11) y pone en 0 las caras de reclutar que no pueden salir (2 muros rotos o
      llamadas agotadas), repartiendo su parte con `reparto_liberado` (*Formulas*). La
      tabla efectiva se valida igual que en CrearPartida; si no pasa, es ErrorInterno, que
      la validación de los papeles en CrearPartida (regla 2) más la fórmula hacen
@@ -543,7 +552,7 @@ The `reparto_liberado` formula is defined as:
 | Variable | Type | Range | Source | Description |
 |----------|------|-------|--------|-------------|
 | p_i | int | 0–100 | tabla base elegida (Modificador, #11) | Probabilidad de cada cara antes del reparto |
-| L | int | 0–100 | calculado | Suma de las caras de reclutar liberadas: por muro roto, las dos; por llamadas agotadas, la que se agotó. Se calcula siempre desde la tabla base y sobre el conjunto entero de caras liberadas, nunca encima de una tabla efectiva anterior |
+| L | int | 0–100 | calculado | Suma de las caras de reclutar liberadas: por 2 muros rotos, las dos; por llamadas agotadas, la que se agotó. Se calcula siempre desde la tabla base y sobre el conjunto entero de caras liberadas, nunca encima de una tabla efectiva anterior |
 | p_Grito', p_Arremetida' | int | 0–100 | calculado | Caras que reciben lo liberado; cuáles son lo dice el papel de cada cara en la config (regla 2) |
 
 **Output Range:** una tabla de las mismas k caras que suma exactamente `tirada_rango`, porque
@@ -554,7 +563,7 @@ L − L / 2 (con L = 1, Grito queda en 0) y la suma sigue en 100. La fórmula ne
 CrearPartida lo exige (regla 2). La tabla resultante se valida como en CrearPartida
 (regla 6).
 **Example:** tabla "Pierde con 1/2" 15/20/25/25/15 (Distracción, Grito, Llamada, Cuerno,
-Arremetida) con un muro roto: L = 25 + 25 = 50 → Grito 20 + 25 = 45, Arremetida
+Arremetida) con 2 muros rotos: L = 25 + 25 = 50 → Grito 20 + 25 = 45, Arremetida
 15 + 25 = 40 → 15/45/0/0/40. Tabla "Gana 4 a 3" 20/25/15/20/20 con Llamada agotada: L = 15 →
 Grito 25 + 7 = 32, Arremetida 20 + 8 = 28 → 20/32/0/20/28. Las dos suman 100.
 
@@ -1018,7 +1027,7 @@ todo comando de jugador lleva el `contadorEsperado` correcto, y toda Tirada su
   parámetro de Aplicar y no hay ningún tipo de comando con un campo de emisor (test de
   forma de la API).
 - **AC-40 (tabla efectiva)** (las tablas base son PROVISIONALES hasta el Modificador,
-  #11) — **GIVEN** la tabla 15/20/25/25/15 y un muro roto, **WHEN** se
+  #11) — **GIVEN** la tabla 15/20/25/25/15 y 2 muros rotos, **WHEN** se
   arma la tabla efectiva, **THEN** es 15/45/0/0/40. **GIVEN** 20/25/15/20/20 con Llamada
   agotada, **THEN** 20/32/0/20/28. **GIVEN** cada tabla base del Modificador y cada
   combinación de caras de reclutar liberadas, **THEN** la tabla efectiva suma 100 y n = 99
