@@ -114,7 +114,7 @@ Un archivo que no se puede leer no llega a ser un Catálogo: el cliente no ofrec
 | #1 Librería (indirecto, esquema) | Las filas ya cargadas en la config; esta sección define el formato | Librería (valida y calcula la huella) |
 | #3 Máquina de turno | `movimiento` y `topeVivas` para el invariante de la pila de deshacer, y el orden de tipos para el recluta automático | Máquina de turno |
 | #4 Tablero | Tipos, `topeVivas` y orden para IDs; valida que el ejército inicial (4 soldados, 4 arqueros, 4 escuderos y Rey) cabe en los topes | Tablero |
-| #5 Castillo | `vida`, `escudo` y `alcanceMax` del arquero (el +2 de escudo y el +2 de alcance en el muro son suyos) | Castillo |
+| #5 Castillo | `escudo` y `alcanceMax` del arquero y el ID del tipo arquero (el +2 de escudo y el +2 de alcance en el muro son suyos; la `vida` del arquero es de Resolución) | Castillo |
 | #6 Movimiento | `movimiento`, vía `EffectiveStats` | Movimiento |
 | #7 Alcance | `alcanceMin` y `alcanceMax`; el sentido geométrico es suyo | Alcance |
 | #9 Resolución | `ataque`, `escudo`, `vida`, `danoArea` | Resolución |
@@ -182,7 +182,7 @@ con división entera hacia abajo (todos los valores son no negativos, como exige
 
 **Chequeos de balance sobre el Catálogo** (los hace un test; el pilar 2 es *"ninguna pieza gana sola"*):
 
-- **I1, excepciones aprobadas (2026-11-19).** Los únicos pares con `piezasParaMatar = 1` son: demoledor contra cualquier tipo menos el Rey (a cambio muere al explotar, hay 4 y daña a los aliados vecinos) y catapulta contra demoledor (contrajuego a distancia de 6 casillas). Con los valores v5 este último par ya no se da (catapulta 10 contra escudo + vida 11): la excepción sigue aprobada, pero hoy el demoledor es el único que mata solo. Cualquier otro par en 1 hace fallar el test hasta que se apruebe.
+- **I1, excepciones aprobadas (2026-11-19).** Los únicos pares con `piezasParaMatar = 1` son: demoledor contra cualquier tipo menos el Rey (a cambio muere al explotar, hay 4 y daña a los aliados vecinos) y catapulta contra demoledor (contrajuego a distancia de 6 casillas). Con los valores v5 este último par ya no se da (catapulta 10 contra escudo + vida 11): la excepción sigue aprobada, pero hoy el demoledor es el único que mata solo. **Contra los tramos de muro** (Castillo y muros, F3), el demoledor (ataque 30) rompe un tramo de `vida_tramo` 30 de un golpe y, pegado a un tramo recto, hasta 3 a la vez: excepción aprobada el 2026-11-25, PROVISIONAL hasta Resolución (#9). Cualquier otro par en 1 hace fallar el test hasta que se apruebe.
 - **I2, el Rey (regla dura, sin excepciones).** `piezasParaMatar(a, Rey) ≥ 2` para todo atacante `a`. Con las cifras vigentes el mínimo es 2 (el demoledor): ninguna pieza gana la partida sola.
 - **I3, el área no mata sola.** Para todo tipo con `danoArea > 0` y todo objetivo `t`, `danoArea − escudo_t < vida_t`: el área ablanda y no reemplaza a los demás (*"las piezas de área habilitan combos, no los reemplazan"*, pilar 2). Con la catapulta (6) el daño neto máximo es 5, contra 10 de vida mínima del demoledor.
 
@@ -235,7 +235,7 @@ Esto evita un ciclo: la Librería depende del esquema del Catálogo, y el Catál
 | #1 Librería de reglas | Blanda | El esquema de datos; recibe las filas en la config, las valida y calcula la huella | Existe (en revisión) y ya nombra al Catálogo |
 | #3 Máquina de turno | Blanda | `movimiento` y `topeVivas` (F8, invariante de la pila) y orden de tipos | Existe y ya nombra al Catálogo |
 | #4 Tablero y despliegue | Dura | Tipos, `topeVivas`, orden para IDs; valida que el ejército inicial cabe en los topes; `movimiento` para sus oráculos | Existe y ya nombra al Catálogo |
-| #5 Castillo y muros | Dura | `vida` y `escudo` del arquero | Pendiente |
+| #5 Castillo y muros | Dura | `escudo` y `alcanceMax` del arquero y el ID del tipo arquero | Existe y ya nombra al Catálogo |
 | #6 Movimiento | Dura | `movimiento`, vía `EffectiveStats` | Pendiente |
 | #7 Alcance y asignación | Dura | `alcanceMin` y `alcanceMax` | Pendiente |
 | #9 Resolución simultánea | Dura | `ataque`, `escudo`, `vida`, `danoArea` | Pendiente |

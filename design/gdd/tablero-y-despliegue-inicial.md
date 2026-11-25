@@ -19,7 +19,7 @@ El Tablero es la grilla de 24 columnas por 15 filas sobre la que se juega toda l
 
 **Qué no es.** Las reglas de los muros después del despliegue (daño, rotura, huecos, arqueros sobre el tramo) son de Castillo y muros (#5); quién puede moverse adonde, de Movimiento (#6); y cuántas piezas puede haber vivas, del Catálogo (#2). El Tablero no usa azar: el sorteo de castillos se retiró de la Librería el 2026-11-25.
 
-**Suposición provisional.** *Ciclo con #5:* resuelto en Dependencies (decisión del 2026-11-24). El Tablero coloca también los 16 tramos de muro; su vida inicial es un dato de #5 que llega por la config (hoy 30). La arista de datos de #4 hacia #5 está en el índice.
+**Ciclo con #5: cerrado.** Decisión del 2026-11-24 y esquema fijado el 2026-11-25 (Castillo y muros, regla 14). El Tablero coloca también los 16 tramos de muro; su vida inicial es el campo `vida_tramo` de la config (1 a 1.000, hoy 30), que valida la Librería. La arista de datos de #4 hacia #5 está en el índice.
 
 ## Player Fantasy
 
@@ -45,7 +45,7 @@ El Tablero es la grilla de 24 columnas por 15 filas sobre la que se juega toda l
 2. **Vecindades.** El Tablero define las dos que usan los demás: la **cruz** (4 vecinas: arriba, abajo, izquierda y derecha; la usa Movimiento) y el **contorno** (las 8 vecinas; lo usan Alcance, Cobertura y la explosión del demoledor). La distancia en cruz es `|Δcolumna| + |Δfila|`. Una casilla fuera de la grilla no es vecina de nada.
 3. **Un ocupante por casilla.** Una casilla tiene como mucho una pieza, salvo un arquero sobre un tramo de muro de su propio castillo (regla de la Librería). Un tramo ocupa su casilla como muro. Cada casilla está en uno de cuatro estados: libre, con pieza, con tramo, o con tramo y arquero.
 4. **Despliegue fijo, sin sorteo.** En esta versión de reglas la config trae los castillos fijos en el par de sectores **4 y 6**: azul (jugador 0) a la izquierda, rojo (jugador 1) a la derecha. Cualquier otro par se rechaza con `ConfigInvalida`. *Por qué solo ese par:* el 2–8 no entra (15 filas no dejan espacio entre castillos) y los diagonales (1–9 y 7–3) quedan a 11 casillas de frente a frente contra 9, un turno más de contacto. Decisión del 2026-11-24: la partida sin sorteo evita medir una diferencia que nadie pidió.
-5. **Los castillos.** Cada castillo es un bloque de 5 × 5 centrado en su Rey: azul en el centro `(2, 7)`, columnas 0–4 y filas 5–9; rojo en `(21, 7)`, columnas 19–23 y filas 5–9. El **muro** son las 16 casillas del perímetro del bloque; el **interior** son las 9 de dentro (3 × 3). El muro queda pegado al borde lateral del tablero (el izquierdo para azul, el derecho para rojo). El Tablero coloca los 16 tramos, identificados por su casilla; su vida inicial es un dato de Castillo y muros (#5), hoy 30. *PROVISIONAL: crea un ciclo con #5, se resuelve en Dependencies.*
+5. **Los castillos.** Cada castillo es un bloque de 5 × 5 centrado en su Rey: azul en el centro `(2, 7)`, columnas 0–4 y filas 5–9; rojo en `(21, 7)`, columnas 19–23 y filas 5–9. El **muro** son las 16 casillas del perímetro del bloque; el **interior** son las 9 de dentro (3 × 3). El muro queda pegado al borde lateral del tablero (el izquierdo para azul, el derecho para rojo). El Tablero coloca los 16 tramos, identificados por su casilla; su vida inicial es el campo `vida_tramo` de la config (1 a 1.000, hoy 30; dueño: Castillo y muros, #5, regla 14).
 6. **El ejército inicial.** Cada jugador empieza con 4 soldados, 4 arqueros, 4 escuderos y el Rey (13 piezas). Las cantidades son constantes de la versión de reglas. Si el Catálogo permite menos de 4 de alguno de esos tres tipos, o más de 1 Rey, `CrearPartida` devuelve `ConfigInvalida` (cierra la pendiente que dejó el Catálogo).
 7. **Dónde empiezan las piezas.** Tres líneas de 4, en las filas 5 a 8 (las cuatro filas que van de 2 antes del Rey a 1 después). El Rey en el centro del castillo. Arqueros pegados al muro, escuderos al frente:
 
@@ -85,7 +85,7 @@ No hay transición que "borre" el tablero: una partida Terminada conserva la ocu
 | #1 Librería | La config (castillos fijos) en `CrearPartida` | Estado inicial: piezas, muros, IDs 1–26 | Librería (contrato); Tablero (el diseño del despliegue) |
 | #2 Catálogo | Orden de tipos y `topeVivas` | `ConfigInvalida` si el ejército inicial no cabe | Catálogo |
 | #3 Máquina de turno | — | "Empieza el jugador 0, fase Mover" | Máquina de turno |
-| #5 Castillo y muros | Vida inicial del tramo (*PROVISIONAL*) | Casillas del muro, del interior y del anillo | Castillo y muros |
+| #5 Castillo y muros | Vida inicial del tramo (`vida_tramo`, campo de la config) | Casillas del muro, del interior y del anillo | Castillo y muros |
 | #6 Movimiento | — | `dentro`, `ocupante`, `hayTramo`, cruz, `distanciaCruz` | Tablero |
 | #7 Alcance | — | Contorno de 8 y límites de la grilla | Tablero (grilla); Alcance (círculo) |
 | #8, #9 Cobertura y Resolución | — | `ocupante`, contorno | Tablero |
@@ -95,7 +95,6 @@ No hay transición que "borre" el tablero: una partida Terminada conserva la ocu
 
 **Suposiciones provisionales de esta sección:**
 
-- *Ciclo con #5* por la vida inicial del tramo (ya anotado en el Overview).
 - *`ladoDelRival`* es una constante (+1 / −1) porque hay un solo par; con otros pares habría que volver a una orientación calculada.
 - *Azul siempre a la izquierda y siempre el primero:* no se puede separar el efecto de "lado" del de "turno" en las métricas. Queda para Open Questions (la revancha del menú, #21, podría alternar lados).
 
@@ -211,7 +210,7 @@ The `espejo` formula is defined as:
 
 - **If la config trae un par de castillos que no es (4, 6)** (otro par, o el mismo par invertido (6, 4)): `ConfigInvalida`; no se crea la partida. El invertido también se rechaza porque azul va siempre a la izquierda.
 - **If el Catálogo permite menos de 4 soldados, arqueros o escuderos, o un Rey distinto de 1**: `ConfigInvalida`; no se crea tablero (regla 6).
-- **If Castillo y muros (#5) entrega una vida inicial de tramo menor o igual a 0 o fuera de la tabla de dominios**: `ConfigInvalida`. *PROVISIONAL hasta resolver el ciclo con #5.*
+- **If Castillo y muros (#5) entrega una vida inicial de tramo menor o igual a 0 o fuera de la tabla de dominios**: `ConfigInvalida` (`vida_tramo` de 1 a 1.000; ciclo con #5 cerrado el 2026-11-25).
 - **If un estado cargado o una repetición declara otras dimensiones de tablero o otro radio de muro**: `VersionNoSoportada`. Las dimensiones son constantes de la versión de reglas.
 - **If se cambia una constante del Tablero** (dimensiones, radio del muro, centros, líneas del ejército o composición inicial) **sin subir la versión de reglas**: falla el test del despliegue de referencia (las 26 piezas y los 32 tramos en sus casillas, con sus IDs). Es el mismo mecanismo que el Catálogo usa con su huella.
 
@@ -381,7 +380,7 @@ Todos son automatizables en Edit Mode (lógica pura, sin pantalla); el dibujo de
 - **AC-24 (estado cargado inválido)** — **GIVEN** un estado con dos piezas en `(7,5)`, o una pieza en `(24,3)`, o un tramo en `(10,10)`, **WHEN** se carga, **THEN** `EstadoInvalido`. *(Logic)*
 - **AC-25 (versión)** — **GIVEN** un estado que declara un tablero de 25 × 15, **WHEN** se carga, **THEN** `VersionNoSoportada`. *(Logic)*
 - **AC-26 (constante sin versión)** — **GIVEN** `RADIO_MURO` cambiado a 3 sin subir la versión de reglas, **WHEN** corre el test del despliegue de referencia (AC-7), **THEN** falla; al restaurar el valor, pasa. *(Logic; se rompe a propósito para comprobar que el test falla)*
-- **AC-27 (vida de tramo inválida)** — **GIVEN** una config con vida inicial de tramo 0, **WHEN** se crea la partida, **THEN** `ConfigInvalida`. *(Integration con #5, PROVISIONAL)*
+- **AC-27 (vida de tramo inválida)** — **GIVEN** una config con `vida_tramo` 0 o 1.001, **WHEN** se crea la partida, **THEN** `ConfigInvalida`. *(Integration con #5)*
 - **AC-30 (`ladoDelRival` inválido)** — **GIVEN** el tablero, **WHEN** se llama `ladoDelRival(2)` o `ladoDelRival(−1)`, **THEN** `ErrorInterno`. *(Logic)*
 
 **Cruce con otros sistemas y rendimiento**
@@ -402,7 +401,7 @@ Todos son automatizables en Edit Mode (lógica pura, sin pantalla); el dibujo de
 | Margen de 3 casillas contra el golpe del turno 1 (v5; con la v4 era 1): el arquero está a 11 de la línea enemiga y amenaza 4 + 4 = 8; el escudero está a 9 y amenaza 4 + 2 = 6. Con Grito de guerra queda en 1. El arquero que se queda en su muro (+2 de alcance) llega solo a la columna 10 | Catálogo (#2), Modificador (#11) | Al revisar el Catálogo y en el GDD del Modificador |
 | Si nadie cruza las 8 columnas libres, decide el reloj de 12:30 por jugador, y en Sin límite la partida no termina sola. ¿Es aceptable? | Máquina de turno (#3), playtest | MVP |
 | Azul siempre a la izquierda y siempre el primero: no se separa el efecto de lado del de turno. ¿La revancha alterna lados? | Menú (#21), Métricas (#19) | Fase 1 |
-| Esquema de config para la vida inicial del tramo (arista de datos #4 → #5) | Castillo y muros (#5) | En su GDD |
+| ~~Esquema de config para la vida inicial del tramo (arista de datos #4 → #5)~~ **Resuelta el 2026-11-25:** campo `vida_tramo` en la config (1 a 1.000), validado por la Librería (Castillo y muros, regla 14) | Castillo y muros (#5) | Cerrada |
 | Pisos útiles de `FILAS` (7) y de la composición inicial: sin medir | Métricas (#19), playtest | Compuerta de duración |
 | ¿El jugador percibe el despliegue como parejo? No automatizable | Playtest | MVP |
 | Sin cuadrícula dibujada, ¿se cumple "contar distancias" (pilar 1)? Depende del resaltado de Movimiento (#6) y Alcance (#7) y de la opción de Accesibilidad (#23) | #6, #7, #23, playtest | En sus GDD y en el MVP |

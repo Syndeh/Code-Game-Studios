@@ -2,7 +2,7 @@
 
 > **Status**: Draft
 > **Created**: 2026-11-19
-> **Last Updated**: 2026-11-20
+> **Last Updated**: 2026-11-25
 > **Source Concept**: design/gdd/game-concept.md
 
 ---
@@ -250,27 +250,27 @@ servidor.
 | 2 | Catálogo de piezas | Core | MVP | Designed | design/gdd/catalogo-de-piezas.md | — |
 | 3 | Máquina de turno y fin de partida | Core | MVP | Designed | design/gdd/maquina-de-turno.md | Librería de reglas, Catálogo de piezas, Tablero (blanda: quién empieza) |
 | 4 | Tablero y despliegue inicial | Core | MVP | Designed | design/gdd/tablero-y-despliegue-inicial.md | Librería de reglas, Catálogo de piezas, Castillo y muros (blanda, solo un dato) |
-| 5 | Castillo y muros | Gameplay | MVP | Not Started | — | Tablero, Catálogo de piezas |
+| 5 | Castillo y muros | Gameplay | MVP | Designed | design/gdd/castillo-y-muros.md | Librería de reglas, Tablero, Catálogo de piezas, Máquina de turno (blanda: momento del corte) |
 | 6 | Movimiento | Gameplay | MVP | Not Started | — | Tablero, Catálogo de piezas, Máquina de turno, Castillo y muros |
-| 7 | Alcance y asignación de ataques | Gameplay | MVP | Not Started | — | Tablero, Catálogo de piezas, Máquina de turno |
-| 8 | Cobertura del escudero | Gameplay | MVP | Not Started | — | Alcance y asignación, Tablero, Máquina de turno, Catálogo de piezas (solo ID del Escudero) |
+| 7 | Alcance y asignación de ataques | Gameplay | MVP | Not Started | — | Tablero, Catálogo de piezas, Máquina de turno, Castillo y muros (tramo como objetivo; alcance del arquero en el muro) |
+| 8 | Cobertura del escudero | Gameplay | MVP | Not Started | — | Alcance y asignación, Tablero, Máquina de turno, Catálogo de piezas (solo ID del Escudero), Castillo y muros (blanda: la parte del tramo no se redirige) |
 | 9 | Resolución simultánea del daño | Gameplay | MVP | Not Started | — | Alcance y asignación, Cobertura del escudero, Castillo y muros, Máquina de turno, Catálogo de piezas |
 | 10 | Reclutamiento y límites | Gameplay | MVP | Not Started | — | Castillo y muros, Tablero, Máquina de turno, Catálogo de piezas |
 | 11 | Modificador (dado adaptativo) | Gameplay | MVP | Not Started | — | Máquina de turno, Reclutamiento, Castillo y muros |
 | 12 | Timer de turno | Core | MVP | Not Started | — | Máquina de turno |
 | 13 | Entrada y selección (inferred) | Core | MVP | Not Started | — | — |
 | 14 | Localización (inferred) | Meta | MVP | Not Started | — | Catálogo de piezas (solo ID de tipo) |
-| 15 | Ficha de pieza y HUD | UI | MVP | Not Started | — | Catálogo de piezas, Máquina de turno, Timer, Modificador |
-| 16 | Vista previa de ataques | UI | MVP | Not Started | — | Alcance y asignación, Resolución, Cobertura del escudero |
+| 15 | Ficha de pieza y HUD | UI | MVP | Not Started | — | Catálogo de piezas, Máquina de turno, Timer, Modificador, Castillo y muros (blanda: contador de tramos rotos) |
+| 16 | Vista previa de ataques | UI | MVP | Not Started | — | Alcance y asignación, Resolución, Cobertura del escudero, Castillo y muros (blanda: daño y ROTO del tramo) |
 | 17 | Interfaz del Modificador | UI | MVP | Not Started | — | Modificador, Reclutamiento |
-| 18 | Render, animación y feedback de combate | UI | MVP | Not Started | — | Tablero, Catálogo de piezas, Movimiento, Resolución |
+| 18 | Render, animación y feedback de combate | UI | MVP | Not Started | — | Tablero, Catálogo de piezas, Movimiento, Resolución, Castillo y muros (blanda: tres estados del tramo) |
 | 19 | Métricas locales de partida | Meta | MVP | Not Started | — | Máquina de turno, Resolución, Reclutamiento, Modificador, Timer, Catálogo de piezas (versionBalance) |
 | 20 | Ajustes (inferred) | Persistence | Vertical Slice | Not Started | — | Localización |
 | 21 | Menú principal y flujo de pantallas (inferred) | UI | Vertical Slice | Not Started | — | Máquina de turno, Ajustes, Localización |
 | 22 | Audio y SFX | Audio | Vertical Slice | Not Started | — | Resolución, Modificador, Render |
 | 23 | Accesibilidad (inferred) | Meta | Vertical Slice | Not Started | — | Ficha y HUD, Render, Ajustes |
 | 24 | Tutorial básico de 3 pasos | Meta | Vertical Slice | Not Started | — | Movimiento, Alcance y asignación, Resolución, Reclutamiento, Modificador, Ficha y HUD, Vista previa, Interfaz del Modificador, Menú principal |
-| 25 | Rival IA básico (partida tutorial) | Gameplay | Vertical Slice | Not Started | — | Librería de reglas, Máquina de turno, Movimiento, Alcance y asignación, Cobertura del escudero, Resolución, Reclutamiento, Modificador, Menú principal |
+| 25 | Rival IA básico (partida tutorial) | Gameplay | Vertical Slice | Not Started | — | Librería de reglas, Máquina de turno, Movimiento, Alcance y asignación, Cobertura del escudero, Resolución, Reclutamiento, Modificador, Menú principal, Castillo y muros (blanda: estado del muro, público) |
 | 26 | Registro de partida y serialización (inferred) | Persistence | Alpha | Not Started | — | Librería de reglas, Catálogo de piezas (tabla en la config) |
 | 27 | Backend online y presencia | Core | Alpha | Not Started | — | — |
 | 28 | Servidor autoritativo de partida | Core | Alpha | Not Started | — | Librería de reglas, Máquina de turno, Timer, Modificador, Registro de partida, Backend online, Catálogo de piezas (mismo archivo y huella) |
@@ -352,7 +352,7 @@ Sin Narrative: el juego no tiene historia.
 
 Reglas del duelo (núcleo):
 
-1. Castillo y muros — depends on: Tablero, Catálogo
+1. Castillo y muros — depends on: Librería, Tablero, Catálogo, Máquina de turno (blanda)
 2. Movimiento — depends on: Tablero, Catálogo, Máquina de turno, Castillo
 3. Alcance y asignación de ataques — depends on: Tablero, Catálogo, Máquina de turno
 4. Cobertura del escudero — depends on: Alcance y asignación, Tablero, Máquina de turno
@@ -523,10 +523,10 @@ Los cuatro ciclos encontrados se cortaron con contratos; ninguno queda abierto.
 | Metric | Count |
 |--------|-------|
 | Total systems identified | 41 |
-| Design docs started | 4 |
+| Design docs started | 5 |
 | Design docs reviewed | 1 |
 | Design docs approved | 0 |
-| MVP systems designed | 4/19 |
+| MVP systems designed | 5/19 |
 | Vertical Slice systems designed | 0/6 |
 
 ---

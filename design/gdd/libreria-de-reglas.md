@@ -100,14 +100,14 @@ la pantalla del otro pasó distinto", "perdí por algo que no se veía".
    que identifica esa tabla exacta, la calcula PrepararContexto); las tablas de probabilidad del Modificador, con el papel
    de cada cara (reclutar, Grito de guerra, Arremetida u otra); la posición de los
    castillos, fija (la define el Tablero, #4); el **límite normal** de piezas que se mueven
-   por turno, sin el Rey (`limite_normal`, 1 a 60; hoy 12, su dueño es Movimiento, #6); y el modo de timer, solo como dato
+   por turno, sin el Rey (`limite_normal`, 1 a 60; hoy 12, su dueño es Movimiento, #6); la **vida del tramo** de muro (`vida_tramo`, 1 a 1.000; hoy 30, su dueño es Castillo y muros, #5); y el modo de timer, solo como dato
    informativo que no entra al estado (la librería no mide tiempo y ninguna regla depende
    de él). CrearPartida valida **toda** la config antes
    de crear nada: Catálogo no vacío y con el formato del Catálogo (#2); cada tabla de
    probabilidad según *Formulas* (`ProbabilidadesInvalidas`); los **papeles de las caras**
    de cada tabla (`ProbabilidadesInvalidas`): un papel por cara, exactamente una cara de
    Grito de guerra y una de Arremetida, distintas entre sí y distintas de las caras de
-   reclutar; `limite_normal` entre 1 y 60; y los castillos dentro del tablero y sin
+   reclutar; `limite_normal` entre 1 y 60; `vida_tramo` entre 1 y 1.000; y los castillos dentro del tablero y sin
    superponerse. Si fallan las
    tablas y algo más, gana `ProbabilidadesInvalidas`; cualquier otro fallo devuelve
    `ConfigInvalida`. En los dos casos no se crea partida; si no, devuelve el estado y el
@@ -116,7 +116,7 @@ la pantalla del otro pasó distinto", "perdí por algo que no se veía".
    2026-11-25: no hay sorteo de castillos). **El primer turno de la partida no tira el
    Modificador** (Máquina de turno, regla 3): después de crear la
    partida empieza directo en reclutar/mover. La versión, el id de partida, la huella del
-   Catálogo, el modo, las tablas base con sus papeles, el límite normal y la posición de los
+   Catálogo, el modo, las tablas base con sus papeles, el límite normal, la vida del tramo y la posición de los
    castillos no cambian en toda la partida.
 3. **Comandos: una lista cerrada.** Mover(pieza, destino) · Deshacer · TerminarMovimiento ·
    AsignarAtaque(pieza, objetivo) · QuitarAtaque(pieza) · Cubrir(escudero, aliado) ·
@@ -291,7 +291,7 @@ la pantalla del otro pasó distinto", "perdí por algo que no se veía".
     el `GetHashCode` de la plataforma. Cubre **todos los campos del estado, sin
     excepción**: lo que no esté en la forma canónica no puede estar en el estado. Hoy eso
     incluye versión, id de partida, huella del Catálogo (no su contenido), modo, tablas
-    base del Modificador **con el papel de cada cara**, el **límite normal**, la **posición de los castillos**,
+    base del Modificador **con el papel de cada cara**, el **límite normal**, la **vida del tramo**, la **posición de los castillos**,
     `numeroTurno`, fase y etapa, jugador del
     turno, tabla base y cara del Modificador de este turno y sus bonos (Grito de guerra), piezas con sus
     movimientos usados, muros, ataques asignados, coberturas,
@@ -323,6 +323,7 @@ la pantalla del otro pasó distinto", "perdí por algo que no se veía".
     | Id de partida, modo | Cualquier int32 · local u online | — |
     | Tablas base con papeles, posición de los castillos | Válidas según la regla 2 y *Formulas* | Castillos dentro del tablero y sin superponerse |
     | `limite_normal` | 1 a 60 | — |
+    | `vida_tramo` | 1 a 1.000 | Tope de la vida de cada tramo de muro (#5) |
     | Tablero | 24 columnas (0–23) × 15 filas (0–14), constante (Tablero, #4) | Toda casilla del estado está dentro |
     | `contadorTirada`, `contadorComandos` · `numeroTurno` | 0 a C_MAX · 1 a C_MAX + 1 (empieza en 1) | `contadorTirada` ≤ `contadorComandos`; `numeroTurno` ≤ `contadorComandos` + 2 (CrearPartida y cada Aceptado avanzan como mucho un turno, porque una cascada se detiene en el turno siguiente, que necesita tirada); En curso ⇒ `contadorComandos` ≤ C_MAX − 1 (lugar para `Rendirse` o `CerrarPartida`) |
     | Fase, etapa, jugador del turno | Valores de sus enums (#3) · 0 o 1 | Etapa mover con reclutar o mover; atacar con atacar; ninguna etapa esperando tirada. Resolver no es una fase en reposo (#3, regla 2) |
@@ -332,7 +333,7 @@ la pantalla del otro pasó distinto", "perdí por algo que no se veía".
     | Ataques asignados, coberturas | Uno por pieza como mucho | Ataque: atacante vivo del jugador del turno, objetivo dentro del tablero según su tipo (#7), solo en la etapa atacar. Cobertura: escudero y aliado vivos del mismo jugador (siguen en el turno rival, #8) |
     | Pila de deshacer | 0 a 256 entradas (`pila_tope`, #3) | IDs de piezas vivas y casillas dentro del tablero; vacía fuera de la fase de mover |
     | Contadores de reclutas | 0 a su tope de llamadas (#2, #11) | — |
-    | `vidaQuitada` de cada jugador | 0 a 999.999.480 (PROVISIONAL, #9) | Vida realmente quitada a piezas y muros del rival en toda la partida; sin fuego amigo; lo que absorbe un escudero al cubrir cuenta. Es estadística: ninguna regla la lee (jugador, 2026-11-25) |
+    | `vidaQuitada` de cada jugador | 0 a `estadistica_max × (C_MAX − 1) + 16 × vida_tramo` = 1.000.015.000 con `vida_tramo` 1.000 (PROVISIONAL, #9) | Vida realmente quitada a piezas y muros del rival en toda la partida; sin fuego amigo; lo que absorbe un escudero al cubrir cuenta. Es estadística: ninguna regla la lee (jugador, 2026-11-25) |
     | Próximo ID | 1 a C_MAX | Mayor que todo ID de pieza |
     | Tirada pendiente | Vacía o {Modificador, jugador, tabla base, tabla efectiva} | Solo En curso; Modificador: jugador = jugador del turno y tabla efectiva = la que se recalcula |
     | Motivo y ganador | Vacíos, o un motivo de la regla 16 con el ganador que pide su fila | Terminada si y solo si hay motivo; ReyMuerto ⇒ queda un solo Rey y gana su dueño; DobleRey ⇒ 0 Reyes |
@@ -640,7 +641,8 @@ nombra a la librería como consumidora de su esquema.
 |---|---|---|
 | 3 Máquina de turno | Dura | Escribe sus fases dentro del contrato; pila de deshacer; `EvaluateMatchEnd` |
 | 4 Tablero y despliegue | Dura | CrearPartida con castillos fijos (par 4–6), IDs estables; no hay sorteo |
-| 5–11 Reglas del núcleo | Dura | Escriben sus reglas, comandos, códigos y eventos dentro del contrato |
+| 5 Castillo y muros | Dura | Define `vida_tramo` (campo de la config, 1 a 1.000), el bono por posición del arquero en `EffectiveStats` y las consultas `enMuro`, `tramosRotos` y `puedeReclutar` |
+| 6–11 Reglas del núcleo | Dura | Escriben sus reglas, comandos, códigos y eventos dentro del contrato |
 | 25 Rival IA | Dura | Juega con la misma API y las consultas |
 | 26 Registro de partida | Dura | Guarda config, comandos y tiradas; reproduce con Aplicar |
 | 28 Servidor de partida | Dura | Corre la misma librería; es la autoridad; compara huellas |
@@ -669,7 +671,8 @@ tocaría vive en el GDD que lo define; la librería solo lo recibe como dato:
   determinismo; no se ajustan.
 - **Topes de la tabla de dominios (regla 11): C_MAX = 1.000.000, tablero 24 × 15, 61
   piezas vivas por jugador, bono de 0 a 10, estadísticas de 0 a 1.000, pila de deshacer
-  de 256, límite normal de 1 a 60.** Los de estadísticas y piezas son del Catálogo (#2), la
+  de 256, límite normal de 1 a 60, vida del tramo de 1 a 1.000.** Los de estadísticas y piezas son del Catálogo (#2), la
+  vida del tramo de Castillo y muros (#5), la
   pila de la Máquina de turno (#3) y el tablero del Tablero (#4); C_MAX, el bono (#11) y el
   límite normal (#6) siguen PROVISIONALES. No son balance, garantizan
   que ninguna cuenta desborde, y cambiarlos sube la versión de reglas.
@@ -812,8 +815,9 @@ todo comando de jugador lleva el `contadorEsperado` correcto, y toda Tirada su
 - **AC-12b (estadísticas efectivas)** (PROVISIONAL hasta el Modificador, #11, y el
   Catálogo, #2) — **GIVEN** un fixture con un bono de turno de +2 en ataque y movimiento
   sobre una pieza, **WHEN** se llama `EffectiveStats`, **THEN** devuelve los valores del
-  catálogo +2 en ataque y movimiento. El bono por posición (arquero sobre el muro) se
-  agrega cuando su GDD lo defina.
+  catálogo +2 en ataque y movimiento. El bono por posición (arquero sobre el muro: +2 de
+  escudo y +2 de alcance máximo mientras `enMuro`) lo define Castillo y muros (#5) y lo
+  cubren sus AC-9 y AC-22.
 - **AC-13 (guardar y cargar)** — **GIVEN** una partida a la mitad de un fixture, **WHEN** se
   guarda y se carga, **THEN** la huella es igual y los 50 comandos siguientes del fixture
   dan los mismos eventos que sin haber guardado.
@@ -1029,7 +1033,7 @@ todo comando de jugador lleva el `contadorEsperado` correcto, y toda Tirada su
   - en modo local: `SoloOnline`;
   - con otra versión, o con una versión soportada pero distinta de la de `confirmado`, o
     con una huella de Catálogo distinta de la del contexto: `VersionNoSoportada`;
-  - con otro modo, otras tablas base u otra posición de los castillos (huella correcta):
+  - con otro modo, otras tablas base, otra `vida_tramo` u otra posición de los castillos (huella correcta):
     `EstadoInvalido`;
   - con otro id de partida: `OtraPartida`;
   - con un `contadorComandos` menor que el confirmado: `EstadoViejo`;
@@ -1051,9 +1055,9 @@ todo comando de jugador lleva el `contadorEsperado` correcto, y toda Tirada su
   se reparten los elementos entre dos colecciones consecutivas (por ejemplo, una pieza
   menos y más tramos de muro), **THEN** sus flujos canónicos y sus huellas son distintos.
 - **AC-46 (castillos fuera del tablero)** — **GIVEN** una config con un castillo que se sale
-  del tablero (o con dos castillos que se superponen, o con `limite_normal` 0 o 61), **WHEN**
+  del tablero (o con dos castillos que se superponen, o con `limite_normal` 0 o 61, o con `vida_tramo` 0 o 1.001), **WHEN**
   se llama CrearPartida, **THEN** `ConfigInvalida` y no se crea partida; con `limite_normal`
-  1 y 60 se acepta.
+  1 y 60 se acepta, y con `vida_tramo` 1 y 1.000 también.
 - **AC-47 (Rendirse)** — **GIVEN** una partida en curso, **WHEN** el jugador sin turno envía
   `Rendirse`, también mientras se espera una tirada, **THEN** la partida termina, gana el
   otro jugador, el motivo es Rendicion y no queda tirada pendiente. **WHEN** lo envía el

@@ -163,7 +163,7 @@ de mover se pierde; se mide en playtest (Open Questions).
     **realmente perdida** por piezas y muros del rival, acumulada en la partida; el fuego
     amigo no cuenta y lo que absorbe un escudero al cubrir sí. La escribe Resolución (#9), la
     lee Métricas (#19) y ninguna regla decide con ella. **Cota:** `estadistica_max` (1.000) ×
-    (`C_MAX` − 1 = 999.999 piezas posibles) + 480 de los 16 tramos rivales = 999.999.480; no
+    (`C_MAX` − 1 = 999.999 piezas posibles) + 16 × `vida_tramo` de los 16 tramos rivales (#5; 16.000 con `vida_tramo` 1.000) = 1.000.015.000 como máximo; no
     desborda.
 16. **Eventos de la Máquina (lista cerrada).** `TurnoIniciado(numeroTurno, jugador)`,
     `FaseIniciada(fase)`, `FaseSaltada(fase)`, `ReclutaPerdido`, `TurnoTerminado` y
@@ -299,7 +299,7 @@ un Catálogo que lo viole.
 | Variable | Type | Range | Source | Description |
 |----------|------|-------|--------|-------------|
 | tope_vivas_t | int | 1–61 | data file (Catálogo) | Piezas vivas máximas del tipo t |
-| movimiento_t | int | 0–1.000 (hoy 2–6) | data file (Catálogo) | Puntos de movimiento del tipo t |
+| movimiento_t | int | 1–1.000 (hoy 2–6) | data file (Catálogo) | Puntos de movimiento del tipo t |
 | pila_tope | int | 256 | constant (contrato) | Tope de entradas de la pila |
 | pila_max | int | 254 hoy | calculated | Peor caso de entradas en un turno |
 
@@ -398,6 +398,7 @@ Dependencies*). Por eso esos sistemas dependen de ella y no al revés.
 | #6 Movimiento | Dura | Fase `Mover`, pila de deshacer, límite del turno | Pendiente |
 | #7 Alcance y asignación | Dura | Fase `Atacar` y el criterio "acción posible" | Pendiente |
 | #8 Cobertura | Blanda | Momento de borrar las coberturas (al abrir el turno de su dueño) | Pendiente |
+| #5 Castillo y muros | Blanda | Momento del corte de reclutamiento (reclutar es de la fase de mover; la tabla se calcula al abrir el turno), `Deshacer` sobre los `Mover` de subir y bajar del muro y `vidaQuitada` | Existe |
 | #9 Resolución | Dura | Transición `Resolver`; escribe `vidaQuitada`; declara `Δturnos` | Pendiente |
 | #10 Reclutamiento | Dura | Fase `Reclutar`, recluta automático; declara `Δturnos` | Pendiente |
 | #11 Modificador | Dura | Resultados tipados y fase de tirada; declara `Δturnos` | Pendiente |
