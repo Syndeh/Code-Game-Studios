@@ -2,19 +2,10 @@
 
 > **Status**: In Design
 > **Author**: jugador + Claude (design-system)
-> **Last Updated**: 2026-11-19 (séptima revisión tras la séptima pasada de /design-review: NEEDS REVISION; matriz de clausura)
+> **Last Updated**: 2026-11-25 (sorteo retirado y v5 propagada: reloj por jugador, Arremetida, `vidaQuitada`; pendiente de revisión). Antes: 2026-11-19 (séptima revisión tras la séptima pasada de /design-review: NEEDS REVISION; matriz de clausura)
 > **Last Verified**: 2026-11-19
 > **Implements Pillar**: 1 Planificar y cosechar (y la base del duelo justo para el online)
 > **Creative Director Review (CD-GDD-ALIGN)**: REVISED 2026-11-19 — regla 8 marca el golpe combinado (pilar 2); AC-26 cubre el desacuerdo entre cliente y servidor
-
-> **Cambios del 2026-11-24 (jugador, prototipo v5) pendientes de propagar en esta Librería:**
-> (1) el cierre por tiempo con desempate (regla 3, `CierrePorTiempo`) se reemplaza por un reloj
-> de 12:30 por jugador; quien lo agota pierde (nuevo motivo `RelojAgotado`, Máquina de turno
-> regla 14). (2) Arremetida solo puede salir con más de 12 piezas sin el Rey; si no, su
-> probabilidad, incluida la que recibe en `reparto_liberado`, va entera a Grito de guerra.
-> (3) Rendirse sigue valiendo en cualquier momento en el núcleo; la interfaz solo lo ofrece al
-> jugador del turno con la mitad de las piezas del rival o menos (concepto, «Rendirse»).
-> (4) Con 2 muros rotos (no 1) se dejan de reclutar (ya actualizado abajo).
 
 ## Summary
 
@@ -108,24 +99,25 @@ la pantalla del otro pasó distinto", "perdí por algo que no se veía".
    **modo** (local u online); la tabla del Catálogo (su contenido; la huella, un resumen
    que identifica esa tabla exacta, la calcula PrepararContexto); las tablas de probabilidad del Modificador, con el papel
    de cada cara (reclutar, Grito de guerra, Arremetida u otra); la posición de los
-   castillos, fija (la define el Tablero, #4); y el modo de timer, solo como dato
+   castillos, fija (la define el Tablero, #4); el **límite normal** de piezas que se mueven
+   por turno, sin el Rey (`limite_normal`, 1 a 60; hoy 12, su dueño es Movimiento, #6); y el modo de timer, solo como dato
    informativo que no entra al estado (la librería no mide tiempo y ninguna regla depende
    de él). CrearPartida valida **toda** la config antes
    de crear nada: Catálogo no vacío y con el formato del Catálogo (#2); cada tabla de
    probabilidad según *Formulas* (`ProbabilidadesInvalidas`); los **papeles de las caras**
    de cada tabla (`ProbabilidadesInvalidas`): un papel por cara, exactamente una cara de
    Grito de guerra y una de Arremetida, distintas entre sí y distintas de las caras de
-   reclutar; y los castillos dentro del tablero y sin
+   reclutar; `limite_normal` entre 1 y 60; y los castillos dentro del tablero y sin
    superponerse. Si fallan las
    tablas y algo más, gana `ProbabilidadesInvalidas`; cualquier otro fallo devuelve
    `ConfigInvalida`. En los dos casos no se crea partida; si no, devuelve el estado y el
    contexto (regla 1). La partida
    siempre nace **En curso**, con castillos, piezas y muros ya colocados (decisión del
    2026-11-25: no hay sorteo de castillos). **El primer turno de la partida no tira el
-   Modificador** (decisión del 2026-11-19, PROVISIONAL hasta #3): después de crear la
+   Modificador** (Máquina de turno, regla 3): después de crear la
    partida empieza directo en reclutar/mover. La versión, el id de partida, la huella del
-   Catálogo, el modo, las tablas base con sus papeles y la posición de los castillos no
-   cambian en toda la partida.
+   Catálogo, el modo, las tablas base con sus papeles, el límite normal y la posición de los
+   castillos no cambian en toda la partida.
 3. **Comandos: una lista cerrada.** Mover(pieza, destino) · Deshacer · TerminarMovimiento ·
    AsignarAtaque(pieza, objetivo) · QuitarAtaque(pieza) · Cubrir(escudero, aliado) ·
    Reclutar(tipo) · Resolver · Rendirse · TurnTimeout(turno, etapa) ·
@@ -151,20 +143,20 @@ la pantalla del otro pasó distinto", "perdí por algo que no se veía".
      etapa actuales es viejo y se rechaza con `TimeoutObsoleto`, sin efecto.
    - `Rendirse` lo puede enviar cualquiera de los dos jugadores en cualquier momento de una
      partida en curso, también fuera de su turno y mientras se espera una tirada: termina
-     la partida, gana el otro jugador y el motivo es Rendición. La interfaz del MVP local no
-     tiene que ofrecerlo; el online no se lanza sin él.
+     la partida, gana el otro jugador y el motivo es Rendición. La interfaz lo ofrece solo al
+     jugador del turno mientras tiene la mitad de las piezas del rival o menos (jugador,
+     2026-11-24); ese límite es de la interfaz, no del núcleo. El online no se lanza sin él.
    - `CerrarPartida(motivo, ganador)` lo envía solo la autoridad, en cualquier momento de
      una partida en curso, también mientras se espera una tirada. Cierra la partida cuando
      la decisión no sale del tablero: un jugador que abandona (motivo **Abandono**), el
-     tope de tiempo (**CierrePorTiempo**) o un empate acordado (**Tablas**). La forma se
-     valida: Abandono lleva un ganador (0 o 1), que dice la autoridad de confianza;
-     CierrePorTiempo y Tablas llevan el ganador vacío; cualquier otro motivo o combinación
-     se rechaza con `CierreInvalido`. **Con CierrePorTiempo el ganador lo calcula la
-     librería** sobre el estado actual (decisión del 2026-11-19): gana quien tenga más vida
-     en su Rey; si empatan, quien tenga más piezas vivas (Rey incluido, muros no); si
-     también empatan, nadie (motivo CierrePorTiempo, ganador vacío). Cuándo hay abandono y
-     cuándo se envía el cierre es del Timer (#12) y el Servidor (#28); el desempate es
-     PROVISIONAL hasta la Máquina de turno (#3).
+     reloj de partida agotado (**RelojAgotado**, Máquina de turno, regla 14) o un empate
+     acordado (**Tablas**). La forma se valida: Abandono lleva un ganador (0 o 1), que dice
+     la autoridad de confianza; RelojAgotado lleva como ganador al rival del jugador del
+     turno y no vale mientras se espera una tirada, porque el reloj no corre ahí; Tablas
+     lleva el ganador vacío; cualquier otro motivo o combinación se rechaza con
+     `CierreInvalido`. Así, un RelojAgotado que llega con el turno ya cerrado se rechaza.
+     Cuándo hay abandono y cuándo se agota el reloj lo deciden el Timer (#12) y el Servidor
+     (#28): la librería no mide tiempo.
 4. **Validación y códigos.** Todo comando se valida entero antes de cambiar nada: no hay
    comandos aplicados a medias. **Todo campo de un comando (casilla, ID, tipo, n, turno,
    contador) se valida por rango antes de entrar en cualquier cuenta:** un valor fuera de
@@ -185,7 +177,7 @@ la pantalla del otro pasó distinto", "perdí por algo que no se veía".
    | 6 | `TiradaNoEsperada` | Llega una Tirada y no se espera ninguna | Interno |
    | 7 | `TiradaVieja` · `TiradaInvalida` | Su `contadorTiradaEsperado` no es el `contadorTirada` actual · n fuera de 0–99 (se revisa primero el contador) | Interno |
    | 8 | `TimeoutObsoleto` | `TurnTimeout` con un turno o una etapa que no son los actuales | Interno (se descarta sin aviso) |
-   | 9 | `CierreInvalido` | `CerrarPartida` con un motivo que no es Abandono, CierrePorTiempo ni Tablas, con un ganador que no corresponde al motivo (Abandono sin ganador 0 o 1; CierrePorTiempo o Tablas con ganador) | Interno |
+   | 9 | `CierreInvalido` | `CerrarPartida` con un motivo que no es Abandono, RelojAgotado ni Tablas, con un ganador que no corresponde al motivo (Abandono sin ganador 0 o 1; RelojAgotado con un ganador que no es el rival del jugador del turno; Tablas con ganador), o RelojAgotado esperando una tirada | Interno |
    | 10 | `ComandoViejo` | El `contadorEsperado` del comando no es el `contadorComandos` actual | Interno (el cliente vuelve a su último estado confirmado) |
    | 11 | `NoEsTuTurno` | El emisor no es el jugador del turno | Sí |
    | 12 | `PiezaInexistente` · `NoEsTuPieza` | El ID de la pieza que actúa no existe (o la pieza murió) · es del rival. El objetivo de AsignarAtaque y el aliado de Cubrir los valida la regla de cada uno (fila 14) | Sí |
@@ -243,7 +235,8 @@ la pantalla del otro pasó distinto", "perdí por algo que no se veía".
    - **Tabla efectiva del Modificador.** La librería calcula la tabla al entrar en
      "esperando tirada" y la guarda en el estado: elige la tabla base según la regla del
      Modificador (#11) y pone en 0 las caras de reclutar que no pueden salir (2 muros rotos o
-     llamadas agotadas), repartiendo su parte con `reparto_liberado` (*Formulas*). La
+     llamadas agotadas), repartiendo su parte con `reparto_liberado` (*Formulas*), que
+     también bloquea Arremetida con 12 piezas o menos sin el Rey. La
      tabla efectiva se valida igual que en CrearPartida; si no pasa, es ErrorInterno, que
      la validación de los papeles en CrearPartida (regla 2) más la fórmula hacen
      inalcanzable.
@@ -298,13 +291,13 @@ la pantalla del otro pasó distinto", "perdí por algo que no se veía".
     el `GetHashCode` de la plataforma. Cubre **todos los campos del estado, sin
     excepción**: lo que no esté en la forma canónica no puede estar en el estado. Hoy eso
     incluye versión, id de partida, huella del Catálogo (no su contenido), modo, tablas
-    base del Modificador **con el papel de cada cara**, la **posición de los castillos**,
+    base del Modificador **con el papel de cada cara**, el **límite normal**, la **posición de los castillos**,
     `numeroTurno`, fase y etapa, jugador del
     turno, tabla base y cara del Modificador de este turno y sus bonos (Grito de guerra), piezas con sus
     movimientos usados, muros, ataques asignados, coberturas,
     tirada pendiente (la del Modificador: para qué jugador; qué tabla base
     se eligió y su tabla efectiva), pila de deshacer, contadores de reclutas,
-    `contadorTirada`, `contadorComandos` (todo comando aceptado), próximo ID, y ganador y
+    `vidaQuitada` de cada jugador, `contadorTirada`, `contadorComandos` (todo comando aceptado), próximo ID, y ganador y
     motivo de fin. Al terminar la partida, por cualquier motivo, la tirada pendiente se
     borra. La huella depende solo de los campos: estados iguales campo por campo dan la
     misma huella y cambiar cualquier campo la cambia (AC-45). Aplicar no la calcula: es la
@@ -319,7 +312,8 @@ la pantalla del otro pasó distinto", "perdí por algo que no se veía".
     campo nuevo no existe sin su fila. Cargar y Resincronizar rechazan con `EstadoInvalido`
     todo estado que no la cumpla; CrearPartida y todo Aceptado de Aplicar producen solo
     estados que la cumplen (**clausura**: matriz de abajo y fila 15 de la regla 4). Los topes salen del
-    concepto y son PROVISIONALES hasta el GDD que se nombra (decisión del 2026-11-19);
+    concepto; cada uno es definitivo si su GDD ya existe (estadísticas y 61 piezas, #2; pila, #3;
+    tablero, #4) y PROVISIONAL si todavía no (decisión del 2026-11-19);
     cambiar uno cambia el contrato y la versión de reglas. **C_MAX = 1.000.000**
     (PROVISIONAL; ninguna partida de 25 minutos se acerca).
 
@@ -328,15 +322,17 @@ la pantalla del otro pasó distinto", "perdí por algo que no se veía".
     | Versión, huella del Catálogo | Soportadas; huella = la del contexto (si no, `VersionNoSoportada`) | — |
     | Id de partida, modo | Cualquier int32 · local u online | — |
     | Tablas base con papeles, posición de los castillos | Válidas según la regla 2 y *Formulas* | Castillos dentro del tablero y sin superponerse |
+    | `limite_normal` | 1 a 60 | — |
     | Tablero | 24 columnas (0–23) × 15 filas (0–14), constante (Tablero, #4) | Toda casilla del estado está dentro |
     | `contadorTirada`, `contadorComandos` · `numeroTurno` | 0 a C_MAX · 1 a C_MAX + 1 (empieza en 1) | `contadorTirada` ≤ `contadorComandos`; `numeroTurno` ≤ `contadorComandos` + 2 (CrearPartida y cada Aceptado avanzan como mucho un turno, porque una cascada se detiene en el turno siguiente, que necesita tirada); En curso ⇒ `contadorComandos` ≤ C_MAX − 1 (lugar para `Rendirse` o `CerrarPartida`) |
-    | Fase, etapa, jugador del turno | Valores de sus enums (#3) · 0 o 1 | Etapa mover con reclutar o mover; atacar con atacar o resolver |
+    | Fase, etapa, jugador del turno | Valores de sus enums (#3) · 0 o 1 | Etapa mover con reclutar o mover; atacar con atacar; ninguna etapa esperando tirada. Resolver no es una fase en reposo (#3, regla 2) |
     | Tabla base del turno, cara del Modificador, bonos | Vacía o índice de una tabla base · vacía o 1 al largo de esa tabla · cada bono 0 a 10 (#11) | Tabla y cara, las dos vacías (primer turno y esperando la tirada) o las dos presentes (decisión del 2026-11-19); la cara tiene p > 0 en esa tabla base o es la de Grito o la de Arremetida (pueden recibir lo liberado); bono > 0 solo con la cara de Grito |
     | Piezas | Como mucho 61 vivas por jugador y, por tipo, su tope de piezas vivas (#2); una pieza que muere sale del estado | IDs únicos, de 1 a próximo ID − 1; tipo en el Catálogo; vida 1 a la de su tipo; movimientos usados 0 a movimiento del tipo + 10; nunca dos piezas en una casilla (un arquero puede estar sobre un tramo); En curso ⇒ un Rey por jugador |
     | Muros | 16 tramos por castillo colocado | Casillas del perímetro de su castillo; vida 0 a la del tramo (#5) |
     | Ataques asignados, coberturas | Uno por pieza como mucho | Ataque: atacante vivo del jugador del turno, objetivo dentro del tablero según su tipo (#7), solo en la etapa atacar. Cobertura: escudero y aliado vivos del mismo jugador (siguen en el turno rival, #8) |
-    | Pila de deshacer | 0 a 256 entradas (PROVISIONAL, #3) | IDs de piezas vivas y casillas dentro del tablero; vacía fuera de la fase de mover |
+    | Pila de deshacer | 0 a 256 entradas (`pila_tope`, #3) | IDs de piezas vivas y casillas dentro del tablero; vacía fuera de la fase de mover |
     | Contadores de reclutas | 0 a su tope de llamadas (#2, #11) | — |
+    | `vidaQuitada` de cada jugador | 0 a 999.999.480 (PROVISIONAL, #9) | Vida realmente quitada a piezas y muros del rival en toda la partida; sin fuego amigo; lo que absorbe un escudero al cubrir cuenta. Es estadística: ninguna regla la lee (jugador, 2026-11-25) |
     | Próximo ID | 1 a C_MAX | Mayor que todo ID de pieza |
     | Tirada pendiente | Vacía o {Modificador, jugador, tabla base, tabla efectiva} | Solo En curso; Modificador: jugador = jugador del turno y tabla efectiva = la que se recalcula |
     | Motivo y ganador | Vacíos, o un motivo de la regla 16 con el ganador que pide su fila | Terminada si y solo si hay motivo; ReyMuerto ⇒ queda un solo Rey y gana su dueño; DobleRey ⇒ 0 Reyes |
@@ -346,13 +342,13 @@ la pantalla del otro pasó distinto", "perdí por algo que no se veía".
 
     | Transición | Filas que cambia | Por qué queda dentro |
     |---|---|---|
-    | CrearPartida | Todas | Valida toda la config (regla 2); `numeroTurno` 1, contadores 0, próximo ID ≤ 123; castillos, piezas y muros colocados por el despliegue del Tablero (#4), con IDs por la regla 7 |
+    | CrearPartida | Todas | Valida toda la config (regla 2); `numeroTurno` 1, contadores y `vidaQuitada` 0, próximo ID ≤ 123; castillos, piezas y muros colocados por el despliegue del Tablero (#4), con IDs por la regla 7 |
     | Tirada del Modificador | Tabla base y cara del turno, bonos, tirada, `contadorTirada` | La tabla efectiva se validó al entrar en espera; `cara_por_tirada` da una cara con p > 0 en ella; bonos del Modificador (#11) dentro de 0 a 10 |
     | Mover · Deshacer | Piezas (casilla, movimientos usados), pila | Fila 14 valida destino y movimientos; la pila ≤ 256 por la fila 15 |
     | Reclutar · recluta automático | Piezas, próximo ID, contadores de reclutas | Todo o nada; topes de piezas por tipo y de llamadas (fila 14); próximo ID ≤ C_MAX por la fila 15 |
     | AsignarAtaque · QuitarAtaque · Cubrir | Ataques, coberturas | Fila 14 valida atacante, objetivo, escudero y aliado |
     | TerminarMovimiento · `TurnTimeout` de mover | Pila (vacía), fase y etapa | Igual que TerminarMovimiento; cascadas solo al empezar una fase (regla 17) |
-    | Resolver · `TurnTimeout` de atacar | Vida, piezas muertas (salen), muros, ataques, coberturas, fin, `numeroTurno`, tirada | Vida en 0 sale; resto con `max(0, …)`; `EvaluateMatchEnd` fija motivo y ganador de la regla 16; si sigue, abre el turno siguiente (tabla, cara y bonos vacíos) y su tirada |
+    | Resolver · `TurnTimeout` de atacar | Vida, piezas muertas (salen), muros, ataques, coberturas, `vidaQuitada`, fin, `numeroTurno`, tirada | Vida en 0 sale; `vidaQuitada` suma solo vida realmente perdida (cota en la Máquina de turno, regla 15); resto con `max(0, …)`; `EvaluateMatchEnd` fija motivo y ganador de la regla 16; si sigue, abre el turno siguiente (tabla, cara y bonos vacíos) y su tirada |
     | `Rendirse` · `CerrarPartida` | Motivo, ganador, tirada (se borra) | Motivo y ganador por la regla 16 |
     | Todo Aceptado | `contadorComandos` (+1), `contadorTirada` (+1 con Tirada) | Fila 15: en C_MAX − 1 solo pasan `Rendirse` y `CerrarPartida`, que terminan la partida |
 
@@ -390,7 +386,7 @@ la pantalla del otro pasó distinto", "perdí por algo que no se veía".
        `VersionNoSoportada`.
     3. `Huella(estadoAutoridad)` no es `huellaDeclarada` (estado dañado en el camino),
        `estadoAutoridad` no es un estado válido (regla 11), o algún campo inmutable
-       de la regla 2 (modo, tablas base con sus papeles, posición de los castillos) difiere del
+       de la regla 2 (modo, tablas base con sus papeles, límite normal, posición de los castillos) difiere del
        de `confirmado` → `EstadoInvalido`.
     4. El id de partida de `estadoAutoridad` no es el de `confirmado` → `OtraPartida`.
     5. El `contadorComandos` de `estadoAutoridad` es menor que el de `confirmado` →
@@ -415,15 +411,13 @@ la pantalla del otro pasó distinto", "perdí por algo que no se veía".
     ganador. Si muere un solo Rey, gana el otro jugador (motivo **ReyMuerto**). **Si mueren
     los dos Reyes en la misma resolución, gana el jugador del turno**, el que resolvió, sea
     con Resolver o porque `TurnTimeout` disparó la resolución de los ataques asignados
-    (motivo **DobleRey**; regla de la v3, provisional hasta el GDD de la Máquina de turno,
-    #3, que es su dueño). `Rendirse` termina la partida con motivo **Rendicion**.
+    (motivo **DobleRey**; confirmado en la Máquina de turno, #3, regla 13). `Rendirse` termina la partida con motivo **Rendicion**.
     `CerrarPartida` la termina con motivo **Abandono** (ganador de la autoridad),
-    **CierrePorTiempo** (ganador por el desempate de la regla 3, o ninguno) o **Tablas**
+    **RelojAgotado** (gana el rival del jugador del turno) o **Tablas**
     (sin ganador). Lista cerrada de motivos, con el ganador que pide cada uno: **ReyMuerto**,
     el dueño del único Rey vivo; **DobleRey**, el jugador del turno; **Rendicion** y
-    **Abandono**, 0 o 1; **CierrePorTiempo**, el del desempate de la regla 3, o vacío si
-    empatan; **Tablas**, vacío.
-17. **Qué hace `TurnTimeout`** (provisional hasta la Máquina de turno, #3).
+    **Abandono**, 0 o 1; **RelojAgotado**, el rival del jugador del turno; **Tablas**, vacío.
+17. **Qué hace `TurnTimeout`** (definitivo: Máquina de turno, #3, regla 12).
     - **Etapa mover:** si hay un Reclutar obligatorio pendiente, la librería recluta el
       primer tipo **disponible** en el orden del Catálogo (decisión del 2026-11-19: el
       jugador no pierde el recurso). Disponible quiere decir que le quedan llamadas y que
@@ -458,7 +452,7 @@ la pantalla del otro pasó distinto", "perdí por algo que no se veía".
 | (ninguno) | (sin partida) | Config inválida: `ConfigInvalida` o `ProbabilidadesInvalidas` |
 | En curso | En curso · esperando tirada | Empieza un turno que necesita tirada (el momento lo define la Máquina de turno, #3). Si es al terminar un Resolver o un `TurnTimeout` de atacar, el estado que devuelven ya queda esperando, pero ningún cálculo de esa resolución usa la tirada |
 | En curso · esperando tirada | En curso | Tirada(n) válida de la autoridad. Cualquier otro comando se rechaza: `SoloAutoridad` (Tirada, `TurnTimeout` o `CerrarPartida` de un jugador) o `EsperandoTirada` (el resto, `TurnTimeout` de la autoridad incluido), salvo `Rendirse` y `CerrarPartida` |
-| En curso (también esperando tirada) | Terminada (ganador, motivo) | Después de resolver, `EvaluateMatchEnd` encuentra un ganador (regla 16: ReyMuerto o DobleRey); un jugador envía `Rendirse` (Rendicion); o la autoridad envía `CerrarPartida` (Abandono, CierrePorTiempo o Tablas). La tirada pendiente se borra |
+| En curso (también esperando tirada) | Terminada (ganador, motivo) | Después de resolver, `EvaluateMatchEnd` encuentra un ganador (regla 16: ReyMuerto o DobleRey); un jugador envía `Rendirse` (Rendicion); o la autoridad envía `CerrarPartida` (Abandono, RelojAgotado salvo esperando tirada, o Tablas). La tirada pendiente se borra |
 | En curso o esperando tirada (online) | El estado del servidor, también Terminada | Resincronizar válido (regla 14) |
 | Terminada (online) | El estado del servidor | Resincronizar con una huella distinta de la local (el cliente terminó por error) |
 | Terminada | Terminada | Todo comando se rechaza con `PartidaTerminada`, y Resincronizar también si la huella coincide; ningún comando la saca de ahí |
@@ -474,16 +468,16 @@ espera una tirada: la autoridad la envía en cuanto se pide.
 | 2 Catálogo | Tabla de piezas (archivo de datos) | Se fija en la config con su huella | Catálogo |
 | 3 Máquina de turno | Pipeline de fases, pila de deshacer, `EvaluateMatchEnd` | Corre dentro del contrato | Librería (contrato) y #3 (fases) |
 | 4–11 Reglas del núcleo | Sus comandos, códigos y eventos | Respetan las reglas 1–17 | Cada GDD |
-| 12 Timer | Comando `TurnTimeout(turno, etapa)`; política del tope de tiempo (`CerrarPartida` con CierrePorTiempo) | `numeroTurno` y etapa actuales | Timer |
+| 12 Timer | Comando `TurnTimeout(turno, etapa)`; reloj por jugador (`CerrarPartida` con RelojAgotado) | `numeroTurno` y etapa actuales | Timer |
 | 13 Entrada | Traduce clics en comandos | Consultas para resaltar casillas; códigos de rechazo | Entrada |
 | 14 Localización | Textos de códigos y eventos | Códigos | Localización |
 | 15–18, 22 Presentación | Nada | Estado, eventos y vista previa | Cada GDD |
 | 19 Métricas | Nada | Eventos | Métricas |
 | 25 Rival IA | Comandos por la misma API | Estado público y consultas | Rival IA |
 | 26 Registro | Config, comandos y tiradas guardados | Reproduce aplicando los mismos comandos | Registro |
-| 28 Servidor | Es la autoridad de Tirada, `TurnTimeout` y `CerrarPartida` (abandono); transporte autenticado | Corre la misma librería; compara (`contadorComandos`, huella) con el cliente | Servidor |
+| 28 Servidor | Es la autoridad de Tirada, `TurnTimeout` y `CerrarPartida` (abandono y reloj agotado); transporte autenticado | Corre la misma librería; compara (`contadorComandos`, huella) con el cliente | Servidor |
 
-Ninguno de estos GDD existe todavía: las interfaces son contrato provisional.
+Existen los GDD #2, #3 y #4. Con los demás, las interfaces son contrato provisional.
 
 ## Formulas
 
@@ -524,24 +518,31 @@ The `reparto_liberado` formula is defined as:
 `L = Σ p_i de las caras de reclutar que no pueden salir` · esas caras pasan a 0 ·
 `p_Grito' = p_Grito + L / 2` (división entera hacia abajo) · `p_Arremetida' = p_Arremetida + (L − L / 2)`
 
+Después, **si el jugador tiene `piezas_sin_rey ≤ limite_normal`** (Arremetida no le agrega nada; jugador, 2026-11-24):
+`p_Grito'' = p_Grito' + p_Arremetida'` · `p_Arremetida'' = 0`
+
 **Variables:**
 | Variable | Type | Range | Source | Description |
 |----------|------|-------|--------|-------------|
 | p_i | int | 0–100 | tabla base elegida (Modificador, #11) | Probabilidad de cada cara antes del reparto |
 | L | int | 0–100 | calculado | Suma de las caras de reclutar liberadas: por 2 muros rotos, las dos; por llamadas agotadas, la que se agotó. Se calcula siempre desde la tabla base y sobre el conjunto entero de caras liberadas, nunca encima de una tabla efectiva anterior |
+| piezas_sin_rey | int | 0–60 | calculado | Piezas vivas del jugador, sin el Rey y sin muros |
+| limite_normal | int | 1–60 (hoy 12; PROVISIONAL, #6) | data file (config, regla 2; dueño Movimiento, #6) | Límite normal de piezas que se mueven por turno, sin el Rey |
 | p_Grito', p_Arremetida' | int | 0–100 | calculado | Caras que reciben lo liberado; cuáles son lo dice el papel de cada cara en la config (regla 2) |
 
 **Output Range:** una tabla de las mismas k caras que suma exactamente `tirada_rango`, porque
 `L / 2 + (L − L / 2) = L`. Se reparte **una sola vez sobre el total liberado**, no cara por
 cara (decisión del 2026-11-19: un solo redondeo, y el punto impar siempre va a Arremetida).
-Con L = 0 la tabla no cambia. Si la base tiene Grito y Arremetida en 0, igual reciben L / 2 y
+Con L = 0 el reparto no cambia la tabla (Arremetida se puede bloquear igual, y la suma sigue en 100). Si la base tiene Grito y Arremetida en 0, igual reciben L / 2 y
 L − L / 2 (con L = 1, Grito queda en 0) y la suma sigue en 100. La fórmula necesita exactamente una cara de Grito y una de Arremetida, y
 CrearPartida lo exige (regla 2). La tabla resultante se valida como en CrearPartida
 (regla 6).
 **Example:** tabla "Pierde con 1/2" 15/20/25/25/15 (Distracción, Grito, Llamada, Cuerno,
 Arremetida) con 2 muros rotos: L = 25 + 25 = 50 → Grito 20 + 25 = 45, Arremetida
 15 + 25 = 40 → 15/45/0/0/40. Tabla "Gana 4 a 3" 20/25/15/20/20 con Llamada agotada: L = 15 →
-Grito 25 + 7 = 32, Arremetida 20 + 8 = 28 → 20/32/0/20/28. Las dos suman 100.
+Grito 25 + 7 = 32, Arremetida 20 + 8 = 28 → 20/32/0/20/28. Las dos son con más de 12 piezas
+sin el Rey. Con 12 o menos, la primera queda 15/85/0/0/0 y la tabla Normal sin nada liberado,
+20/40/20/20/0. Todas suman 100.
 
 La huella del estado y la del Catálogo no son fórmulas de diseño: su algoritmo lo elige el
 ADR de la librería.
@@ -584,8 +585,8 @@ ADR de la librería.
 - **If a player disconnects and does not come back**: el Servidor (#28) decide cuándo es
   abandono y envía `CerrarPartida(Abandono, otro jugador)`, también mientras se espera
   una tirada.
-- **If the 25-minute cap closes a match with both Kings at the same life and the same
-  piece count**: CierrePorTiempo sin ganador (regla 3).
+- **If `CerrarPartida(RelojAgotado)` arrives after the turn already closed**, o mientras se
+  espera una tirada: `CierreInvalido`; la partida sigue (regla 3).
 - **If a match reaches `contadorComandos` = C_MAX − 1** (por ejemplo, Mover y Deshacer
   en bucle sin timer): todo comando se rechaza con `LimitePartida` salvo `Rendirse` y
   `CerrarPartida`, que siempre caben, también un Resolver que terminaría la partida; un
@@ -598,7 +599,7 @@ ADR de la librería.
 - **If Deshacer is sent with an empty stack**: `NadaQueDeshacer`.
 - **If Deshacer is sent after TerminarMovimiento**: `FaseIncorrecta`. La pila se cierra al
   pasar a atacar y se vacía al empezar cada turno: una tirada o un reclutamiento nunca se
-  deshacen (provisional hasta la Máquina de turno, #3).
+  deshacen (Máquina de turno, #3, regla 8).
 - **If a preview is requested in any state** (esperando tirada, sin ataques, fuera de la
   fase de atacar, sin el turno, con un final de partida): devuelve exactamente lo que
   devolvería Resolver (regla 9); nunca usa ni adelanta una tirada futura.
@@ -630,9 +631,8 @@ ADR de la librería.
 **Depende de: Catálogo de piezas (#2), solo su esquema de datos (blanda).** La librería es
 la base de todo el núcleo y no necesita la lógica de ningún otro sistema. La tabla del
 Catálogo entra como dato de la config: la librería la recibe, la valida contra el formato
-que define el GDD del Catálogo y la fija con su huella. Hasta que ese GDD exista, la
-validación usa el formato del fixture de prueba (PROVISIONAL), y el GDD del Catálogo tiene
-que nombrar a la librería como consumidora de su esquema.
+que define el GDD del Catálogo y la fija con su huella. El GDD del Catálogo existe y
+nombra a la librería como consumidora de su esquema.
 
 **Dependen de ella:**
 
@@ -669,7 +669,9 @@ tocaría vive en el GDD que lo define; la librería solo lo recibe como dato:
   determinismo; no se ajustan.
 - **Topes de la tabla de dominios (regla 11): C_MAX = 1.000.000, tablero 24 × 15, 61
   piezas vivas por jugador, bono de 0 a 10, estadísticas de 0 a 1.000, pila de deshacer
-  de 256.** Son PROVISIONALES hasta el GDD dueño de cada uno; no son balance, garantizan
+  de 256, límite normal de 1 a 60.** Los de estadísticas y piezas son del Catálogo (#2), la
+  pila de la Máquina de turno (#3) y el tablero del Tablero (#4); C_MAX, el bono (#11) y el
+  límite normal (#6) siguen PROVISIONALES. No son balance, garantizan
   que ninguna cuenta desborde, y cambiarlos sube la versión de reglas.
 - **Presupuestos de rendimiento: vista previa 5 ms y comando 1 ms (percentil 95, AC-24 y
   AC-25).** Salen del cuadro de 16,6 ms a 60 fps; cambiarlos es una decisión de UX, no de
@@ -725,7 +727,7 @@ vive en `Assets/Tests/PlayMode/LibreriaReglas/`. La evidencia es el resultado de
 Ninguno necesita captura.
 
 **Fixtures provisionales.** Los ACs que dependen de reglas de GDD todavía no escritos
-(Catálogo, Tablero, Reclutamiento, Resolución, Movimiento, Modificador, Máquina de turno)
+(Reclutamiento, Resolución, Movimiento, Modificador, Castillo)
 usan un Catálogo y reglas de prueba guardados en el repositorio, y sus códigos o valores
 van marcados **PROVISIONAL**: se actualizan cuando el GDD dueño se escribe. Además de los
 marcados, usan fixtures PROVISIONALES AC-1, AC-2, AC-6, AC-8, AC-9, AC-11, AC-13, AC-15,
@@ -844,7 +846,7 @@ todo comando de jugador lleva el `contadorEsperado` correcto, y toda Tirada su
   es la misma que después de la primera copia y en total hay un solo evento de movimiento.
 - **AC-19** — **GIVEN** que se espera una tirada, **WHEN** se pide la vista previa, **THEN**
   se rechaza con `EsperandoTirada`.
-- **AC-20** (PROVISIONAL hasta la Máquina de turno, #3) — **GIVEN** la pila de deshacer
+- **AC-20** — **GIVEN** la pila de deshacer
   vacía, **WHEN** se envía Deshacer, **THEN** `NadaQueDeshacer`; **GIVEN** que ya se envió
   TerminarMovimiento con al menos un ataque posible (así la fase de atacar no se salta),
   **WHEN** se envía Deshacer, **THEN** `FaseIncorrecta`.
@@ -862,7 +864,7 @@ todo comando de jugador lleva el `contadorEsperado` correcto, y toda Tirada su
   ReyMuerto cuyo ganador no es el dueño del Rey vivo), cada flujo con su **huella final
   recalculada**, **WHEN** se carga y se resincroniza, **THEN** las dos devuelven
   `EstadoInvalido`. Un test falla si una fila de la tabla no tiene caso.
-- **AC-22** (PROVISIONAL hasta la Máquina de turno, #3) — **GIVEN** un fixture en el que los
+- **AC-22** — **GIVEN** un fixture en el que los
   ataques asignados matan a los dos Reyes, **WHEN** el jugador del turno envía Resolver,
   **THEN** la vista previa pedida antes ya trae el evento de fin con ese jugador como ganador
   y motivo DobleRey, y la partida termina igual. **WHEN** en cambio la autoridad envía
@@ -935,7 +937,7 @@ todo comando de jugador lleva el `contadorEsperado` correcto, y toda Tirada su
   huella lo prueba AC-45. **GIVEN** 3 estados de fixture con su huella guardada en el
   repositorio, **WHEN** se calcula la huella en .NET (BLOCKING) y en el build web
   (ADVISORY), **THEN** coincide con la guardada.
-- **AC-31 (QuitarAtaque y Cubrir)** (PROVISIONAL hasta la Máquina de turno, #3) —
+- **AC-31 (QuitarAtaque y Cubrir)** —
   **GIVEN** la fase de movimiento y una pieza viva del jugador del turno (un escudero para
   Cubrir, con un aliado vecino), **WHEN** ese jugador envía QuitarAtaque o Cubrir,
   **THEN** se rechazan con `FaseIncorrecta` (no con `ComandoDesconocido`).
@@ -949,7 +951,7 @@ todo comando de jugador lleva el `contadorEsperado` correcto, y toda Tirada su
 - **AC-33b (vista previa sin memoria, Unity)** — Lo mismo en un test de PlayMode con
   `ProfilerRecorder`, que cuenta 0 reservas de memoria del GC en esas 100. ADVISORY: corre
   en el editor, no en IL2CPP.
-- **AC-34 (Resolver no consume tiradas)** (PROVISIONAL hasta la Máquina de turno, #3) —
+- **AC-34 (Resolver no consume tiradas)** —
   **GIVEN** ataques asignados en un turno cuyo
   siguiente turno necesita tirada, **WHEN** se envía Resolver, **THEN** los eventos de daño
   son iguales a los de la vista previa, el estado resultante queda esperando tirada y
@@ -975,7 +977,7 @@ todo comando de jugador lleva el `contadorEsperado` correcto, y toda Tirada su
   tirada, `ComandoViejo`. En cada uno de los dos órdenes (Resolver antes del timeout, y
   timeout antes de Resolver), reproducir los comandos aceptados
   del registro de la autoridad da, comando por comando, las mismas huellas que esa partida.
-- **AC-38 (qué hace el timeout)** (PROVISIONAL hasta la Máquina de turno, #3) — **GIVEN** un
+- **AC-38 (qué hace el timeout)** — **GIVEN** un
   Reclutar obligatorio pendiente y el primer tipo del Catálogo sin llamadas, **WHEN** llega
   `TurnTimeout(T, mover)` con al menos un ataque posible después, **THEN** se recluta el
   segundo tipo, su evento trae `automatico`, la pila de deshacer queda cerrada y la fase
@@ -997,7 +999,9 @@ todo comando de jugador lleva el `contadorEsperado` correcto, y toda Tirada su
   agotada, **THEN** 20/32/0/20/28. **GIVEN** cada tabla base del Modificador y cada
   combinación de caras de reclutar liberadas, **THEN** la tabla efectiva suma 100 y n = 99
   siempre da una cara. **GIVEN** una base con Grito y Arremetida en 0, **THEN** igual suma
-  100.
+  100. Los casos anteriores usan 13 piezas sin el Rey. **GIVEN** 12 piezas sin el Rey,
+  **THEN** el primero da 15/85/0/0/0 y 20/20/20/20/20 sin nada liberado da 20/40/20/20/0;
+  con 13, queda 20/20/20/20/20. El Rey no cuenta en ninguno.
 - **AC-41 (orden de los IDs)** — **GIVEN** un despliegue inicial con castillos fijos,
   **WHEN** se colocan las piezas, **THEN** los IDs coinciden con un
   archivo dorado guardado en el repositorio (jugador 0 primero, después tipo del Catálogo,
@@ -1047,8 +1051,9 @@ todo comando de jugador lleva el `contadorEsperado` correcto, y toda Tirada su
   se reparten los elementos entre dos colecciones consecutivas (por ejemplo, una pieza
   menos y más tramos de muro), **THEN** sus flujos canónicos y sus huellas son distintos.
 - **AC-46 (castillos fuera del tablero)** — **GIVEN** una config con un castillo que se sale
-  del tablero (o con dos castillos que se superponen), **WHEN** se llama CrearPartida,
-  **THEN** `ConfigInvalida` y no se crea partida.
+  del tablero (o con dos castillos que se superponen, o con `limite_normal` 0 o 61), **WHEN**
+  se llama CrearPartida, **THEN** `ConfigInvalida` y no se crea partida; con `limite_normal`
+  1 y 60 se acepta.
 - **AC-47 (Rendirse)** — **GIVEN** una partida en curso, **WHEN** el jugador sin turno envía
   `Rendirse`, también mientras se espera una tirada, **THEN** la partida termina, gana el
   otro jugador, el motivo es Rendicion y no queda tirada pendiente. **WHEN** lo envía el
@@ -1078,15 +1083,16 @@ todo comando de jugador lleva el `contadorEsperado` correcto, y toda Tirada su
   **WHEN** la autoridad envía `CerrarPartida(Abandono, 1)`, **THEN** la partida termina con
   ganador 1, motivo Abandono y sin tirada pendiente. **WHEN** envía
   `CerrarPartida(Tablas, vacío)`, **THEN** termina sin ganador con motivo Tablas. **WHEN**
-  envía `CerrarPartida(Tablas, 0)`, `CerrarPartida(CierrePorTiempo, 1)`,
+  envía `CerrarPartida(Tablas, 0)`, `CerrarPartida` con un motivo fuera de la lista,
   `CerrarPartida(Abandono, vacío)`, `CerrarPartida(Abandono, 2)`, `CerrarPartida(Abandono,
   −1)` o `CerrarPartida(ReyMuerto, 0)`, **THEN** `CierreInvalido`. **GIVEN** una partida Terminada por
   `CerrarPartida`, **THEN** Cargar(Serializar(estado)) la acepta igual campo por campo.
   **WHEN** un jugador la envía, **THEN** `SoloAutoridad`.
-  **CierrePorTiempo** (desempate PROVISIONAL hasta #3) — **GIVEN** Reyes con 30 y 20 de
-  vida, **THEN** gana el de 30; **GIVEN** Reyes con 25 y 25 y 9 contra 7 piezas vivas,
-  **THEN** gana el de 9; **GIVEN** 25 y 25 y 8 contra 8, **THEN** termina sin ganador con
-  motivo CierrePorTiempo.
+  **RelojAgotado** — **GIVEN** el turno del jugador 0 en reclutar, mover o atacar, **WHEN**
+  la autoridad envía `CerrarPartida(RelojAgotado, 1)`, **THEN** termina, gana el 1, lo ya
+  movido queda y los ataques asignados no se resuelven; con ganador 0 o vacío,
+  `CierreInvalido`. **GIVEN** que se espera la tirada, o que el jugador 0 ya cerró su turno,
+  **WHEN** llega ese mismo cierre, **THEN** `CierreInvalido` y la huella no cambia.
 - **AC-51 (ComandoViejo)** — **GIVEN** dos movimientos hechos, **WHEN** llegan dos copias
   de Deshacer con el mismo `contadorEsperado`, **THEN** se deshace un solo movimiento y la
   segunda copia se rechaza con `ComandoViejo`. **GIVEN** que el jugador 0 vuelve a estar en
@@ -1103,7 +1109,8 @@ todo comando de jugador lleva el `contadorEsperado` correcto, y toda Tirada su
 - **AC-53 (probabilidades consultables)** — **GIVEN** una partida en la fase de atacar del
   jugador 0, **WHEN** se llama `ProbabilidadesSiguienteTirada` para el jugador 1, **THEN**
   devuelve la tabla efectiva que usaría su próxima tirada (con la base 15/20/25/25/15,
-  esa misma); después de un Resolver que rompe un muro del jugador 1, devuelve
+  esa misma, con 13 piezas sin el Rey); después de un Resolver que le rompe el segundo muro
+  al jugador 1 sin bajarlo de 13 piezas, devuelve
   15/45/0/0/40; cuando la tirada del
   jugador 1 queda pendiente, la consulta coincide con la tabla guardada en el estado.
 - **AC-54 (creación sin tirada y orden total)** — **GIVEN** una config con castillos fijos,
@@ -1132,7 +1139,7 @@ todo comando de jugador lleva el `contadorEsperado` correcto, y toda Tirada su
   cargan y se resincronizan, **THEN** se rechazan con `EstadoInvalido` exactamente los que
   el oráculo marca fuera de dominio, y sobre los aceptados el fuzz de comandos tampoco da
   ErrorInterno. Las cuotas de Aceptados por tipo son de AC-62.
-- **AC-57 (fin automático al empezar)** (PROVISIONAL hasta #3) — **GIVEN** un turno en el
+- **AC-57 (fin automático al empezar)** — **GIVEN** un turno en el
   que, al cerrar el movimiento, ninguna pieza tiene objetivo ni hay escudero con aliado,
   **WHEN** se envía TerminarMovimiento, **THEN** sus eventos traen `FaseSaltada` y
   `TurnoTerminado`, en ese orden. **GIVEN** que al empezar la fase de mover ninguna pieza
@@ -1190,11 +1197,8 @@ todo comando de jugador lleva el `contadorEsperado` correcto, y toda Tirada su
 | Reconexión, modelo de red del cliente y reemisión de pendientes descartados, cada cuánto se comparan huellas, límite de pedidos de estado completo, y qué pasa si la autoridad no envía la tirada | Servidor de partida (#28) y Timer (#12) | Antes de lanzar el online |
 | Cuándo una desconexión es abandono (`CerrarPartida` con Abandono) | Servidor de partida (#28) | Antes de lanzar el online |
 | Borde entre la librería, la red y la presentación (séptima pasada): ¿se presentan eventos de un comando predicho (Resolver, fin de partida) antes de la confirmación? Con varios comandos de jugador sin confirmar, `contadorEsperado` no identifica el estado que vio el jugador (¿uno solo pendiente, o huella del estado de decisión?). Relé servidor→cliente con emisor, en orden y sin huecos. Ante un rechazo en cascada, nombrar el primer comando fallido y su motivo. Tope de comandos por turno contra el relleno del contador | Servidor (#28) para la predicción, la cola y el relé; Vista previa (#16) para presentar eventos | Antes de lanzar el online |
-| Tope de 25 minutos (pilar 4): cuándo se envía CierrePorTiempo (¿también a mitad de turno, con la vista previa marcando MUERE?), confirmar el desempate provisional (vida del Rey, piezas vivas, sin ganador) y si el jugador lo ve antes del tope | Máquina de turno (#3) y Timer (#12) | En sus GDD |
+| ¿Qué pasa si el reloj del jugador y el timer de etapa vencen a la vez? Hoy vale el que la autoridad aplica primero | Timer (#12) y Servidor (#28) | En sus GDD |
 | Resincronizar: ¿exigir que `contadorTirada`, `numeroTurno` y próximo ID no bajen (sin trabar la corrección de una divergencia)?, código para un estado idéntico, `ComandoAdelantado` frente a `ComandoViejo`, `Rendirse` sin id de partida (id asignado por el servidor y único), `TurnTimeout` y `CerrarPartida` sin contador ante un reenvío reordenado | Servidor (#28) y ADR | Antes de lanzar el online |
-| Juego: el desempate por piezas vivas de CierrePorTiempo puede premiar el juego pasivo; el recluta automático del timeout no se ve antes; falta un AC de fuego amigo que mata al Rey propio (gana el rival por ReyMuerto) | Máquina de turno (#3), Reclutamiento (#10) y Vista previa (#16) | En sus GDD |
+| Juego: con 12 piezas o menos y las caras de reclutar bloqueadas, Grito llega al 85%: ¿choca con el pilar 3a (dar opciones, nunca estadísticas)? (Modificador, #11); el recluta automático del timeout no se ve antes; falta un AC de fuego amigo que mata al Rey propio (gana el rival por ReyMuerto) | Máquina de turno (#3), Reclutamiento (#10) y Vista previa (#16) | En sus GDD |
 | QA: generar AC-29 desde el enum de filas (todos los pares); mutante plantado en AC-45; AC-54 con un constructor que conserve el orden de inserción; AC-59 frente a la regeneración de dorados mientras las reglas son PROVISIONALES | qa-lead | Antes de escribir los tests |
 | El Grito de guerra da +2 a las estadísticas desde el dado, contra el pilar 3a (*"nunca estadísticas"*) | Creative director, Modificador (#11) y concepto | Antes del GDD del Modificador |
-| Semántica definitiva de `TurnTimeout` (regla 17: recluta automático, fin automático del turno) | Máquina de turno (#3) | En su GDD |
-| Regla definitiva cuando mueren los dos Reyes (hoy: gana el jugador del turno) | Máquina de turno (#3) | En su GDD |
-| ¿El reclutamiento y la asignación de ataques entran en la pila de deshacer? (en la v4 solo entran los movimientos) | Máquina de turno (#3) | En su GDD |

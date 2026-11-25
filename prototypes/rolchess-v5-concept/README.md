@@ -28,8 +28,8 @@ terminadas de la v4 del 2026-11-21 entraron todas en 25 min (8 a 21 min).
 
 1. Unity Hub → **Add → Add project from disk** → `prototypes/rolchess-v5-concept/`
    (editor 6000.3.28f1).
-2. Pulsa **Play** en cualquier escena. En la pantalla de inicio elegí la posición de los
-   castillos y el **timer**. **Empezar**.
+2. Pulsa **Play** en cualquier escena. En la pantalla de inicio elegí el **timer**.
+   **Empezar**.
 3. Partida en la misma PC, turnándose con el ratón.
 4. Al terminar, el panel muestra la duración, la racha y dónde se guardó el archivo.
 
@@ -56,6 +56,7 @@ agotado, Rendición), `reloj_azul` y `reloj_rojo` (segundos que les quedaron),
 | Catapulta, escudo | 3 | **2** |
 | Soldado, escudo | 2 | **3** |
 | Castillo, reclutar | Con 1 muro derribado no se recluta | **Con 2 muros derribados** no se recluta |
+| Posición de los castillos | Fija (4 y 6) o al azar (4 y 6, 1 y 9, 7 y 3) | **Siempre fija: sectores 4 y 6** (2026-11-25, GDD del Tablero) |
 | Primer turno | Tiraba el Modificador | **Sin Modificador**: mueve (12 + Rey) y ataca, sin reclutar (Máquina de turno, regla 3) |
 | Arremetida | Salía siempre | Solo con **más de 12 piezas sin el Rey**. Si no, su porcentaje (incluida la parte que recibe de las caras de reclutar) va entero a Grito de guerra. El panel de probabilidades lo avisa |
 | Reloj de partida | Solo timer por etapa | Además, **12:30 por jugador** en total, que corre solo en su turno. Si llega a 0, ese jugador pierde, en cualquier fase. Se ven los dos relojes. Sin límite no tiene reloj. Reemplaza el cierre a los 25 min con desempate del GDD |

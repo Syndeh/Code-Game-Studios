@@ -248,7 +248,7 @@ servidor.
 |---|-------------|----------|----------|--------|------------|------------|
 | 1 | Librería de reglas (contrato) (inferred) | Core | MVP | In Review | design/gdd/libreria-de-reglas.md | — |
 | 2 | Catálogo de piezas | Core | MVP | Designed | design/gdd/catalogo-de-piezas.md | — |
-| 3 | Máquina de turno y fin de partida | Core | MVP | Designed | design/gdd/maquina-de-turno.md | Librería de reglas, Catálogo de piezas |
+| 3 | Máquina de turno y fin de partida | Core | MVP | Designed | design/gdd/maquina-de-turno.md | Librería de reglas, Catálogo de piezas, Tablero (blanda: quién empieza) |
 | 4 | Tablero y despliegue inicial | Core | MVP | Designed | design/gdd/tablero-y-despliegue-inicial.md | Librería de reglas, Catálogo de piezas, Castillo y muros (blanda, solo un dato) |
 | 5 | Castillo y muros | Gameplay | MVP | Not Started | — | Tablero, Catálogo de piezas |
 | 6 | Movimiento | Gameplay | MVP | Not Started | — | Tablero, Catálogo de piezas, Máquina de turno, Castillo y muros |

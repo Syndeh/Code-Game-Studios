@@ -2,27 +2,18 @@
 
 > **Status**: In Design
 > **Author**: jugador + Claude (design-system)
-> **Last Updated**: 2026-11-24 (reloj de partida por jugador; reglas 14 y 15, D2 y D3 reemplazadas: NEEDS REVISION)
+> **Last Updated**: 2026-11-25 (reloj de partida por jugador propagado a todo el documento; pendiente de revisión)
 > **Last Verified**: 2026-11-20
 > **Implements Pillar**: 4 Duelo corto (dueña del presupuesto de duración); sirve a 1 Planificar y cosechar
-> **Creative Director Review (CD-GDD-ALIGN)**: REVISED 2026-11-20 — la fantasía promete "no te quita lo ya hecho" y declara el límite del timeout en Reclutar; el aviso del cierre por tiempo es requisito (regla 14, AC-30)
-
-> **Cambio del 2026-11-24 (jugador, prototipo v5).** El tope de 25 minutos pasa a ser un **reloj
-> de 12:30 por jugador** que corre solo en su turno, junto al timer de cada etapa; quien lo agota
-> pierde. Reemplaza el cierre por tiempo con umbral anticipado (regla 14, D2) y el desempate por
-> vida del Rey, piezas y vida quitada (regla 15, D3). Las reglas 14 y 15 ya están reescritas; el
-> resto de las menciones a `CierrePorTiempo`, `umbral_cierre_s` y al desempate (estados, Edge
-> Cases, Dependencies, Tuning Knobs, Visual/Audio, UI, AC-20, AC-21, AC-26, Open Questions)
-> queda pendiente de una pasada de revisión. También del 2026-11-24: Arremetida solo sale con más
-> de 12 piezas sin el Rey (regla 5) y el primer turno sin Modificador (regla 3) queda confirmado.
+> **Creative Director Review (CD-GDD-ALIGN)**: REVISED 2026-11-20 — la fantasía promete "no te quita lo ya hecho" y declara el límite del timeout en Reclutar; el aviso de tiempo es requisito (desde el 2026-11-24, los dos relojes a la vista: regla 14, AC-30)
 
 ## Summary
 
 La **Máquina de turno** ordena cada turno de rolchess (tirada del Modificador, reclutar,
 mover, atacar y resolver), guarda la pila de deshacer de los movimientos y decide cuándo
 termina la partida. Existe para que el jugador planifique y vea caer sus golpes siempre en
-el mismo orden, y para sostener el pilar de duelo corto con un tope de 25 minutos y un
-desempate por vida del Rey, piezas vivas y vida quitada. Es parte del núcleo puro de C#: no
+el mismo orden, y para sostener el pilar de duelo corto con un reloj de
+12:30 por jugador (25 minutos en total). Es parte del núcleo puro de C#: no
 mide tiempo ni toma azar.
 
 > **Quick reference** — Layer: `Core` · Priority: `MVP` · Key deps: `Librería de reglas (#1), Catálogo de piezas (#2)`
@@ -70,10 +61,11 @@ buscada**, dentro de un duelo corto donde cada turno cuenta.
 *Pilar citado (pilar 4):* "El timer es presión buscada: quedarse sin tiempo para mover o
 para atacar no es una falla sino lo que obliga a concentrarse."
 
-*Qué le exige al resto del diseño:* que agotar el tiempo nunca te quite lo ya hecho (lo
+*Qué le exige al resto del diseño:* que agotar el tiempo de una etapa nunca te quite lo ya hecho (lo
 movido queda, lo asignado se resuelve, el recluta automático no te hace perder el recurso y
 un comando que llega tarde se descarta sin ruido), y que el jugador vea siempre en qué
-etapa está y cuánto le queda, también hasta el cierre de la partida. **Límite conocido:** si
+etapa está y cuánto le queda, también en su reloj de partida. El reloj de 12:30 sí
+termina la partida: es la única presión que la hace perder. **Límite conocido:** si
 el tiempo se agota mientras se elige qué reclutar, el turno pasa directo a atacar y esa fase
 de mover se pierde; se mide en playtest (Open Questions).
 
@@ -94,7 +86,7 @@ de mover se pierde; se mide en playtest (Open Questions).
    ninguna.
 3. **Primer turno (decisión del 2026-11-20, confirmada por el jugador el 2026-11-24).** Lo juega el jugador 0 y no tira el
    Modificador: empieza directo en `Mover`, sin `Reclutar`, porque sin tirada no hay cara de
-   reclutar. *(Quién empieza es PROVISIONAL; ver Open Questions.)*
+   reclutar. Quién empieza lo decide el Tablero (#4, regla 10): el jugador 0, sin compensación.
 4. **Abrir un turno T del jugador J** (el cierre del turno anterior y esta apertura salen
    en un solo comando):
    1. Se borran las coberturas de J (Cobertura, #8).
@@ -147,28 +139,32 @@ de mover se pierde; se mide en playtest (Open Questions).
     - *Etapa atacar:* resuelve los ataques ya asignados, igual que `Resolver`. Las
       coberturas valen.
     - Con `EsperandoTirada` se rechaza; un timeout de otro turno o etapa es
-      `TimeoutObsoleto`. **Ningún timeout hace perder el plan.**
+      `TimeoutObsoleto`. **Ningún timeout de etapa hace perder el
+      plan** (el reloj de partida es otra cosa: regla 14).
 13. **`EvaluateMatchEnd(estado)`**, función pura. Sin Reyes vivos → `DobleRey`, gana el
     jugador del turno (**confirmado el 2026-11-20**: es quien planeó y vio la vista previa,
     pilar 1). Un solo Rey vivo → `ReyMuerto`, gana su dueño. Un Rey propio muerto por fuego
     amigo cuenta igual: gana el rival.
 14. **Reloj de partida por jugador (decisión del 2026-11-24; reemplaza el cierre por tiempo
     del 2026-11-20).** Cada jugador tiene `reloj_jugador_s` = `T_tope` / 2 = **750 s (12:30)**
-    para toda la partida. Corre solo durante sus turnos, desde que se abre hasta que se
-    cierra, y **convive con el timer de cada etapa** (mover y atacar). Así ninguna partida con
-    timer pasa de 25:00. El tiempo lo mide la autoridad (Timer #12 local, Servidor #28
+    para toda la partida. Corre solo durante sus turnos, en `Reclutar`, `Mover` y
+    `Atacar`; **no corre en `EsperandoTirada`** (jugador, 2026-11-25): el jugador no paga la
+    demora de la autoridad. **Convive con el timer de cada etapa** (mover y atacar). Así ninguna partida con
+    timer pasa de 25:00, sin contar las esperas de la tirada. El tiempo lo mide la autoridad (Timer #12 local, Servidor #28
     online); el núcleo no tiene reloj. Cuando el reloj de un jugador llega a 0, en cualquier
-    fase, la autoridad envía `CerrarPartida` con ganador = el rival (motivo **RelojAgotado**;
-    agregarlo a la lista de motivos de la Librería, regla 3, es un cambio de contrato y sube la
-    versión de reglas). Lo ya movido queda; los ataques asignados y no resueltos no se
+    fase, la autoridad envía `CerrarPartida` con ganador = el rival (motivo **RelojAgotado**,
+    Librería, reglas 3 y 16, que lo rechaza con `CierreInvalido` si el ganador no es el rival
+    del jugador del turno o si se espera una tirada). Lo ya movido queda; los ataques asignados y no resueltos no se
     resuelven. **El modo Sin límite no tiene reloj.** **El jugador ve los dos relojes** en todo
     momento (diseño: Ficha y HUD, #15).
-15. **Desempate de `CierrePorTiempo`: reemplazado el 2026-11-24.** Con el reloj por jugador la
-    partida siempre termina por Rey muerto, reloj agotado, rendición, abandono o tablas, así que
-    no hace falta desempatar. El contador `vidaQuitada` (vida realmente quitada al rival,
-    sin fuego amigo, contando lo que absorbe un escudero) se sigue registrando como métrica
-    (#19). *Texto anterior (2026-11-20), para la revisión:* ganaba quien tuviera más vida en el
-    Rey; si empataban, más piezas vivas; si empataban, más `vidaQuitada`; si no, nadie.
+15. **`vidaQuitada` (estadística).** No hay empate por tiempo que resolver: con el reloj por
+    jugador la partida termina por Rey muerto, reloj agotado, rendición, abandono o tablas
+    (2026-11-24). El estado guarda `vidaQuitada` por jugador (jugador, 2026-11-25): vida
+    **realmente perdida** por piezas y muros del rival, acumulada en la partida; el fuego
+    amigo no cuenta y lo que absorbe un escudero al cubrir sí. La escribe Resolución (#9), la
+    lee Métricas (#19) y ninguna regla decide con ella. **Cota:** `estadistica_max` (1.000) ×
+    (`C_MAX` − 1 = 999.999 piezas posibles) + 480 de los 16 tramos rivales = 999.999.480; no
+    desborda.
 16. **Eventos de la Máquina (lista cerrada).** `TurnoIniciado(numeroTurno, jugador)`,
     `FaseIniciada(fase)`, `FaseSaltada(fase)`, `ReclutaPerdido`, `TurnoTerminado` y
     `PartidaTerminada(ganador, motivo)`.
@@ -196,7 +192,7 @@ de mover se pierde; se mide en playtest (Open Questions).
 | `Mover` o `Atacar` | siguiente fase / cierre | Salto automático (`FaseSaltada`) al abrirla sin acción posible |
 | `Atacar` | `EsperandoTirada` (turno + 1) | `Resolver` o `TurnTimeout` de atacar, sin ganador |
 | `Atacar` | `Terminada` | `Resolver` o `TurnTimeout` con ganador (`ReyMuerto`, `DobleRey`) |
-| cualquier estado en curso | `Terminada` | `Rendirse`, o `CerrarPartida` (Abandono, `CierrePorTiempo` entre turnos, Tablas) |
+| cualquier estado en curso | `Terminada` | `Rendirse`, o `CerrarPartida` (Abandono, `RelojAgotado` salvo en `EsperandoTirada`, Tablas) |
 | `Terminada` | `Terminada` | Todo comando se rechaza con `PartidaTerminada` |
 
 ### Interactions with Other Systems
@@ -210,20 +206,20 @@ de mover se pierde; se mide en playtest (Open Questions).
 | 7 Alcance y asignación | Abre `Atacar` | `ObjetivosValidos` | Alcance y asignación |
 | 8 Cobertura | Borra coberturas al abrir turno del dueño | Reglas de `Cubrir` | Cobertura |
 | 9 Resolución | Llama tras `Resolver` | Estado nuevo, eventos y contador `vidaQuitada` | Resolución |
-| 12 Timer | `numeroTurno` y etapa actual | `TurnTimeout` y `CierrePorTiempo` entre turnos | Timer |
+| 12 Timer | `numeroTurno` y etapa actual | `TurnTimeout` y `CerrarPartida(RelojAgotado)` | Timer |
 | 28 Servidor | Mismo pipeline | Es la autoridad de los comandos de autoridad | Servidor |
 | 15 HUD, 19 Métricas, 25 Rival IA | Eventos de fase, etapa y pila | Nada (IA: mismos comandos que un jugador) | Cada GDD |
 
 **Supuestos PROVISIONALES sobre GDD sin escribir:** el resultado `ReclutarObligatorio`
-(#11 y #10), el límite normal de movimientos (#6), el contador `vidaQuitada` (#9) y que el
-tope de 25 minutos aplica en los cuatro modos de timer (#12, abierta). Si las piezas
+(#11 y #10), el límite normal de movimientos (#6), el contador `vidaQuitada` (#9) y el reloj
+por jugador en los tres modos con timer (#12). Si las piezas
 reclutadas pueden moverse ese turno queda para #10 y #6.
 
 ## Formulas
 
 Hay dos fórmulas de diseño (D1, D2), que **no corren en el núcleo** porque no tiene reloj
-(Librería, regla 5). Las usan el Timer (#12), el Servidor (#28) y las Métricas (#19). Las
-otras dos (D3, D4) son reglas puras del núcleo.
+(Librería, regla 5). Las usan el Timer (#12), el Servidor (#28) y las Métricas (#19). La
+otra (D4) es una regla pura del núcleo; D3 se retiró.
 
 ### D1. Duración de la partida y presupuesto de turnos
 
@@ -264,63 +260,31 @@ declaran en su GDD cuántos turnos suman por partida (`Δturnos`).
 dos v4 incluyen remontadas y no hay partida sin ellas. Se fija con las Métricas (#19) en el
 MVP.
 
-### D2. Umbral de cierre por tiempo (reemplazada el 2026-11-24 por el reloj por jugador, regla 14)
+### D2. Reloj de partida por jugador
 
-La fórmula `umbral_cierre_s` se define así:
+La fórmula `reloj_jugador_s` se define así:
 
-`umbral_cierre_s = T_tope − turno_max_s`
+`reloj_jugador_s = T_tope ÷ 2` (división entera hacia abajo)
 
 **Variables:**
 
 | Variable | Type | Range | Source | Description |
 |----------|------|-------|--------|-------------|
 | T_tope | int | 1290–1500 (valor 1500) | data file (config de la autoridad) | Igual que en D1 |
-| turno_max_s | int | 60–90 | data file (Timer #12) | Etapa de mover + etapa de atacar en vigor: Variable tras el minuto 10 = 60, Fijo 90 = 90, Fijo 60 = 60 |
-| t_partida | int | 0–∞ | calculated (reloj de la autoridad) | Segundos de partida |
-| umbral_cierre_s | int | 1410–1440 | calculated | Desde aquí, la autoridad cierra en el primer entre-turnos |
+| reloj_jugador_s | int | 645–750 (valor 750) | calculated | Segundos de cada jugador para toda la partida |
 
-**Output Range:** Variable 1.440 s (24:00); Fijo 90 1.410 s (23:30); Fijo 60 1.440 s. **Sin
-límite: exento**, no hay umbral (decisión del 2026-11-20).
+**Output Range:** 750 s (12:30) con el valor vigente. **Sin límite: exento**, no hay reloj.
 
-**Garantía:** el último turno que puede abrirse empieza antes del umbral y dura como mucho
-`turno_max_s`, así que termina antes de `T_tope`. Salvo la espera de la tirada y la latencia
-de red, que mide el reloj de la autoridad y no el del turno.
+**Garantía:** los dos relojes suman como mucho `T_tope`, así que el tiempo de turno jugado no
+pasa de 25:00. Las esperas de la tirada y la red quedan afuera.
 
-**Example (Variable):** un turno empieza en 1.439 s y dura el máximo de 60 s → termina en
-1.499 s. En el entre-turnos siguiente `t_partida ≥ 1.440`, la autoridad envía
-`CierrePorTiempo`: la partida cierra en 24:59, bajo 25:00. Con el umbral exacto de 25:00, el
-mismo turno cerraría hasta en 26:00.
+**Example:** azul gastó 740 s y abre su turno con 10 s. Aunque la etapa de mover dure 60 s, a
+los 10 s la autoridad envía `CerrarPartida(RelojAgotado, rojo)`.
 
-**Límite del rango:** `T_tope` no baja de 1.290 s (1.200 de la meta de 20 min más 90 de
-turno máximo del modo Fijo 90): por debajo, el umbral cae bajo 20:00 y corta partidas que
-están dentro de la meta.
+### D3. Retirada
 
-### D3. Desempate de `CierrePorTiempo` (reemplazada el 2026-11-24, regla 15)
-
-La fórmula `ganador_tiempo` se define así:
-
-`clave_j = (vidaRey_j, piezasVivas_j, vidaQuitada_j)`
-gana el jugador de **mayor clave en orden lexicográfico**; si las claves son iguales, nadie.
-
-**Variables:**
-
-| Variable | Type | Range | Source | Description |
-|----------|------|-------|--------|-------------|
-| vidaRey_j | int | 1–30 | calculated (estado; `rey.vida` = 30 en el registro) | Vida del Rey de j (en partida en curso los dos Reyes viven) |
-| piezasVivas_j | int | 1–61 | calculated (estado; `tope_vivas_por_jugador` = 61) | Piezas vivas de j, Rey incluido, muros no |
-| vidaQuitada_j | int | 0–999.999.480 | calculated (estado; la escribe Resolución #9) | Vida **realmente perdida** por piezas y muros del rival por ataques de j, en toda la partida; sin fuego amigo; lo que absorbe un escudero al cubrir cuenta |
-
-**Output Range:** un jugador (0 o 1) o vacío. **Cota de `vidaQuitada`:** como mucho
-`estadistica_max` (1.000) × (`C_MAX` − 1 = 999.999 piezas posibles) + 480 de vida de los 16
-tramos de muro rival = 999.999.480, muy por debajo de 2.147.483.647. No desborda.
-
-**Example:** Reyes 30 y 30, piezas 11 y 11, `vidaQuitada` 412 (azul) y 388 (rojo) → gana
-azul por el tercer criterio. Con Reyes 30 y 25 gana el del 30 sin mirar el resto. Con las
-tres cifras iguales (pasividad total, 0 y 0) → nadie.
-
-**Bucle positivo, nombrado:** quien va adelante gana más con que corra el reloj. Lo
-amortiguan el timer de cada turno y que el rezagado puede atacar para cambiar la clave. No
-se resuelve con una fórmula: lo vigilan las Métricas (Open Questions).
+*(Las fórmulas del cierre anterior, D2 y D3 del 2026-11-20, se retiraron el 2026-11-24. La
+cota de `vidaQuitada` pasó a la regla 15.)*
 
 ### D4. Capacidad de la pila de deshacer
 
@@ -389,14 +353,15 @@ punto de movimiento. Si #6 define otra cosa, el máximo baja.
   un timeout de atacar): `DobleRey`, gana el jugador del turno.
 - **Si el Rey propio muere por fuego amigo y el del rival sobrevive:** `ReyMuerto`, gana el
   rival.
-- **Si `t_partida ≥ umbral_cierre_s` cuando termina un turno:** la autoridad comprueba el
-  umbral **antes de enviar cada `Tirada`** y, en lugar de la tirada, envía
-  `CierrePorTiempo`. Nunca se abre un turno pasado el umbral.
+- **Si el reloj de un jugador llega a 0 en su turno:** pierde con `RelojAgotado`, en cualquier
+  fase. Lo movido queda; los ataques asignados y no resueltos no se resuelven.
+- **Si `RelojAgotado` llega con el turno ya cerrado o en `EsperandoTirada`:**
+  `CierreInvalido`; la partida sigue.
 - **Si `Rendirse` llega en cualquier fase, también esperando tirada:** termina la partida y
   gana el otro jugador.
-- **Si los dos jugadores solo dejan correr el reloj** (Reyes 30 y 30, mismas piezas,
-  `vidaQuitada` 0 y 0): cada turno agota el timer, la partida llega al umbral y cierra por
-  `CierrePorTiempo` sin ganador.
+- **Si los dos jugadores solo dejan correr el reloj:** con timers de etapa iguales, agota
+  primero el que jugó más turnos. Azul empieza, así que con pasividad total pierde azul. En
+  Sin límite la partida no termina sola.
 
 ### Límites del contrato
 
@@ -420,6 +385,7 @@ durante varios turnos seguidos (casi inalcanzable; en Sin límite solo lo corta 
 |---|---|---|
 | #1 Librería de reglas | Dura | El contrato: `Aplicar`, comandos, códigos, enteros, orden por ID y forma canónica. Las fases se escriben *dentro* de él. |
 | #2 Catálogo de piezas | Blanda | `movimiento` y `topeVivas` por tipo para el invariante de la pila (D4), y el orden de tipos para el recluta automático. |
+| #4 Tablero y despliegue | Blanda | Quién empieza (jugador 0, sin compensación) y el estado ya desplegado al crear la partida. |
 
 La Máquina **no depende** de Modificador, Reclutamiento, Movimiento, Alcance, Cobertura ni
 Resolución: los llama por ganchos tipados sin conocerlos por nombre (índice, *Circular
@@ -435,18 +401,15 @@ Dependencies*). Por eso esos sistemas dependen de ella y no al revés.
 | #9 Resolución | Dura | Transición `Resolver`; escribe `vidaQuitada`; declara `Δturnos` | Pendiente |
 | #10 Reclutamiento | Dura | Fase `Reclutar`, recluta automático; declara `Δturnos` | Pendiente |
 | #11 Modificador | Dura | Resultados tipados y fase de tirada; declara `Δturnos` | Pendiente |
-| #12 Timer | Dura | `numeroTurno`, etapa y `umbral_cierre_s`; emite `TurnTimeout` y `CierrePorTiempo` | Pendiente |
+| #12 Timer | Dura | `numeroTurno`, etapa y `reloj_jugador_s`; emite `TurnTimeout` y `CerrarPartida(RelojAgotado)` | Pendiente |
 | #15 Ficha y HUD | Blanda | Fase, etapa y cuántos movimientos se pueden deshacer | Pendiente |
 | #19 Métricas | Blanda | Eventos de fase, `TurnoTerminado`, `PartidaTerminada` | Pendiente |
 | #21 Menú principal | Blanda | Inicia la partida y recibe `PartidaTerminada` | Pendiente |
 | #25 Rival IA | Dura | Mismas fases y comandos que un jugador | Pendiente |
 | #28 Servidor | Dura | Autoridad de `Tirada`, `TurnTimeout` y `CerrarPartida` | Pendiente |
 
-**Bidireccionalidad.** La Librería ya lista a la Máquina como dependiente dura. Estos dos
-puntos no están al día:
-
-- El **Catálogo** no nombra a la Máquina como consumidora.
-- El **índice** no tiene las aristas #3 → Catálogo ni #8, #9, #10 → Máquina.
+**Bidireccionalidad.** La Librería, el Catálogo (desde el 2026-11-25) y el Tablero ya nombran a
+la Máquina, y el índice tiene sus aristas.
 
 Los GDD pendientes tienen que nombrar a la Máquina en su Dependencies al escribirse
 (marcado para `/design-review` y `/review-all-gdds`).
@@ -458,22 +421,21 @@ Métricas, nunca en el código):
 
 | Perilla | Valor | Rango seguro | Si es muy alta | Si es muy baja | Interactúa con | Dónde vive |
 |---|---|---|---|---|---|---|
-| `T_tope` (tope de partida) | 1.500 s | 1.290–1.500 | Más de 1.500 contradice el pilar 4: hay que revisar el pilar, no solo el número | Menos de 1.290 deja el umbral por debajo de 20:00 y corta partidas que están dentro de la meta | `turno_max_s`: el umbral es `T_tope − turno_max_s`, así que cada segundo que se baja `T_tope` adelanta el cierre un segundo. También acota `turnos_presupuesto` | Config de la autoridad (Timer #12 / Servidor #28) |
-| Meta de duración | 900–1.200 s | mínimo 600 s; máximo `T_tope − turno_max_s` | Una meta pegada al umbral hace frecuentes los cierres por tiempo | Una meta por debajo de 900 s deja las métricas siempre en rojo | `T_tope` (su techo) y `seg_medio` | Config de Métricas (#19) |
+| `T_tope` (tope de partida) | 1.500 s | 1.290–1.500 | Más de 1.500 contradice el pilar 4: hay que revisar el pilar, no solo el número | Menos de 1.290 deja a cada jugador con menos de 10:45 (piso heredado de la fórmula anterior, sin volver a fundamentar) | `reloj_jugador_s` es su mitad. También acota `turnos_presupuesto` | Config de la autoridad (Timer #12 / Servidor #28) |
+| Meta de duración | 900–1.200 s | mínimo 600 s; máximo `T_tope` | Una meta pegada al tope hace frecuentes los relojes agotados | Una meta por debajo de 900 s deja las métricas siempre en rojo | `T_tope` (su techo) y `seg_medio` | Config de Métricas (#19) |
 
 **Perillas de otros sistemas que cambian esta GDD** (no se duplican acá, se apuntan):
 
 | Valor | Dueño | Qué cambia aquí |
 |---|---|---|
-| Etapas del timer (60 + 30, 40 + 20) y minuto de cambio | Timer (#12) | `turno_max_s` y por lo tanto `umbral_cierre_s` (D2): Fijo 90 adelanta el umbral 30 s respecto de Fijo 60 |
+| Etapas del timer (60 + 30, 40 + 20) y minuto de cambio | Timer (#12) | `turno_max_s`: cuántos turnos completos caben en `reloj_jugador_s` (8 de 90 s, 12 de 60 s) |
 | `movimiento` y `topeVivas` por tipo | Catálogo (#2) | `pila_max` (D4): hoy 254 de 256; subir el movimiento del soldado en 1 lo rompe |
 | Límite normal de movimientos (12 piezas más el Rey) | Movimiento (#6) | Cuántas entradas llega a tener la pila en un turno normal |
 | `Δturnos` de Resolución, Reclutamiento y Modificador | #9, #10, #11 | `turnos_estimados` contra `turnos_presupuesto` (D1) |
 | Orden de tipos (soldado, arquero, escudero, catapulta, jinete, demoledor, Rey) | Catálogo (#2) | Qué tipo recluta el timeout (primer tipo disponible) |
 
 **Constantes de la Máquina (no son perillas):** `pila_tope` = 256 (cambiarlo es un cambio de
-contrato y sube la versión de reglas); el orden del desempate (vida del Rey, piezas vivas,
-`vidaQuitada`); la lista cerrada de fases, de resultados tipados y de eventos.
+contrato y sube la versión de reglas); la lista cerrada de fases, de resultados tipados y de eventos.
 
 ## Visual/Audio Requirements
 
@@ -492,8 +454,7 @@ define no se repiten acá; solo se listan los eventos que **ya tienen** tratamie
 | Recluta automático (`automatico`) | La pieza aparece con una marca breve "Elegido por el tiempo", para que el jugador sepa que decidió el timer | **Falta** |
 | `PartidaTerminada` con `ReyMuerto`, Rendición o Abandono | Pantallas espejo de Victoria y Derrota | Definido (§2 *Estados*) |
 | `PartidaTerminada` con `DobleRey` | Victoria para el jugador del turno, con los dos Reyes cayendo | **Falta** el detalle de los dos Reyes |
-| `PartidaTerminada` con `CierrePorTiempo` con ganador | Victoria o Derrota, y el resumen muestra la clave del desempate (vida del Rey, piezas vivas, vida quitada) para que se entienda por qué | **Falta** la clave en el resumen |
-| `CierrePorTiempo` sin ganador | Pantalla neutral, luz base sin gradación, "Empate por tiempo" | **Falta** el estado |
+| `PartidaTerminada` con `RelojAgotado` | Victoria o Derrota; el resumen dice a quién se le acabó el reloj | **Falta** el texto en el resumen |
 
 **Restricciones de animación:** ningún evento le suma tiempo al turno (§2 *Reglas de ritmo*,
 pilar 4). Una cascada de hasta 5 eventos de la Máquina se presenta en **≤ 1,5 s en total**,
@@ -536,11 +497,11 @@ El HUD (#15) lee de la Máquina:
   `LimiteMovimientos(sin límite)` no muestra tope.
 - **Estado del botón Deshacer:** desactivado con la pila vacía, de modo que
   `NadaQueDeshacer` no salga por la interfaz.
-- **Aviso del cierre por tiempo:** visible desde un turno completo antes del umbral (regla
-  14), sin estado de ambiente propio que compita con la ficha (art bible, §2 *Regla de
-  ambiente*). Cuándo aparece y cómo se ve lo define #15.
-- **Pantalla de resultado:** motivo del fin y, para `CierrePorTiempo`, la clave del
-  desempate.
+- **Los dos relojes de partida**, siempre visibles (regla 14); en `EsperandoTirada` están
+  detenidos y se nota. Cómo se ven y desde cuándo avisan que queda poco lo define #15.
+- **Rendirse:** la interfaz lo ofrece solo al jugador del turno con la mitad de las piezas del
+  rival o menos (concepto, «Rendirse»); el núcleo lo acepta siempre.
+- **Pantalla de resultado:** motivo del fin y, para `RelojAgotado`, los dos relojes.
 
 📌 **UX Flag — Máquina de turno y fin de partida**: This system has UI requirements. In
 Phase 4 (Pre-Production), run `/ux-design` to create a UX spec for each screen or HUD
@@ -551,13 +512,13 @@ should cite `design/ux/[screen].md`, not the GDD directly.
 
 | Este GDD dice | Documento | Elemento exacto | Naturaleza |
 |---|---|---|---|
-| Desempate: vida del Rey, piezas vivas, **vida quitada**, nadie | `libreria-de-reglas.md` | Reglas 3 y 16 | **Cambia:** agrega el tercer criterio |
-| Campo `vidaQuitada` por jugador, versión de reglas | `libreria-de-reglas.md` | Regla 11 (tabla de dominios, matriz de clausura de `Resolver` y `TurnTimeout` de atacar), regla 12 | **Agrega** (cambio de contrato) |
-| `Resolver` no es fase en reposo; sin etapa en `EsperandoTirada` | `libreria-de-reglas.md` | Regla 11, fila de fase y etapa | **Cambia** |
-| Pila de 256 pasa a ser de la Máquina, con invariante de catálogo | `libreria-de-reglas.md` | Regla 11, fila de pila y Tuning Knobs | **Cambia** el dueño |
-| `DobleRey`, `TurnTimeout` y primer turno sin tirada quedan definitivos | `libreria-de-reglas.md` | Reglas 2, 16 y 17; AC-20, AC-22, AC-31, AC-34, AC-38 | **Confirma**: se quitan las marcas PROVISIONAL |
-| Se cierran cuatro preguntas abiertas (tope de 25 min, `TurnTimeout`, `DobleRey`, pila) | `libreria-de-reglas.md` | Open Questions | **Cierra** |
-| El Catálogo tiene a la Máquina como consumidora; invariante `pila_max ≤ 256` | `catalogo-de-piezas.md` | Dependencies, Formulas (chequeo nuevo) y AC | **Agrega** |
+| `RelojAgotado` como motivo de fin | `libreria-de-reglas.md` | Reglas 3, 4 y 16; AC-50 | Hecho el 2026-11-25 |
+| Campo `vidaQuitada` por jugador, versión de reglas | `libreria-de-reglas.md` | Regla 11 (tabla de dominios, matriz de clausura de `Resolver` y `TurnTimeout` de atacar), regla 12 | Hecho el 2026-11-25 (solo estadística) |
+| `Resolver` no es fase en reposo; sin etapa en `EsperandoTirada` | `libreria-de-reglas.md` | Regla 11, fila de fase y etapa | Hecho el 2026-11-25 |
+| Pila de 256 pasa a ser de la Máquina, con invariante de catálogo | `libreria-de-reglas.md` | Regla 11, fila de pila y Tuning Knobs | Hecho el 2026-11-25 |
+| `DobleRey`, `TurnTimeout` y primer turno sin tirada quedan definitivos | `libreria-de-reglas.md` | Reglas 2, 16 y 17; AC-20, AC-22, AC-31, AC-34, AC-38 | Hecho el 2026-11-25 |
+| Se cierran cuatro preguntas abiertas (tope de 25 min, `TurnTimeout`, `DobleRey`, pila) | `libreria-de-reglas.md` | Open Questions | Hecho el 2026-11-25 |
+| El Catálogo tiene a la Máquina como consumidora; invariante `pila_max ≤ 256` | `catalogo-de-piezas.md` | Dependencies y F8 (el AC queda en AC-27) | Hecho el 2026-11-25 |
 | Orden del recluta automático del Cuerno de guerra | `catalogo-de-piezas.md` | Open Questions | **Resuelve por defecto:** primer tipo disponible en el orden del Catálogo, o sea la catapulta; lo confirma #10 |
 | Aristas #3 → #2 y #8, #9, #10 → #3; mitigación del riesgo de duración | `systems-index.md` | Tabla de sistemas y High-Risk | **Agrega** |
 | "Nunca pasa de 25 minutos" vale en los modos con timer; Sin límite exento | `game-concept.md` | Pilar 4 y Core Identity (Session Length) | **Cambia** el texto |
@@ -648,15 +609,15 @@ integración con otro sistema. **Config/Data** = chequeo de humo. Los criterios 
   dueño del Rey vivo; `DobleRey` ganando el jugador 0; `ReyMuerto` ganando el rival; sin
   ganador.
 - **AC-20 (Integration, regla 14; cruce con #12 y #28, PROVISIONAL)** — **GIVEN** modo
-  Variable, estado `EsperandoTirada` del turno 8 y `t_partida` = 1.440 s, **WHEN** la
-  autoridad decide su próximo comando, **THEN** envía `CerrarPartida(CierrePorTiempo)` y no
-  una `Tirada`; con `t_partida` = 1.439 s envía `Tirada`. En Sin límite nunca envía el
-  cierre. Nunca lo envía con el estado en `Reclutar`, `Mover` o `Atacar`.
-- **AC-21 (Logic, regla 15 y D3)** — **GIVEN** cinco estados con las claves (30, 11, 412)
-  contra (30, 11, 388); (30, 12, 0) contra (30, 11, 900); (30, 11, 0) contra (25, 30, 900);
-  (30, 11, 0) contra (30, 11, 0); y un golpe de 30 de daño sobre una pieza de 5 de vida,
-  **WHEN** se aplica `CerrarPartida(CierrePorTiempo)`, **THEN** gana el primero; gana el
-  primero; gana el primero; sin ganador; y ese golpe suma 5 a `vidaQuitada`, no 30.
+  Variable, turno de azul con 1 s en su reloj, **WHEN** pasa 1 s en `Mover` (y, en otra copia,
+  en `Reclutar` y en `Atacar`), **THEN** la autoridad envía `CerrarPartida(RelojAgotado,
+  rojo)`. **GIVEN** `EsperandoTirada`, **WHEN** pasan 60 s, **THEN** ningún reloj cambia.
+  **GIVEN** el turno de rojo, **THEN** el reloj de azul no cambia. En Sin límite nunca lo envía.
+- **AC-21 (Logic, reglas 14 y 15)** — **GIVEN** el turno de azul en `Atacar` con un ataque
+  asignado, **WHEN** llega `CerrarPartida(RelojAgotado, rojo)`, **THEN** `Terminada`, gana
+  rojo y ese ataque no se resuelve; **WHEN** llega con azul como ganador, **THEN**
+  `CierreInvalido`. **Y GIVEN** un golpe de 30 de daño sobre una pieza rival de 5 de vida,
+  **THEN** suma 5 a `vidaQuitada`, no 30; sobre una pieza propia, suma 0.
 - **AC-22 (Logic, regla 16)** — **GIVEN** `Tirada` con reclutar perdido y sin acciones en
   `Mover` ni `Atacar`, **WHEN** se aplica, **THEN** los eventos de la Máquina son exactamente
   `ReclutaPerdido`, `FaseSaltada(Mover)`, `FaseSaltada(Atacar)`, `TurnoTerminado`,
@@ -674,9 +635,9 @@ integración con otro sistema. **Config/Data** = chequeo de humo. Los criterios 
   de una partida (N = 24, 1.381 s), **WHEN** se calcula el presupuesto, **THEN** `seg_medio`
   = 57 y `turnos_presupuesto` = 26; con `seg_medio` = 0 se usa 1 y da 1.500. El archivo marca
   si la partida entró en 1.500 s.
-- **AC-26 (Logic, D2; cruce con #12, PROVISIONAL)** — **GIVEN** `T_tope` = 1.500, **WHEN** se
-  calcula `umbral_cierre_s`, **THEN** Variable (tras el minuto 10) da 1.440, Fijo 90 da
-  1.410, Fijo 60 da 1.440, y Sin límite no da umbral.
+- **AC-26 (Logic, D2; cruce con #12, PROVISIONAL)** — **GIVEN** `T_tope` = 1.500, 1.291 y
+  1.290, **WHEN** se calcula `reloj_jugador_s`, **THEN** da 750, 645 y 645; Sin límite no da
+  reloj.
 - **AC-27 (Logic, D4, con valores del límite)** — **GIVEN** el Catálogo vigente, **WHEN**
   `PrepararContexto` calcula `pila_max`, **THEN** da 254 y lo acepta. **Y GIVEN** un Catálogo
   de prueba con el Rey en movimiento 8 (suma 256), **THEN** lo acepta; con el Rey en
@@ -693,10 +654,13 @@ integración con otro sistema. **Config/Data** = chequeo de humo. Los criterios 
   Resolución, Reclutamiento y Modificador ya escritos, **WHEN** se revisa su sección de
   dependencias, **THEN** cada uno nombra a la Máquina y declara su `Δturnos`.
 
-- **AC-30 (UI, regla 14; cruce con #15, PROVISIONAL)** — **GIVEN** modo Variable con
-  `t_partida` = 1.380 s, **WHEN** se muestra el HUD, **THEN** el aviso del cierre es
-  visible; con `t_partida` = 1.379 s no lo es. En Sin límite nunca aparece. Evidencia:
-  captura retenida en `production/qa/evidence/`.
+- **AC-30 (UI, regla 14; cruce con #15, PROVISIONAL)** — **GIVEN** un modo con timer,
+  **WHEN** se muestra el HUD en el turno de cada jugador, **THEN** se ven los dos relojes y
+  corre solo el del jugador del turno; en `EsperandoTirada` no corre ninguno. En Sin límite no
+  aparecen. Evidencia: captura retenida en `production/qa/evidence/`.
+- **AC-31 (UI, Rendirse; cruce con #15, PROVISIONAL)** — **GIVEN** el jugador del turno con 8
+  piezas contra 16, **THEN** la interfaz ofrece Rendirse; con 9 contra 16, no; al rival nunca
+  se le ofrece en ese turno. Evidencia: captura retenida en `production/qa/evidence/`.
 
 **Criterios que no se automatizan** (van a playtest): que la presión del timer se sienta
 como "presión buscada" y no como castigo (Player Fantasy); que la partida dure 15–20
@@ -704,7 +668,7 @@ minutos (lo mide la compuerta de 3 partidas seguidas ≤ 25 min con las Métrica
 
 **Huecos conocidos:** "la Máquina no conoce a ningún sistema por nombre" se prueba con un
 Modificador de prueba (AC-5); la política de la regla 14 se prueba en #12 y #28 (AC-20);
-`N_base` no se puede fijar (D1); AC-21 usa estados armados con el constructor de pruebas
+`N_base` no se puede fijar (D1); la parte de `vidaQuitada` de AC-21 usa estados armados con el constructor de pruebas
 hasta que Resolución (#9) escriba `vidaQuitada`; el estancamiento (nadie puede actuar) no
 tiene criterio porque quedó como pregunta abierta.
 
@@ -712,13 +676,12 @@ tiene criterio porque quedó como pregunta abierta.
 
 | Pregunta | Dueño | Para cuándo |
 |---|---|---|
-| ¿Quién empieza (hoy el jugador 0) y hay compensación por mover primero? | Tablero (#4) | En su GDD |
 | ¿Las piezas reclutadas pueden moverse ese turno? | Reclutamiento (#10) y Movimiento (#6) | En sus GDD |
-| ¿`t_partida` se pausa cuando se espera la tirada o hay una desconexión (online)? | Timer (#12) y Servidor (#28) | En sus GDD |
-| ¿Cómo se ve y cuándo aparece el aviso del cierre por tiempo (forma, sonido)? El mínimo ya está fijado: visible un turno completo antes del umbral | Ficha y HUD (#15) y Timer (#12) | En sus GDD |
+| ¿Los relojes se pausan durante una desconexión (online)? Con la espera de la tirada ya se pausan | Timer (#12) y Servidor (#28) | En sus GDD |
+| ¿Qué pasa si el reloj y el timer de etapa vencen a la vez? Hoy vale el que la autoridad aplica primero | Timer (#12) | En su GDD |
+| ¿Cómo se ven los dos relojes y desde cuándo avisan que queda poco? | Ficha y HUD (#15) y Timer (#12) | En sus GDD |
 | ¿Las partidas Sin límite cuentan para la compuerta del arte (3 partidas seguidas ≤ 25 min)? Propuesta: no | Métricas (#19) | En su GDD |
 | ¿El timeout durante `Reclutar` salta `Mover` y se siente como castigo? | Playtest | MVP |
-| ¿El desempate por vida quitada evita premiar el juego pasivo? Medir la proporción de cierres por tiempo ganados por quien iba adelante a mitad de partida | Métricas (#19) | MVP |
+| ¿El reloj decide partidas que el tablero no decidió? Medir cuántas terminan por reloj y quién iba adelante. Con pasividad total pierde azul, que empieza | Métricas (#19) | MVP |
 | `N_base` y `Δturnos` de #9, #10 y #11 | Métricas (#19), #9, #10, #11 | MVP |
 | Que ninguno de los dos jugadores pueda actuar durante varios turnos (casi inalcanzable; en Sin límite solo lo corta `C_MAX`) | Timer (#12) y Librería (ADR) | Antes de lanzar Sin límite |
-| Estado visual de "Empate por tiempo" | Render (#18) y art bible | En su GDD |

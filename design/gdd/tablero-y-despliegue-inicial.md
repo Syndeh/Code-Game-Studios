@@ -19,7 +19,7 @@ El Tablero es la grilla de 24 columnas por 15 filas sobre la que se juega toda l
 
 **Qué no es.** Las reglas de los muros después del despliegue (daño, rotura, huecos, arqueros sobre el tramo) son de Castillo y muros (#5); quién puede moverse adonde, de Movimiento (#6); y cuántas piezas puede haber vivas, del Catálogo (#2). El Tablero no usa azar: el sorteo de castillos se retiró de la Librería el 2026-11-25.
 
-**Suposición provisional.** *Ciclo con #5:* resuelto en Dependencies (decisión del 2026-11-24). El Tablero coloca también los 16 tramos de muro; su vida inicial es un dato de #5 que llega por la config (hoy 30). Queda una arista de datos de #4 hacia #5, que falta anotar en el índice.
+**Suposición provisional.** *Ciclo con #5:* resuelto en Dependencies (decisión del 2026-11-24). El Tablero coloca también los 16 tramos de muro; su vida inicial es un dato de #5 que llega por la config (hoy 30). La arista de datos de #4 hacia #5 está en el índice.
 
 ## Player Fantasy
 
@@ -259,9 +259,9 @@ The `espejo` formula is defined as:
 
 **Bidireccionalidad: estado de los documentos vecinos** (al 2026-11-25):
 
-- **Librería:** hecho el 2026-11-25: se retiró el sorteo (fila del #4, Tuning Knobs, `opcion_por_sorteo`, AC-16, AC-36, AC-46, AC-54). *Pendiente:* levantar la marca PROVISIONAL del tablero 24 × 15 (regla 11).
-- **Máquina de turno:** hecho el 2026-11-25: se quitaron las filas y los casos del sorteo (AC-3 incluido). *Pendiente:* nombrar a #4 en su Dependencies y marcar resuelta su Open Question de quién empieza.
-- **Catálogo:** *pendiente:* levantar sus PROVISIONAL (AC-2, AC-30 y los de "hasta el GDD del Tablero") y escribir el techo de `movimiento` en 12 (`techo_movimiento`).
+- **Librería:** hecho el 2026-11-25: se retiró el sorteo (fila del #4, Tuning Knobs, `opcion_por_sorteo`, AC-16, AC-36, AC-46, AC-54). La marca PROVISIONAL del tablero 24 × 15 también se levantó.
+- **Máquina de turno:** hecho el 2026-11-25: se quitaron las filas y los casos del sorteo (AC-3 incluido). Ya nombra a #4 y cerró su Open Question de quién empieza.
+- **Catálogo:** hecho el 2026-11-25: sin PROVISIONAL que dependan de #4 y con el techo de `movimiento` en 12 (`techo_movimiento`).
 - **systems-index:** hecho: fila, texto del #4 y arista de datos hacia #5.
 
 ## Tuning Knobs
@@ -334,9 +334,9 @@ Sin pantalla propia: el tablero ocupa toda la pantalla (decisión del jugador, 2
 
 | Documento | Qué se referencia | Cómo |
 |---|---|---|
-| `design/gdd/libreria-de-reglas.md` | Regla 2 (`CrearPartida`, castillos fijos), regla 7 (IDs), tabla de dominios (tablero 24 × 15), códigos `ConfigInvalida`, `VersionNoSoportada`, `EstadoInvalido` y `ErrorInterno` | Este GDD adopta el tope 24 × 15 como constante propia; la Librería retiró el sorteo (2026-11-25) y falta que levante la marca PROVISIONAL del tablero |
+| `design/gdd/libreria-de-reglas.md` | Regla 2 (`CrearPartida`, castillos fijos), regla 7 (IDs), tabla de dominios (tablero 24 × 15), códigos `ConfigInvalida`, `VersionNoSoportada`, `EstadoInvalido` y `ErrorInterno` | Este GDD adopta el tope 24 × 15 como constante propia; la Librería retiró el sorteo (2026-11-25) y levantó la marca PROVISIONAL del tablero |
 | `design/gdd/catalogo-de-piezas.md` | Tipos 0 a 6 y su orden, `topeVivas`, `movimiento`, `piezas_para_matar`, pendientes PROVISIONAL (AC-2, AC-30) | Este GDD cierra los provisionales y calcula el techo de `movimiento` (12) |
-| `design/gdd/maquina-de-turno.md` | Estados de creación, AC-3, Open Question de quién empieza | Sorteo retirado de la tabla de estados y de AC-3 (2026-11-25); falta marcar resuelta la pregunta (jugador 0, sin compensación) y nombrar a #4 en su Dependencies |
+| `design/gdd/maquina-de-turno.md` | Estados de creación, AC-3, Open Question de quién empieza | Sorteo retirado de la tabla de estados y de AC-3 (2026-11-25); pregunta cerrada (jugador 0, sin compensación) y #4 en su Dependencies |
 | `design/gdd/game-concept.md` | "Reglas vigentes" (tablero, ejército, castillo, Rey), pilares 1, 3 y 4, anti-pilares, línea 348 (Procedural Systems) | Línea 348 corregida el 2026-11-25 (castillos en posición fija, sin sorteo) |
 | `design/art/art-bible.md` | §3 (terreno sin cuadrícula, castillo y muros), §4 (colores de bando), §6 (densidad y borde), §7 (pantalla, 68 px) | Fuente de los requisitos visuales; §7 menciona castillos en esquinas |
 | `design/gdd/systems-index.md` | Sistema #4, su texto ("sectores al azar") y las aristas | Texto del #4 corregido y arista de datos #4 → #5 anotada (2026-11-25) |
@@ -403,8 +403,6 @@ Todos son automatizables en Edit Mode (lógica pura, sin pantalla); el dibujo de
 | Si nadie cruza las 8 columnas libres, decide el reloj de 12:30 por jugador, y en Sin límite la partida no termina sola. ¿Es aceptable? | Máquina de turno (#3), playtest | MVP |
 | Azul siempre a la izquierda y siempre el primero: no se separa el efecto de lado del de turno. ¿La revancha alterna lados? | Menú (#21), Métricas (#19) | Fase 1 |
 | Esquema de config para la vida inicial del tramo (arista de datos #4 → #5) | Castillo y muros (#5) | En su GDD |
-| Textos por la decisión sin sorteo: hecho el 2026-11-25 en Librería, Máquina de turno, registro, concepto, índice y art bible. Falta nombrar a #4 en la Máquina de turno y levantar las marcas PROVISIONAL del Catálogo | Máquina de turno (#3), Catálogo (#2) | Antes de aprobar este GDD |
-| Quitar la marca PROVISIONAL del tablero 24 × 15 en la Librería (este GDD lo adopta) | Librería (#1) | Antes de aprobar este GDD |
 | Pisos útiles de `FILAS` (7) y de la composición inicial: sin medir | Métricas (#19), playtest | Compuerta de duración |
 | ¿El jugador percibe el despliegue como parejo? No automatizable | Playtest | MVP |
 | Sin cuadrícula dibujada, ¿se cumple "contar distancias" (pilar 1)? Depende del resaltado de Movimiento (#6) y Alcance (#7) y de la opción de Accesibilidad (#23) | #6, #7, #23, playtest | En sus GDD y en el MVP |

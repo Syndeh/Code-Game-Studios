@@ -87,6 +87,7 @@ El Catálogo **no tiene lógica ni estado**: no calcula daño, no mueve piezas y
    - **F5:** `topeVivas` entre 1 y 61, y el del Rey (ID 6) es exactamente 1. El máximo efectivo de un tipo es 55: el Rey vale 1 y los otros cinco tipos al menos 1, así que F6 corta antes que el 61.
    - **F6:** la suma de los 7 `topeVivas` es como mucho 61.
    - **F7:** `versionBalance` entre 1 y 1.000.
+   - **F8:** `pila_max` = Σ `topeVivas_t` × `movimiento_t` es como mucho 256 (decisión del 2026-11-20; fórmula y criterio en la Máquina de turno, D4 y AC-27). Hoy 254.
    - Estas son reglas de forma, no de balance. Los rangos sanos de cada cifra van en Tuning Knobs.
 7. **Identidad.** La huella del Catálogo la calcula `PrepararContexto`; el Catálogo no la guarda. Orden canónico de los datos para la huella: `versionBalance`, y después, por ID ascendente: `movimiento`, `alcanceMin`, `alcanceMax`, `ataque`, `escudo`, `vida`, `danoArea`, `topeVivas`. El formato exacto en bytes lo fija el ADR de la Librería.
 8. **Un solo Catálogo por partida,** igual para los dos jugadores. No existe una fila por jugador, facción, skin ni cuenta (Player Fantasy).
@@ -102,7 +103,7 @@ El Catálogo no tiene estados de juego. Su ciclo de vida:
 | Archivo | Datos externos al código, versionados en el repositorio | Edición | Lectura por el cliente o el servidor |
 | Leído | Filas en memoria, sin validar | Lector (fuera del núcleo) | `PrepararContexto` |
 | Validado y fijado | Contexto con huella, usado por toda la partida | `PrepararContexto` aceptado | Fin de la partida |
-| Rechazado | Falló alguna regla F1–F7 | `PrepararContexto` devuelve `ConfigInvalida` | Corregir el archivo |
+| Rechazado | Falló alguna regla F1–F8 | `PrepararContexto` devuelve `ConfigInvalida` | Corregir el archivo |
 
 Un archivo que no se puede leer no llega a ser un Catálogo: el cliente no ofrece crear partida y el núcleo no se entera. El formato del archivo y su carga son del ADR.
 
@@ -111,6 +112,7 @@ Un archivo que no se puede leer no llega a ser un Catálogo: el cliente no ofrec
 | Sistema | Qué recibe del Catálogo | Dueño de la interfaz |
 |---|---|---|
 | #1 Librería (indirecto, esquema) | Las filas ya cargadas en la config; esta sección define el formato | Librería (valida y calcula la huella) |
+| #3 Máquina de turno | `movimiento` y `topeVivas` para el invariante de la pila de deshacer, y el orden de tipos para el recluta automático | Máquina de turno |
 | #4 Tablero | Tipos, `topeVivas` y orden para IDs; valida que el ejército inicial (4 soldados, 4 arqueros, 4 escuderos y Rey) cabe en los topes | Tablero |
 | #5 Castillo | `vida`, `escudo` y `alcanceMax` del arquero (el +2 de escudo y el +2 de alcance en el muro son suyos) | Castillo |
 | #6 Movimiento | `movimiento`, vía `EffectiveStats` | Movimiento |
@@ -123,7 +125,7 @@ Un archivo que no se puede leer no llega a ser un Catálogo: el cliente no ofrec
 | #19 Métricas, #32 Analítica | `versionBalance` y huella de cada partida | Métricas |
 | #26 Registro, #28 Servidor | El Registro guarda la tabla en la config de cada partida (así el Catálogo no conserva versiones viejas); el Servidor carga el mismo archivo y compara huellas | Registro y Servidor (provisional hasta que existan) |
 
-**Provisional:** #4, #5, #6, #7, #9, #10 y #26 todavía no tienen GDD. Estos contratos son lo que este documento espera de ellos.
+**Provisional:** #5, #6, #7, #9, #10 y #26 todavía no tienen GDD. Estos contratos son lo que este documento espera de ellos.
 
 **Observaciones que pasan a Open Questions:** el demoledor mata solo a cualquier pieza que no sea el Rey; si el Grito de guerra (+2 de ataque) también suma al daño de área de la catapulta; cómo se ordena el recluta automático del Cuerno de guerra (catapulta, jinete, demoledor por ID).
 
@@ -208,7 +210,7 @@ con división entera hacia abajo (todos los valores son no negativos, como exige
 
 - **If el `ataque` de un atacante es menor o igual que el `escudo` del objetivo**: el daño neto de ese ataque suelto es 0 (la resta negativa se pone en 0, Librería), pero sumado a otros ataques sobre el mismo objetivo cuenta completo en la suma. Es válido.
 - **If un bono de turno se suma a una cifra que está en su máximo (1.000)**: la cifra efectiva puede llegar a 1.010 (bono de 0 a 10). La Librería ya cuenta con ese tope en su análisis de desborde.
-- **If el ejército inicial no cabe en los topes** (por ejemplo `topeVivas` de soldados menor que 4): el Tablero (#4) devuelve `ConfigInvalida` al crear la partida. *Provisional hasta el GDD del Tablero.*
+- **If el ejército inicial no cabe en los topes** (por ejemplo `topeVivas` de soldados menor que 4): el Tablero (#4) devuelve `ConfigInvalida` al crear la partida. (Tablero, regla 6.)
 - **If una skin o un texto usa un ID de tipo fuera de 0 a 6**: la skin es inválida; la rechaza el validador del Kit (#38) o Render (#18). El Catálogo no tiene fila para ese ID.
 - **If dos tipos tienen las mismas cifras**: se permite; no hay regla de unicidad entre tipos.
 - **If un tipo distinto de la catapulta tiene `danoArea` mayor que 0**: Resolución (#9) le aplica el área igual que a la catapulta. Las cifras se leen siempre de forma genérica; solo los comportamientos propios de un tipo (el jinete pasa por encima de enemigos, el arquero sube al muro, el escudero cubre, el demoledor explota) dependen del ID. El chequeo I3 se evalúa para todo tipo con `danoArea` mayor que 0.
@@ -217,21 +219,22 @@ con división entera hacia abajo (todos los valores son no negativos, como exige
 
 **Depende de:** ningún sistema. El Catálogo es una tabla de datos sin lógica y no necesita nada de otro GDD.
 
-**Topes que este GDD adopta como propios.** Dos topes que la Librería (#1) dejó como PROVISIONALES pasan a ser del Catálogo cuando se apruebe este documento:
+**Topes que este GDD adopta como propios.** Dos topes que la Librería (#1) tenía como PROVISIONALES son del Catálogo (la Librería los apunta acá desde el 2026-11-25):
 
 | Tope | Valor | Dónde se aplica aquí | Efecto de cambiarlo |
 |---|---|---|---|
 | Estadísticas | 0 a 1.000 | F2 y F4 | Revisar el análisis de desborde de la Librería (resolución completa menor que 25.000.000) y subir la versión de reglas |
 | Piezas vivas por jugador | 61 | F5 y F6 (`topeTotal`) | Igual que arriba; además afecta el estado de la Librería |
 
-Esto evita un ciclo: la Librería depende del esquema del Catálogo, y el Catálogo no depende de la Librería. Los demás topes de la Librería (bono de turno de 0 a 10, tablero 24 × 15, pila de deshacer de 256, C_MAX) siguen siendo suyos.
+Esto evita un ciclo: la Librería depende del esquema del Catálogo, y el Catálogo no depende de la Librería. Los demás topes de la Librería no son del Catálogo: el tablero 24 × 15 es del Tablero (#4), la pila de 256 de la Máquina de turno (#3), y el bono de turno de 0 a 10 y C_MAX siguen en la Librería.
 
 **Dependen de este sistema:**
 
 | Sistema | Tipo | Qué usa | Estado del GDD |
 |---|---|---|---|
 | #1 Librería de reglas | Blanda | El esquema de datos; recibe las filas en la config, las valida y calcula la huella | Existe (en revisión) y ya nombra al Catálogo |
-| #4 Tablero y despliegue | Dura | Tipos, `topeVivas`, orden para IDs; valida que el ejército inicial cabe en los topes | Pendiente |
+| #3 Máquina de turno | Blanda | `movimiento` y `topeVivas` (F8, invariante de la pila) y orden de tipos | Existe y ya nombra al Catálogo |
+| #4 Tablero y despliegue | Dura | Tipos, `topeVivas`, orden para IDs; valida que el ejército inicial cabe en los topes; `movimiento` para sus oráculos | Existe y ya nombra al Catálogo |
 | #5 Castillo y muros | Dura | `vida` y `escudo` del arquero | Pendiente |
 | #6 Movimiento | Dura | `movimiento`, vía `EffectiveStats` | Pendiente |
 | #7 Alcance y asignación | Dura | `alcanceMin` y `alcanceMax` | Pendiente |
@@ -244,12 +247,9 @@ Esto evita un ciclo: la Librería depende del esquema del Catálogo, y el Catál
 | #26 Registro | Blanda | Guarda la tabla en la config de cada partida | Pendiente |
 | #8 Cobertura | Referencia | Nombra al Escudero por su ID (2); no lee el archivo | Pendiente |
 
-**Bidireccionalidad.** Solo la Librería tiene GDD y ya nombra al Catálogo. Cada uno de los otros, al escribirse, tiene que nombrar al Catálogo en su sección Dependencies. Queda marcado para `/design-review` y `/review-all-gdds`.
+**Bidireccionalidad.** La Librería (#1), la Máquina de turno (#3) y el Tablero (#4) tienen GDD y ya nombran al Catálogo. Cada uno de los otros, al escribirse, tiene que nombrar al Catálogo en su sección Dependencies. Queda marcado para `/design-review` y `/review-all-gdds`.
 
-**Cambios pendientes fuera de este archivo:**
-
-- `libreria-de-reglas.md`: quitar la marca PROVISIONAL de las estadísticas 0 a 1.000 y de las 61 piezas vivas, y apuntar al Catálogo como dueño.
-- `systems-index.md`: las aristas #8, #14, #19, #26 y #28 hacia el Catálogo no están en la columna Depends On.
+**Cambios fuera de este archivo:** la Librería ya apunta al Catálogo como dueño de las estadísticas y de las 61 piezas, y el índice ya tiene las aristas #8, #14, #19, #26 y #28.
 
 ## Tuning Knobs
 
@@ -265,7 +265,7 @@ Todas las cifras están en el archivo de datos del Catálogo; ninguna está en e
 | `escudo + vida` del Rey | 35 | sin techo duro | 31 | Partida más larga: el Rey tarda más en caer | Con 30 o menos lo mata sola el demoledor: rompe I2 |
 | `escudo` de un tipo | 1 a 5 | sin techo duro | 0 (F4) | Con `escudo` ≥ `ataque` de un atacante, ese atacante solo no hace daño (válido, empuja a combinar: pilar 2); con escudos de 30 o más ninguna pieza suelta hace daño | Sube el valor de las piezas sueltas y debilita el pilar 2 |
 | `danoArea` | 6 (catapulta); 0 el resto | 10 | 0 (F4); el piso útil se calibra | Con 11 o más mata sola al demoledor (vida 10, escudo 1): rompe I3 | Con 0 la catapulta pierde su rol de ablandar |
-| `movimiento` | 4 / 4 / 4 / 2 / 6 / 6 / 6 | no verificable: depende de la distancia entre castillos (Tablero, #4) | ≥ 1 (F2) | Una pieza llega al castillo rival el mismo turno en que aparece (a confirmar con #4) | Cuesta llegar a atacar: partida más larga |
+| `movimiento` | 4 / 4 / 4 / 2 / 6 / 6 / 6 | 12 de movimiento efectivo, con bonos (Tablero, `techo_movimiento`); F8 corta antes: hoy quedan 2 de margen en la pila, así que subir 1 al soldado ya la rompe | ≥ 1 (F2) | Con 13 o más, una pieza llega al castillo rival el mismo turno en que aparece | Cuesta llegar a atacar: partida más larga |
 | `alcanceMax` | 1 / 4 / 2 / 6 / 1 / 1 / 1 | no verificable: el costo de la vista previa crece con el área del círculo; lo mide la Librería (presupuesto 5 ms) | ≥ `alcanceMin` (F3) | Más objetivos posibles por pieza: la vista previa pesa más y el tablero se vuelve ilegible | Menos objetivos posibles |
 | `alcanceMin` | 1 (todos menos la catapulta: 2) | ≤ `alcanceMax` (F3) | 1 (F3) | Agranda la zona ciega alrededor de la pieza (su geometría la define Alcance, #7) | Con 1 la pieza ataca también a las 8 casillas vecinas |
 | `topeVivas` | 12 / 16 / 12 / 8 / 8 / 4 / 1 | La suma no puede pasar de 61 (F6); la suma vigente ya es 61 | ≥ 1 (F5); soldados, arqueros y escuderos ≥ 4 (despliegue inicial) | Subir uno exige bajar otro o cambiar el tope de 61 (revisar el desborde de la Librería) | Un tope menor que 4 en esos tres tipos hace inválido el despliegue |
@@ -281,7 +281,7 @@ Todas las cifras están en el archivo de datos del Catálogo; ninguna está en e
 
 **No es perilla de balance:** `versionBalance`. Es contabilidad: sube con cualquier cambio de cifra (regla 10).
 
-**Techos y pisos:** los techos salen de I1 a I3 y se verifican con el test; los pisos y los límites marcados "no verificable" quedan como Open Questions para calibrar con partidas humanas y con el GDD del Tablero.
+**Techos y pisos:** los techos salen de I1 a I3 y se verifican con el test; los pisos y los límites marcados "no verificable" quedan como Open Questions para calibrar con partidas humanas.
 
 ## Visual/Audio Requirements
 
@@ -313,11 +313,11 @@ Sin pantalla propia. Las cifras de cada tipo se muestran en la ficha de pieza y 
 **Reglas del Catálogo (Core Rules)**
 
 - **AC-1 (regla 1, forma del Catálogo)** — **GIVEN** el Catálogo vigente, **WHEN** se llama `PrepararContexto`, **THEN** se acepta; el contexto trae 7 filas con IDs 0 a 6 en orden y `versionBalance` leída del archivo.
-- **AC-2 (regla 2, orden)** — **GIVEN** el Catálogo vigente con las filas 3 y 4 intercambiadas, **WHEN** se llama `PrepararContexto`, **THEN** `ConfigInvalida` (F1). *(Integration, PROVISIONAL hasta #4)* **GIVEN** el Catálogo vigente y castillos fijos, **WHEN** se crea la partida, **THEN** los IDs de las piezas del despliegue siguen el orden de la Librería (jugador 0 primero y, dentro de cada jugador, por ID de tipo y casilla).
+- **AC-2 (regla 2, orden)** — **GIVEN** el Catálogo vigente con las filas 3 y 4 intercambiadas, **WHEN** se llama `PrepararContexto`, **THEN** `ConfigInvalida` (F1). *(Integration con #4)* **GIVEN** el Catálogo vigente y castillos fijos, **WHEN** se crea la partida, **THEN** los IDs de las piezas del despliegue siguen el orden de la Librería (jugador 0 primero y, dentro de cada jugador, por ID de tipo y casilla).
 - **AC-3 (reglas 3 y 4, campos y valores)** — **GIVEN** el Catálogo vigente, **WHEN** se lee cada fila, **THEN** sus 8 campos coinciden con la tabla de Core Rules, campo por campo (los 56 valores de 7 filas por 8 campos).
 - **AC-4 (regla 5, estático)** — **GIVEN** una partida creada con el Catálogo vigente, **WHEN** se aplican 20 comandos válidos y un bono de turno de +2 de ataque, **THEN** la huella del contexto y las cifras base no cambian; `EffectiveStats` devuelve el ataque base + 2 y la fila del Catálogo sigue igual.
 - **AC-5 (regla 6, F1)** — **GIVEN** el Catálogo vigente con 6 filas, con 8, con un ID repetido, o con IDs desordenados, **WHEN** se crea la partida, **THEN** cada caso da `ConfigInvalida` (nunca `ProbabilidadesInvalidas`) y no se crea ninguna partida.
-- **AC-6 (F2, límites)** — **GIVEN** la fila del Soldado, **WHEN** `movimiento`, `ataque`, `vida` y `alcanceMax` toman 0, 1, 1.000 y 1.001 (cada uno por separado), **THEN** 0 y 1.001 dan `ConfigInvalida`; 1 y 1.000 se aceptan.
+- **AC-6 (F2, límites)** — **GIVEN** la fila del Soldado, **WHEN** `movimiento`, `ataque`, `vida` y `alcanceMax` toman 0, 1, 1.000 y 1.001 (cada uno por separado), **THEN** 0 y 1.001 dan `ConfigInvalida`; 1 y 1.000 se aceptan, salvo `movimiento` 1.000, que da `ConfigInvalida` por F8 (la pila): con el Catálogo vigente el del Soldado se acepta hasta 4.
 - **AC-7 (F3)** — **GIVEN** la fila de la Catapulta, **WHEN** `alcanceMin` es 0, igual a `alcanceMax` y `alcanceMax` + 1, **THEN** 0 y `alcanceMax` + 1 dan `ConfigInvalida`; el igual se acepta.
 - **AC-8 (F4, límites)** — **GIVEN** la fila del Soldado, **WHEN** `escudo` y `danoArea` toman −1, 0, 1.000 y 1.001 (cada uno por separado), **THEN** −1 y 1.001 dan `ConfigInvalida`; 0 y 1.000 se aceptan.
 - **AC-9 (F5)** — **GIVEN** el Catálogo vigente, **WHEN** el `topeVivas` de cualquier tipo es 0, **o** el del Rey es 2 (con otro tope bajado para que la suma no pase de 61), **o** el del Rey es 0, **THEN** `ConfigInvalida` en los tres casos.
@@ -347,7 +347,7 @@ Sin pantalla propia. Las cifras de cada tipo se muestran en la ficha de pieza y 
 - **AC-27 (editar con partida en curso)** — **GIVEN** una partida en curso con su contexto fijado, **WHEN** se reemplaza el archivo y se aplica un comando, **THEN** la huella y las cifras de esa partida no cambian; una partida nueva usa el archivo nuevo.
 - **AC-28 (ataque menor o igual que el escudo)** — *(Integration, PROVISIONAL hasta #9)* **GIVEN** un Escudero (ataque 4) que ataca a otro Escudero (escudo 5), **WHEN** se resuelve, **THEN** el daño neto es 0 y la vida no cambia; **WHEN** atacan 3 Escuderos al mismo objetivo, **THEN** pierde 7 de vida (12 − 5).
 - **AC-29 (bono sobre el máximo)** — **GIVEN** un Catálogo con `ataque` 1.000 en el Soldado y un bono de +10, **WHEN** se llama `EffectiveStats`, **THEN** devuelve 1.010 sin error.
-- **AC-30 (ejército inicial)** — *(Integration, PROVISIONAL hasta #4)* **GIVEN** el Catálogo vigente con `topeVivas` de Soldados en 3, **WHEN** se crea la partida, **THEN** `ConfigInvalida`.
+- **AC-30 (ejército inicial)** — *(Integration con #4)* **GIVEN** el Catálogo vigente con `topeVivas` de Soldados en 3, **WHEN** se crea la partida, **THEN** `ConfigInvalida`.
 - **AC-31 (skin con ID inválido)** — *(Integration, PROVISIONAL hasta #18 y #38)* **GIVEN** una skin que declara el tipo 7, **WHEN** el validador la revisa, **THEN** la rechaza.
 - **AC-32 (cifras repetidas)** — **GIVEN** un Catálogo donde Soldado y Jinete tienen las mismas cifras, **WHEN** se llama `PrepararContexto`, **THEN** se acepta, con una huella distinta de la del vigente.
 - **AC-33 (área genérica)** — *(Integration, PROVISIONAL hasta #9)* **GIVEN** un Catálogo con `danoArea` 8 en el Arquero, **WHEN** un arquero ataca una casilla en alcance, **THEN** las 8 casillas alrededor reciben 8 de daño antes de escudo.
@@ -365,7 +365,6 @@ Sin pantalla propia. Las cifras de cada tipo se muestran en la ficha de pieza y 
 | Orden del recluta automático del Cuerno de guerra (catapulta, jinete, demoledor por ID) | Reclutamiento (#10) y Máquina de turno (#3) | En sus GDD |
 | Con 3 llamadas de 4 jinetes (12) y tope de 8, la última recluta menos: ¿se acepta o se ajusta? | Reclutamiento (#10) | En su GDD |
 | Pisos de `ataque`, `vida`, `escudo` y `danoArea` sin fundamentar | Métricas (#19), partidas humanas | Compuerta de duración |
-| Techo de `movimiento` (distancia entre castillos) y de `alcanceMax` (costo de la vista previa) | Tablero (#4) y Librería | En el GDD del Tablero |
+| Techo de `alcanceMax` (costo de la vista previa). El de `movimiento` quedó en 12 (Tablero, #4) | Librería | Al medir la vista previa |
 | `PrepararContexto` sin presupuesto de tiempo propio | Librería (ADR) | Antes de escribir código |
 | ¿El jugador percibe el duelo como justo (Player Fantasy)? No automatizable | Playtest | En los playtests del MVP |
-| Quitar la marca PROVISIONAL de estadísticas y 61 piezas en la Librería | Librería (#1) | Antes de aprobar este GDD |

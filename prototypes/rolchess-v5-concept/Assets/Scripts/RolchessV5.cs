@@ -116,10 +116,8 @@ public class RolchessV5 : MonoBehaviour
     // ---------- Setup options ----------
     bool hex;
     const bool castles = true;   // 2026-11-19: the no-castle variant is discarded
-    bool castleRandom;   // castles in a random pair of sectors instead of 4 and 6
-    // Allowed castle sectors (blue, red), keypad numbering. Index 0 is the default.
-    static readonly int[,] SectorPairs = { { 4, 6 }, { 1, 9 }, { 7, 3 } };   // 2-8 does not fit: 15 rows leave no room between the castles
-    int pairIdx, forcedPair = -1;
+    // Castle sectors (blue, red), keypad numbering. 2026-11-25: fixed pair, the random option is discarded.
+    static readonly int[] CastleSectors = { 4, 6 };
     readonly Vector2Int[] home = new Vector2Int[2];   // King's starting cell (castle centre)
     readonly Vector2Int[] face = new Vector2Int[2];   // direction towards the rival
     TimerMode timerMode = TimerMode.Variable;
@@ -276,11 +274,10 @@ public class RolchessV5 : MonoBehaviour
         guards.Clear();
 
         // The board is split in 9 sectors numbered like a phone keypad (1 top-left ... 9 bottom-right).
-        // Without the random option the players sit in 4 and 6. Same logic with or without castles.
-        pairIdx = castleRandom ? (forcedPair >= 0 ? forcedPair : Random.Range(0, SectorPairs.GetLength(0))) : 0;
+        // The players always sit in 4 and 6. Same logic with or without castles.
         for (int p = 0; p < 2; p++)
         {
-            int sector = SectorPairs[pairIdx, p] - 1, sc = sector % 3, sr = sector / 3;
+            int sector = CastleSectors[p] - 1, sc = sector % 3, sr = sector / 3;
             int edge = castles ? 2 : 1;   // castle centre sits 2 cells from the border, a lone King 1
             home[p] = new Vector2Int(sc == 0 ? edge : sc == 1 ? W / 2 : W - 1 - edge, sr == 0 ? edge : sr == 1 ? H / 2 : H - 1 - edge);
         }
@@ -352,7 +349,7 @@ public class RolchessV5 : MonoBehaviour
         {
             startedAt = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
             timerMode = TimerNames[(int)timerMode],
-            castleSectors = $"{SectorPairs[pairIdx, 0]} y {SectorPairs[pairIdx, 1]}",
+            castleSectors = $"{CastleSectors[0]} y {CastleSectors[1]}",
         };
         curTurn = null;
         metricsSaved = false;
@@ -1291,8 +1288,6 @@ public class RolchessV5 : MonoBehaviour
         GUILayout.Label("<size=22><b>Rolchess v5: prototipo</b></size>", richStyle);
         GUILayout.Space(8);
         hex = false; // hexagonal board parked for now: the code stays, the option is hidden
-        GUILayout.Label("Posición de los castillos");
-        castleRandom = GUILayout.Toolbar(castleRandom ? 1 : 0, new[] { "En el medio (4 y 6)", "Al azar (4 y 6, 1 y 9, 7 y 3)" }) == 1;
         GUILayout.Label($"Tablero: {BoardW} × {BoardH}");
         GUILayout.Label("Timer (solo partidas locales)");
         timerMode = (TimerMode)GUILayout.Toolbar((int)timerMode, TimerNames);
@@ -1805,7 +1800,7 @@ public class RolchessV5 : MonoBehaviour
         string pct = played > 0 ? $" ({decisiveTurns * 100 / played}%)" : "";
         GUILayout.Label($"Ataque combinado decisivo (sumando matan o rompen una defensa que por separado no): {decisiveTurns} de {played} turnos jugados{pct}", richStyle);
         GUILayout.Label($"2+ piezas a un mismo objetivo: {combinedTurns} turnos · turnos con ataque: {attackTurns}", richStyle);
-        GUILayout.Label($"<size=11>{(hex ? "Hexagonal" : "Tablero")} {W}×{H}, castillos en {SectorPairs[pairIdx, 0]} y {SectorPairs[pairIdx, 1]}, timer {TimerNames[(int)timerMode]}</size>", richStyle);
+        GUILayout.Label($"<size=11>{(hex ? "Hexagonal" : "Tablero")} {W}×{H}, castillos en {CastleSectors[0]} y {CastleSectors[1]}, timer {TimerNames[(int)timerMode]}</size>", richStyle);
     }
 
     static float Avg(List<float> l)
