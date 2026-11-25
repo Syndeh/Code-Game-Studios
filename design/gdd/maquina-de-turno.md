@@ -187,8 +187,7 @@ de mover se pierde; se mide en playtest (Open Questions).
 
 | Desde | Hacia | Cuándo |
 |---|---|---|
-| (creación, castillos fijos o k = 1) | `Mover` (turno 1, jugador 0) | `CrearPartida`; sin tirada ni reclutar |
-| (creación, k ≥ 2) | `EsperandoTirada` (sorteo) → `Mover` (turno 1) | `Tirada` del sorteo coloca castillos y piezas |
+| (creación) | `Mover` (turno 1, jugador 0) | `CrearPartida` con castillos fijos (Tablero, #4); sin tirada ni reclutar |
 | `EsperandoTirada` (turno ≥ 2) | `Reclutar` | `Tirada` válida → `ReclutarObligatorio` |
 | `EsperandoTirada` | `Mover` | `Tirada` → `Seguir` o `LimiteMovimientos(sin límite)` |
 | `EsperandoTirada` | `Atacar` | `Tirada` → `SaltearMovimiento` |
@@ -393,8 +392,6 @@ punto de movimiento. Si #6 define otra cosa, el máximo baja.
 - **Si `t_partida ≥ umbral_cierre_s` cuando termina un turno:** la autoridad comprueba el
   umbral **antes de enviar cada `Tirada`** y, en lugar de la tirada, envía
   `CierrePorTiempo`. Nunca se abre un turno pasado el umbral.
-- **Si `CierrePorTiempo` llega mientras se espera el sorteo de castillos:**
-  `CierreInvalido`, porque todavía no hay Reyes.
 - **Si `Rendirse` llega en cualquier fase, también esperando tirada:** termina la partida y
   gana el otro jugador.
 - **Si los dos jugadores solo dejan correr el reloj** (Reyes 30 y 30, mismas piezas,
@@ -585,9 +582,7 @@ integración con otro sistema. **Config/Data** = chequeo de humo. Los criterios 
   `Atacar` da etapa atacar y `EsperandoTirada` no da ninguna.
 - **AC-3 (Logic, regla 3)** — **GIVEN** `CrearPartida` con castillos fijos, **WHEN** se
   crea, **THEN** el estado está en `Mover`, jugador 0, `numeroTurno` 1, sin tirada pendiente
-  y sin `FaseIniciada(Reclutar)`. **Y GIVEN** castillos sorteados con k = 3, **WHEN** llega
-  la `Tirada` del sorteo, **THEN** pasa a `Mover` del turno 1 sin pedir tirada del
-  Modificador.
+  y sin `FaseIniciada(Reclutar)`; el primer turno no pide tirada del Modificador.
 - **AC-4 (Logic, regla 4)** — **GIVEN** el turno 1 del jugador 0 en `Atacar` y un escudero
   del jugador 1 cubriendo a un aliado desde su turno anterior, **WHEN** `Resolver` cierra el
   turno sin ganador, **THEN** el estado queda en `EsperandoTirada` del jugador 1,

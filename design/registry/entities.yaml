@@ -54,7 +54,7 @@
 #   in any other shape is reported as unsupported layout, with its number.
 
 version: 1
-last_updated: "2026-11-20"
+last_updated: "2026-11-25"
 
 # ─── ENTITIES ────────────────────────────────────────────────────────────────
 # Named game-world objects: enemies, NPCs, characters, factions, bosses.
@@ -72,6 +72,7 @@ entities:
     referenced_by:
       - design/gdd/catalogo-de-piezas.md
       - design/gdd/maquina-de-turno.md
+      - design/gdd/tablero-y-despliegue-inicial.md
     id: 0
     movimiento: 4
     alcance_min: 1
@@ -89,6 +90,7 @@ entities:
     referenced_by:
       - design/gdd/catalogo-de-piezas.md
       - design/gdd/maquina-de-turno.md
+      - design/gdd/tablero-y-despliegue-inicial.md
     id: 1
     movimiento: 4
     alcance_min: 1
@@ -106,6 +108,7 @@ entities:
     referenced_by:
       - design/gdd/catalogo-de-piezas.md
       - design/gdd/maquina-de-turno.md
+      - design/gdd/tablero-y-despliegue-inicial.md
     id: 2
     movimiento: 4
     alcance_min: 1
@@ -174,6 +177,7 @@ entities:
     referenced_by:
       - design/gdd/catalogo-de-piezas.md
       - design/gdd/maquina-de-turno.md
+      - design/gdd/tablero-y-despliegue-inicial.md
     id: 6
     movimiento: 6
     alcance_min: 1
@@ -258,7 +262,7 @@ formulas:
     added: 2026-11-19
     revised: 2026-11-19
   - name: opcion_por_sorteo
-    status: active
+    status: deprecated
     source: design/gdd/libreria-de-reglas.md
     referenced_by:
       - design/gdd/libreria-de-reglas.md
@@ -267,9 +271,9 @@ formulas:
       - k
     output_range: [0, 99]
     expression: "(n * k) / tirada_rango, division entera hacia abajo"
-    notes: "Salida 0..k-1 (el rango [0, 99] es el maximo, con k = 100). Las opciones con un numero de mas dependen de k (k = 3: 34/33/33; k = 7: 15/14/14/15/14/14/14). La usa el Tablero (#4) para el sorteo de castillos."
+    notes: "RETIRADA 2026-11-25: el Tablero (#4) usa castillos fijos (par 4-6) y no hay sorteo; la Libreria quito la formula y su estado. Antes: salida 0..k-1, k = 3 daba 34/33/33, y la usaba el Tablero para el sorteo de castillos."
     added: 2026-11-19
-    revised: 2026-11-19
+    revised: 2026-11-25
   - name: reparto_liberado
     status: active
     source: design/gdd/libreria-de-reglas.md
@@ -301,6 +305,7 @@ formulas:
     source: design/gdd/catalogo-de-piezas.md
     referenced_by:
       - design/gdd/catalogo-de-piezas.md
+      - design/gdd/tablero-y-despliegue-inicial.md
     variables:
       - ataque_a
       - escudo_t
@@ -364,6 +369,49 @@ formulas:
     notes: "D1. Cuantos turnos caben en el tope de partida (1500 s) al promedio medido por turno. v4: 57 s -> 26 turnos, 40 s -> 37. Formula de diseno que usan las Metricas (#19); no corre en el nucleo. Resolucion (#9), Reclutamiento (#10) y Modificador (#11) declaran su delta de turnos contra este presupuesto."
     added: 2026-11-20
     revised: ""
+  - name: distancia_frente
+    status: active
+    source: design/gdd/tablero-y-despliegue-inicial.md
+    referenced_by:
+      - design/gdd/tablero-y-despliegue-inicial.md
+    variables:
+      - cc_azul
+      - cc_rojo
+      - RADIO_MURO
+      - linea_max
+    output_range: [2, 9]
+    expression: "(cc_rojo - cc_azul) - 2 * (RADIO_MURO + 1 + linea_max); invariante distancia_frente >= 2"
+    notes: "Distancia en casillas entre las lineas de escuderos de los dos ejercitos al empezar (9 con cc 2 y 21, RADIO_MURO 2, linea_max 2). Con 1 los ejercitos empiezan pegados. Constantes del contrato del Tablero (#4): cambiarlas sube la version de reglas."
+    added: 2026-11-25
+    revised: ""
+  - name: turnos_hasta_contacto
+    status: active
+    source: design/gdd/tablero-y-despliegue-inicial.md
+    referenced_by:
+      - design/gdd/tablero-y-despliegue-inicial.md
+    variables:
+      - distancia_frente
+      - m
+    output_range: [1, 8]
+    expression: "ceil((distancia_frente - 1) / m), cota inferior; m = movimiento de las piezas de frente, minimo 1 (Catalogo F2)"
+    notes: "Oraculo de tests de balance; no entra al nucleo. Con distancia_frente 9: m=4 -> 2, m=6 -> 2, m=2 -> 4, m=1 -> 8, m=8 -> 1. Ignora bloqueos y supone avance en linea recta."
+    added: 2026-11-25
+    revised: ""
+  - name: techo_movimiento
+    status: active
+    source: design/gdd/tablero-y-despliegue-inicial.md
+    referenced_by:
+      - design/gdd/tablero-y-despliegue-inicial.md
+      - design/gdd/catalogo-de-piezas.md
+    variables:
+      - cc_azul
+      - cc_rojo
+      - RADIO_MURO
+    output_range: [1, 12]
+    expression: "d_anillo_muro - 1, con d_anillo_muro = (cc_rojo - RADIO_MURO - 1) - (cc_azul + RADIO_MURO + 1)"
+    notes: "Techo de movimiento efectivo para que una pieza reclutada en el anillo no llegue al muro rival el mismo turno (13 pasos -> techo 12). Responde la Open Question del Catalogo sobre el techo de movimiento; supone el carril libre. Oraculo de tests de balance; no entra al nucleo."
+    added: 2026-11-25
+    revised: ""
 
 # Example:
 #
@@ -403,7 +451,7 @@ constants:
     referenced_by:
       - design/gdd/libreria-de-reglas.md
     value: 100
-    unit: "cantidad de valores posibles de la tirada (0-99); divisor de opcion_por_sorteo y suma de cada tabla de cara_por_tirada"
+    unit: "cantidad de valores posibles de la tirada (0-99); suma de cada tabla de cara_por_tirada"
     added: 2026-11-19
     revised: ""
   - name: tirada_max
@@ -461,6 +509,7 @@ constants:
     source: design/gdd/catalogo-de-piezas.md
     referenced_by:
       - design/gdd/catalogo-de-piezas.md
+      - design/gdd/tablero-y-despliegue-inicial.md
     value: 7
     unit: "tipos de pieza del Catalogo (IDs 0 a 6, conjunto cerrado)"
     added: 2026-11-20
@@ -482,6 +531,35 @@ constants:
     value: 1500
     unit: "segundos de partida (25 min, pilar 4); rango seguro 1290-1500; el cierre por tiempo se dispara en tope_partida_s - turno_max_s"
     added: 2026-11-20
+    revised: ""
+  - name: tablero_columnas
+    status: active
+    source: design/gdd/tablero-y-despliegue-inicial.md
+    referenced_by:
+      - design/gdd/tablero-y-despliegue-inicial.md
+      - design/gdd/libreria-de-reglas.md
+    value: 24
+    unit: "columnas de la grilla (0-23); constante del contrato, cambiarla sube la version de reglas (adoptada de la Libreria, antes PROVISIONAL)"
+    added: 2026-11-25
+    revised: ""
+  - name: tablero_filas
+    status: active
+    source: design/gdd/tablero-y-despliegue-inicial.md
+    referenced_by:
+      - design/gdd/tablero-y-despliegue-inicial.md
+      - design/gdd/libreria-de-reglas.md
+    value: 15
+    unit: "filas de la grilla (0-14); constante del contrato, cambiarla sube la version de reglas (adoptada de la Libreria, antes PROVISIONAL)"
+    added: 2026-11-25
+    revised: ""
+  - name: radio_muro
+    status: active
+    source: design/gdd/tablero-y-despliegue-inicial.md
+    referenced_by:
+      - design/gdd/tablero-y-despliegue-inicial.md
+    value: 2
+    unit: "casillas del centro del castillo al muro (bloque de 5 x 5, 16 tramos, 9 de interior); constante del contrato, rango seguro 1-5"
+    added: 2026-11-25
     revised: ""
 
 # Example:

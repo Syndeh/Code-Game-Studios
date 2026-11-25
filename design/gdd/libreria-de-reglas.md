@@ -38,8 +38,8 @@ local, en el servidor online, en los tests y en el reproductor de repeticiones.
 Su promesa central es el **determinismo**: el mismo estado inicial y la misma secuencia de
 comandos dan siempre el mismo resultado, en cualquier máquina. Para cumplirla usa solo
 números enteros, resuelve todo en un orden fijo por ID de pieza y no toma azar de ningún
-lado: el azar del juego (la tirada del Modificador y el sorteo de la posición de los
-castillos) entra como un dato registrado que envía la autoridad.
+lado: el azar del juego (la tirada del Modificador) entra como un dato registrado que
+envía la autoridad.
 
 Los demás sistemas del núcleo (Máquina de turno, Tablero, Castillo, Movimiento, Ataques,
 Cobertura, Resolución, Reclutamiento, Modificador y Registro de partida) son reglas escritas
@@ -108,24 +108,23 @@ la pantalla del otro pasó distinto", "perdí por algo que no se veía".
    **modo** (local u online); la tabla del Catálogo (su contenido; la huella, un resumen
    que identifica esa tabla exacta, la calcula PrepararContexto); las tablas de probabilidad del Modificador, con el papel
    de cada cara (reclutar, Grito de guerra, Arremetida u otra); la posición de los
-   castillos, fija o sorteada entre k opciones; y el modo de timer, solo como dato
+   castillos, fija (la define el Tablero, #4); y el modo de timer, solo como dato
    informativo que no entra al estado (la librería no mide tiempo y ninguna regla depende
    de él). CrearPartida valida **toda** la config antes
    de crear nada: Catálogo no vacío y con el formato del Catálogo (#2); cada tabla de
    probabilidad según *Formulas* (`ProbabilidadesInvalidas`); los **papeles de las caras**
    de cada tabla (`ProbabilidadesInvalidas`): un papel por cara, exactamente una cara de
    Grito de guerra y una de Arremetida, distintas entre sí y distintas de las caras de
-   reclutar; k del sorteo entre 1 y 100; y los castillos dentro del tablero y sin
-   superponerse **en cada una de las k opciones**, no solo en la que salga. Si fallan las
+   reclutar; y los castillos dentro del tablero y sin
+   superponerse. Si fallan las
    tablas y algo más, gana `ProbabilidadesInvalidas`; cualquier otro fallo devuelve
    `ConfigInvalida`. En los dos casos no se crea partida; si no, devuelve el estado y el
-   contexto (regla 1). Con castillos
-   fijos, o sorteados con k = 1, la partida nace **En curso** (no hay nada que sortear);
-   con castillos sorteados y k ≥ 2 nace **esperando tirada** (regla 6) y castillos, piezas
-   y muros se colocan al aplicar esa Tirada. **El primer turno de la partida no tira el
+   contexto (regla 1). La partida
+   siempre nace **En curso**, con castillos, piezas y muros ya colocados (decisión del
+   2026-11-25: no hay sorteo de castillos). **El primer turno de la partida no tira el
    Modificador** (decisión del 2026-11-19, PROVISIONAL hasta #3): después de crear la
-   partida, o de la tirada del sorteo, empieza directo en reclutar/mover. La versión, el id de partida, la huella del
-   Catálogo, el modo, las tablas base con sus papeles y las opciones de castillo no
+   partida empieza directo en reclutar/mover. La versión, el id de partida, la huella del
+   Catálogo, el modo, las tablas base con sus papeles y la posición de los castillos no
    cambian en toda la partida.
 3. **Comandos: una lista cerrada.** Mover(pieza, destino) · Deshacer · TerminarMovimiento ·
    AsignarAtaque(pieza, objetivo) · QuitarAtaque(pieza) · Cubrir(escudero, aliado) ·
@@ -163,9 +162,7 @@ la pantalla del otro pasó distinto", "perdí por algo que no se veía".
      se rechaza con `CierreInvalido`. **Con CierrePorTiempo el ganador lo calcula la
      librería** sobre el estado actual (decisión del 2026-11-19): gana quien tenga más vida
      en su Rey; si empatan, quien tenga más piezas vivas (Rey incluido, muros no); si
-     también empatan, nadie (motivo CierrePorTiempo, ganador vacío). Mientras se espera la
-     tirada del sorteo de castillos todavía no hay Reyes: CierrePorTiempo se rechaza con
-     `CierreInvalido` y solo valen Abandono y Tablas (decisión del 2026-11-19). Cuándo hay abandono y
+     también empatan, nadie (motivo CierrePorTiempo, ganador vacío). Cuándo hay abandono y
      cuándo se envía el cierre es del Timer (#12) y el Servidor (#28); el desempate es
      PROVISIONAL hasta la Máquina de turno (#3).
 4. **Validación y códigos.** Todo comando se valida entero antes de cambiar nada: no hay
@@ -188,7 +185,7 @@ la pantalla del otro pasó distinto", "perdí por algo que no se veía".
    | 6 | `TiradaNoEsperada` | Llega una Tirada y no se espera ninguna | Interno |
    | 7 | `TiradaVieja` · `TiradaInvalida` | Su `contadorTiradaEsperado` no es el `contadorTirada` actual · n fuera de 0–99 (se revisa primero el contador) | Interno |
    | 8 | `TimeoutObsoleto` | `TurnTimeout` con un turno o una etapa que no son los actuales | Interno (se descarta sin aviso) |
-   | 9 | `CierreInvalido` | `CerrarPartida` con un motivo que no es Abandono, CierrePorTiempo ni Tablas, con un ganador que no corresponde al motivo (Abandono sin ganador 0 o 1; CierrePorTiempo o Tablas con ganador), o CierrePorTiempo esperando el sorteo | Interno |
+   | 9 | `CierreInvalido` | `CerrarPartida` con un motivo que no es Abandono, CierrePorTiempo ni Tablas, con un ganador que no corresponde al motivo (Abandono sin ganador 0 o 1; CierrePorTiempo o Tablas con ganador) | Interno |
    | 10 | `ComandoViejo` | El `contadorEsperado` del comando no es el `contadorComandos` actual | Interno (el cliente vuelve a su último estado confirmado) |
    | 11 | `NoEsTuTurno` | El emisor no es el jugador del turno | Sí |
    | 12 | `PiezaInexistente` · `NoEsTuPieza` | El ID de la pieza que actúa no existe (o la pieza murió) · es del rival. El objetivo de AsignarAtaque y el aliado de Cubrir los valida la regla de cada uno (fila 14) | Sí |
@@ -237,11 +234,11 @@ la pantalla del otro pasó distinto", "perdí por algo que no se veía".
      plataforma. La librería vive en un ensamblado sin referencias a Unity (detalle en el
      ADR).
 6. **El azar se inyecta.** La librería nunca genera azar. Cuando una regla lo necesita (la
-   tirada del Modificador, el sorteo de castillos), el estado queda **esperando tirada**,
+   tirada del Modificador), el estado queda **esperando tirada**,
    con sus probabilidades a la vista, y solo acepta Tirada(n), con n entre 0 y 99, de la
    autoridad. La librería convierte n en un resultado con la fórmula de *Formulas*. El
    número queda en los eventos y en el registro. Una tirada nunca se pide en medio de
-   Resolver: los momentos de tirada son al crear la partida (sorteo) y al empezar cada turno
+   Resolver: el momento de tirada es al empezar cada turno
    salvo el primero (Modificador, regla 2; el momento exacto lo define la Máquina de turno, #3).
    - **Tabla efectiva del Modificador.** La librería calcula la tabla al entrar en
      "esperando tirada" y la guarda en el estado: elige la tabla base según la regla del
@@ -301,11 +298,11 @@ la pantalla del otro pasó distinto", "perdí por algo que no se veía".
     el `GetHashCode` de la plataforma. Cubre **todos los campos del estado, sin
     excepción**: lo que no esté en la forma canónica no puede estar en el estado. Hoy eso
     incluye versión, id de partida, huella del Catálogo (no su contenido), modo, tablas
-    base del Modificador **con el papel de cada cara**, las **k opciones de castillo**,
+    base del Modificador **con el papel de cada cara**, la **posición de los castillos**,
     `numeroTurno`, fase y etapa, jugador del
     turno, tabla base y cara del Modificador de este turno y sus bonos (Grito de guerra), piezas con sus
-    movimientos usados, muros, par de castillos sorteado, ataques asignados, coberturas,
-    tirada pendiente (de qué tipo: sorteo o Modificador; para qué jugador; qué tabla base
+    movimientos usados, muros, ataques asignados, coberturas,
+    tirada pendiente (la del Modificador: para qué jugador; qué tabla base
     se eligió y su tabla efectiva), pila de deshacer, contadores de reclutas,
     `contadorTirada`, `contadorComandos` (todo comando aceptado), próximo ID, y ganador y
     motivo de fin. Al terminar la partida, por cualquier motivo, la tirada pendiente se
@@ -330,19 +327,18 @@ la pantalla del otro pasó distinto", "perdí por algo que no se veía".
     |---|---|---|
     | Versión, huella del Catálogo | Soportadas; huella = la del contexto (si no, `VersionNoSoportada`) | — |
     | Id de partida, modo | Cualquier int32 · local u online | — |
-    | Tablas base con papeles, k opciones de castillo | Válidas según la regla 2 y *Formulas* | Cada opción, dentro del tablero y sin superponerse |
-    | Par de castillos sorteado | Vacío o 0 a k − 1 | Vacío ⇔ 0 piezas y 0 muros; En curso y vacío ⇔ tirada pendiente de sorteo. Terminada con par vacío vale: partida cerrada antes del sorteo (decisión del 2026-11-19) |
+    | Tablas base con papeles, posición de los castillos | Válidas según la regla 2 y *Formulas* | Castillos dentro del tablero y sin superponerse |
     | Tablero | 24 columnas (0–23) × 15 filas (0–14), constante (Tablero, #4) | Toda casilla del estado está dentro |
     | `contadorTirada`, `contadorComandos` · `numeroTurno` | 0 a C_MAX · 1 a C_MAX + 1 (empieza en 1) | `contadorTirada` ≤ `contadorComandos`; `numeroTurno` ≤ `contadorComandos` + 2 (CrearPartida y cada Aceptado avanzan como mucho un turno, porque una cascada se detiene en el turno siguiente, que necesita tirada); En curso ⇒ `contadorComandos` ≤ C_MAX − 1 (lugar para `Rendirse` o `CerrarPartida`) |
     | Fase, etapa, jugador del turno | Valores de sus enums (#3) · 0 o 1 | Etapa mover con reclutar o mover; atacar con atacar o resolver |
     | Tabla base del turno, cara del Modificador, bonos | Vacía o índice de una tabla base · vacía o 1 al largo de esa tabla · cada bono 0 a 10 (#11) | Tabla y cara, las dos vacías (primer turno y esperando la tirada) o las dos presentes (decisión del 2026-11-19); la cara tiene p > 0 en esa tabla base o es la de Grito o la de Arremetida (pueden recibir lo liberado); bono > 0 solo con la cara de Grito |
-    | Piezas | Como mucho 61 vivas por jugador y, por tipo, su tope de piezas vivas (#2); una pieza que muere sale del estado | IDs únicos, de 1 a próximo ID − 1; tipo en el Catálogo; vida 1 a la de su tipo; movimientos usados 0 a movimiento del tipo + 10; nunca dos piezas en una casilla (un arquero puede estar sobre un tramo); En curso ⇒ un Rey por jugador, salvo esperando el sorteo (0 piezas) |
+    | Piezas | Como mucho 61 vivas por jugador y, por tipo, su tope de piezas vivas (#2); una pieza que muere sale del estado | IDs únicos, de 1 a próximo ID − 1; tipo en el Catálogo; vida 1 a la de su tipo; movimientos usados 0 a movimiento del tipo + 10; nunca dos piezas en una casilla (un arquero puede estar sobre un tramo); En curso ⇒ un Rey por jugador |
     | Muros | 16 tramos por castillo colocado | Casillas del perímetro de su castillo; vida 0 a la del tramo (#5) |
     | Ataques asignados, coberturas | Uno por pieza como mucho | Ataque: atacante vivo del jugador del turno, objetivo dentro del tablero según su tipo (#7), solo en la etapa atacar. Cobertura: escudero y aliado vivos del mismo jugador (siguen en el turno rival, #8) |
     | Pila de deshacer | 0 a 256 entradas (PROVISIONAL, #3) | IDs de piezas vivas y casillas dentro del tablero; vacía fuera de la fase de mover |
     | Contadores de reclutas | 0 a su tope de llamadas (#2, #11) | — |
     | Próximo ID | 1 a C_MAX | Mayor que todo ID de pieza |
-    | Tirada pendiente | Vacía, {sorteo} o {Modificador, jugador, tabla base, tabla efectiva} | Solo En curso; sorteo ⇔ par vacío; Modificador: jugador = jugador del turno y tabla efectiva = la que se recalcula |
+    | Tirada pendiente | Vacía o {Modificador, jugador, tabla base, tabla efectiva} | Solo En curso; Modificador: jugador = jugador del turno y tabla efectiva = la que se recalcula |
     | Motivo y ganador | Vacíos, o un motivo de la regla 16 con el ganador que pide su fila | Terminada si y solo si hay motivo; ReyMuerto ⇒ queda un solo Rey y gana su dueño; DobleRey ⇒ 0 Reyes |
 
     **Matriz de clausura.** Cada transición que produce un estado, con las filas que toca y
@@ -350,15 +346,14 @@ la pantalla del otro pasó distinto", "perdí por algo que no se veía".
 
     | Transición | Filas que cambia | Por qué queda dentro |
     |---|---|---|
-    | CrearPartida | Todas | Valida toda la config (regla 2); `numeroTurno` 1, contadores 0, próximo ID ≤ 123; con k ≥ 2, par vacío, 0 piezas y tirada de sorteo |
-    | Tirada de sorteo | Par, piezas, muros, tirada, `contadorTirada`, `numeroTurno` | `opcion_por_sorteo` da 0 a k − 1 y cada opción se validó al crear; IDs por la regla 7; la cascada del primer turno llega como mucho al turno 2 |
+    | CrearPartida | Todas | Valida toda la config (regla 2); `numeroTurno` 1, contadores 0, próximo ID ≤ 123; castillos, piezas y muros colocados por el despliegue del Tablero (#4), con IDs por la regla 7 |
     | Tirada del Modificador | Tabla base y cara del turno, bonos, tirada, `contadorTirada` | La tabla efectiva se validó al entrar en espera; `cara_por_tirada` da una cara con p > 0 en ella; bonos del Modificador (#11) dentro de 0 a 10 |
     | Mover · Deshacer | Piezas (casilla, movimientos usados), pila | Fila 14 valida destino y movimientos; la pila ≤ 256 por la fila 15 |
     | Reclutar · recluta automático | Piezas, próximo ID, contadores de reclutas | Todo o nada; topes de piezas por tipo y de llamadas (fila 14); próximo ID ≤ C_MAX por la fila 15 |
     | AsignarAtaque · QuitarAtaque · Cubrir | Ataques, coberturas | Fila 14 valida atacante, objetivo, escudero y aliado |
     | TerminarMovimiento · `TurnTimeout` de mover | Pila (vacía), fase y etapa | Igual que TerminarMovimiento; cascadas solo al empezar una fase (regla 17) |
     | Resolver · `TurnTimeout` de atacar | Vida, piezas muertas (salen), muros, ataques, coberturas, fin, `numeroTurno`, tirada | Vida en 0 sale; resto con `max(0, …)`; `EvaluateMatchEnd` fija motivo y ganador de la regla 16; si sigue, abre el turno siguiente (tabla, cara y bonos vacíos) y su tirada |
-    | `Rendirse` · `CerrarPartida` | Motivo, ganador, tirada (se borra) | Motivo y ganador por la regla 16; antes del sorteo queda Terminada con par vacío, 0 piezas y 0 muros, que es válido |
+    | `Rendirse` · `CerrarPartida` | Motivo, ganador, tirada (se borra) | Motivo y ganador por la regla 16 |
     | Todo Aceptado | `contadorComandos` (+1), `contadorTirada` (+1 con Tirada) | Fila 15: en C_MAX − 1 solo pasan `Rendirse` y `CerrarPartida`, que terminan la partida |
 
     El decodificador estricto valida cada prefijo de cantidad contra el tope de su
@@ -395,7 +390,7 @@ la pantalla del otro pasó distinto", "perdí por algo que no se veía".
        `VersionNoSoportada`.
     3. `Huella(estadoAutoridad)` no es `huellaDeclarada` (estado dañado en el camino),
        `estadoAutoridad` no es un estado válido (regla 11), o algún campo inmutable
-       de la regla 2 (modo, tablas base con sus papeles, opciones de castillo) difiere del
+       de la regla 2 (modo, tablas base con sus papeles, posición de los castillos) difiere del
        de `confirmado` → `EstadoInvalido`.
     4. El id de partida de `estadoAutoridad` no es el de `confirmado` → `OtraPartida`.
     5. El `contadorComandos` de `estadoAutoridad` es menor que el de `confirmado` →
@@ -459,12 +454,11 @@ la pantalla del otro pasó distinto", "perdí por algo que no se veía".
 
 | Desde | Hacia | Cuándo |
 |---|---|---|
-| (ninguno) | En curso | CrearPartida con config válida y castillos fijos, o sorteados con k = 1: piezas y muros colocados |
-| (ninguno) | En curso · esperando tirada | CrearPartida con config válida y castillos sorteados con k ≥ 2; la Tirada coloca castillos, piezas y muros |
+| (ninguno) | En curso | CrearPartida con config válida: castillos, piezas y muros colocados |
 | (ninguno) | (sin partida) | Config inválida: `ConfigInvalida` o `ProbabilidadesInvalidas` |
 | En curso | En curso · esperando tirada | Empieza un turno que necesita tirada (el momento lo define la Máquina de turno, #3). Si es al terminar un Resolver o un `TurnTimeout` de atacar, el estado que devuelven ya queda esperando, pero ningún cálculo de esa resolución usa la tirada |
 | En curso · esperando tirada | En curso | Tirada(n) válida de la autoridad. Cualquier otro comando se rechaza: `SoloAutoridad` (Tirada, `TurnTimeout` o `CerrarPartida` de un jugador) o `EsperandoTirada` (el resto, `TurnTimeout` de la autoridad incluido), salvo `Rendirse` y `CerrarPartida` |
-| En curso (también esperando tirada) | Terminada (ganador, motivo) | Después de resolver, `EvaluateMatchEnd` encuentra un ganador (regla 16: ReyMuerto o DobleRey); un jugador envía `Rendirse` (Rendicion); o la autoridad envía `CerrarPartida` (Abandono, CierrePorTiempo salvo esperando el sorteo, o Tablas). La tirada pendiente se borra |
+| En curso (también esperando tirada) | Terminada (ganador, motivo) | Después de resolver, `EvaluateMatchEnd` encuentra un ganador (regla 16: ReyMuerto o DobleRey); un jugador envía `Rendirse` (Rendicion); o la autoridad envía `CerrarPartida` (Abandono, CierrePorTiempo o Tablas). La tirada pendiente se borra |
 | En curso o esperando tirada (online) | El estado del servidor, también Terminada | Resincronizar válido (regla 14) |
 | Terminada (online) | El estado del servidor | Resincronizar con una huella distinta de la local (el cliente terminó por error) |
 | Terminada | Terminada | Todo comando se rechaza con `PartidaTerminada`, y Resincronizar también si la huella coincide; ningún comando la saca de ahí |
@@ -494,9 +488,9 @@ Ninguno de estos GDD existe todavía: las interfaces son contrato provisional.
 ## Formulas
 
 La librería casi no tiene números de juego propios: daño, alcance y probabilidades son de
-otros GDD. Dos de sus fórmulas convierten una tirada inyectada (regla 6) en un resultado; la
-tercera arma la tabla efectiva del Modificador. No tienen ciclos de retroalimentación: la
-librería no contiene balance.
+otros GDD. Una de sus fórmulas (`cara_por_tirada`) convierte una tirada inyectada (regla 6)
+en un resultado; la otra (`reparto_liberado`) arma la tabla efectiva del Modificador. No
+tienen ciclos de retroalimentación: la librería no contiene balance.
 
 The `cara_por_tirada` formula is defined as:
 
@@ -523,25 +517,7 @@ n = 99 sin cara). Un n fuera de 0–99 se rechaza con `TiradaInvalida`.
 Llamada al servicio. Con n = 99: S_5 = 100 y 99 < 100 → cara 5, Arremetida. Con n = 0 y
 p_1 = 0: S_1 = 0, 0 < 0 es falso, sigue a la primera cara con probabilidad mayor que 0.
 
-The `opcion_por_sorteo` formula is defined as:
-
-`opcion_por_sorteo = (n × k) / tirada_rango` (división entera hacia abajo; `tirada_rango` = 100)
-
-**Variables:**
-| Variable | Type | Range | Source | Description |
-|----------|------|-------|--------|-------------|
-| n | int | 0–99 | inyectado (Tirada de la autoridad) | Número que envía la autoridad |
-| k | int | 1–100 | config (Tablero, #4) | Cantidad de opciones equiprobables |
-
-**Output Range:** 0 a k − 1. El producto más grande es 99 × 100 = 9.900, sin riesgo de
-desborde. Si 100 no es divisible por k, algunas opciones reciben un número más y cuáles
-depende de k: con k = 3 es la primera (34/33/33), con k = 7 la primera y la cuarta
-(15/14/14/15/14/14/14). La probabilidad que se muestra es esa cuenta exacta sobre 100,
-nunca 100/k. Con k = 3 el reparto 34/33/33 se acepta (decisión del 2026-11-19: un punto
-de diferencia en un sorteo de posición no cambia la partida). Con k fuera de 1–100 la config
-es inválida (`ConfigInvalida`).
-**Example:** 3 pares de sectores para los castillos (4 y 6, 1 y 9, 7 y 3) y n = 50:
-(50 × 3) / 100 = 1 → par "1 y 9". Con n = 0 → par 0; con n = 99 → (99 × 3) / 100 = 2 → par 2.
+*(La fórmula `opcion_por_sorteo` se retiró el 2026-11-25: el Tablero (#4) usa castillos fijos y no hay sorteo. El azar de la librería es solo la tirada del Modificador.)*
 
 The `reparto_liberado` formula is defined as:
 
@@ -610,10 +586,6 @@ ADR de la librería.
   una tirada.
 - **If the 25-minute cap closes a match with both Kings at the same life and the same
   piece count**: CierrePorTiempo sin ganador (regla 3).
-- **If CierrePorTiempo arrives while waiting for the castle draw** (no hay Reyes):
-  `CierreInvalido`. La autoridad puede cerrar con Abandono o Tablas (y un jugador,
-  rendirse): la partida queda Terminada con par vacío, 0 piezas y 0 muros, un estado
-  válido que se guarda y se carga.
 - **If a match reaches `contadorComandos` = C_MAX − 1** (por ejemplo, Mover y Deshacer
   en bucle sin timer): todo comando se rechaza con `LimitePartida` salvo `Rendirse` y
   `CerrarPartida`, que siempre caben, también un Resolver que terminaría la partida; un
@@ -667,7 +639,7 @@ que nombrar a la librería como consumidora de su esquema.
 | Sistema | Tipo | Qué usa |
 |---|---|---|
 | 3 Máquina de turno | Dura | Escribe sus fases dentro del contrato; pila de deshacer; `EvaluateMatchEnd` |
-| 4 Tablero y despliegue | Dura | CrearPartida, IDs estables, sorteo de castillos (`opcion_por_sorteo`) |
+| 4 Tablero y despliegue | Dura | CrearPartida con castillos fijos (par 4–6), IDs estables; no hay sorteo |
 | 5–11 Reglas del núcleo | Dura | Escriben sus reglas, comandos, códigos y eventos dentro del contrato |
 | 25 Rival IA | Dura | Juega con la misma API y las consultas |
 | 26 Registro de partida | Dura | Guarda config, comandos y tiradas; reproduce con Aplicar |
@@ -685,7 +657,6 @@ tocaría vive en el GDD que lo define; la librería solo lo recibe como dato:
 |---|---|---|
 | Estadísticas de las piezas | Catálogo (#2), archivo de datos | Cada partida fija la tabla que usó con su huella |
 | Probabilidades p_i de cada tabla | Modificador (#11), archivo de datos | La librería solo exige que sumen 100 (`cara_por_tirada`) |
-| Opciones del sorteo de castillos | Tablero (#4) | Hoy son 3 pares (`opcion_por_sorteo`, k = 3) |
 
 **Constantes del contrato (no son perillas):**
 
@@ -859,12 +830,9 @@ todo comando de jugador lleva el `contadorEsperado` correcto, y toda Tirada su
   [2147483647, 2147483647, 102], [101, −1] (suma 100 pero un término fuera de rango) o
   que tienen 1 cara se rechazan con `ProbabilidadesInvalidas`. Con la autoridad
   esperando tirada, n = −1 y n = 100 se rechazan con `TiradaInvalida`.
-- **AC-16 (`opcion_por_sorteo`)** — Sobre la función pura `OpcionPorSorteo(n, k)`:
-  **GIVEN** k = 3, **WHEN** n = 0, 33, 34, 66, 67 y 99, **THEN** salen 0, 0, 1, 1, 2 y 2;
-  recorriendo n de 0 a 99 el conteo es 34/33/33. Recorriendo n de 0 a 99: con k = 1 sale
-  siempre 0; con k = 7 el conteo es 15/14/14/15/14/14/14; con k = 100 sale n. Con k = 0 o
-  k = 101, CrearPartida rechaza la config con `ConfigInvalida`. Con k = 1, una Tirada de la
-  autoridad después de CrearPartida da `TiradaNoEsperada`.
+- **AC-16 (tirada sin espera; antes `opcion_por_sorteo`, retirada el 2026-11-25)** —
+  **GIVEN** una partida recién creada, que nace En curso sin esperar tirada, **WHEN** la
+  autoridad envía Tirada(50), **THEN** `TiradaNoEsperada` y la huella no cambia.
 
 **Casos borde**
 
@@ -989,12 +957,9 @@ todo comando de jugador lleva el `contadorEsperado` correcto, y toda Tirada su
 - **AC-35 (timeout esperando tirada)** — **GIVEN** que se espera una tirada, **WHEN** la
   autoridad envía `TurnTimeout`, **THEN** se rechaza con `EsperandoTirada` y la huella no
   cambia.
-- **AC-36 (sorteo de castillos)** (PROVISIONAL hasta el Tablero, #4) — **GIVEN** una config
-  con castillos sorteados entre 3 pares, **WHEN** se llama CrearPartida, **THEN** la
-  partida queda esperando tirada con 0 piezas; un Mover se rechaza con `EsperandoTirada`;
-  **WHEN** la autoridad envía Tirada(50), **THEN** se colocan los castillos del par 1 con
-  sus piezas y muros y la partida queda En curso. Con Tirada(0) sale el par 0 y con
-  Tirada(99), el par 2.
+- **AC-36 (retirado el 2026-11-25)** — El sorteo de castillos ya no existe: el Tablero (#4)
+  usa castillos fijos. El número se conserva para no romper referencias; la creación con
+  castillos fijos la cubren AC-54 y el AC-4 del Tablero.
 
 **Contrato agregado en la segunda revisión del 2026-11-19**
 
@@ -1033,8 +998,8 @@ todo comando de jugador lleva el `contadorEsperado` correcto, y toda Tirada su
   combinación de caras de reclutar liberadas, **THEN** la tabla efectiva suma 100 y n = 99
   siempre da una cara. **GIVEN** una base con Grito y Arremetida en 0, **THEN** igual suma
   100.
-- **AC-41 (orden de los IDs)** — **GIVEN** un despliegue inicial con castillos fijos y otro
-  con castillos sorteados, **WHEN** se colocan las piezas, **THEN** los IDs coinciden con un
+- **AC-41 (orden de los IDs)** — **GIVEN** un despliegue inicial con castillos fijos,
+  **WHEN** se colocan las piezas, **THEN** los IDs coinciden con un
   archivo dorado guardado en el repositorio (jugador 0 primero, después tipo del Catálogo,
   después fila y columna). **GIVEN** un reclutamiento de 4 piezas, **THEN** sus IDs crecen
   por casilla (fila, columna).
@@ -1060,7 +1025,7 @@ todo comando de jugador lleva el `contadorEsperado` correcto, y toda Tirada su
   - en modo local: `SoloOnline`;
   - con otra versión, o con una versión soportada pero distinta de la de `confirmado`, o
     con una huella de Catálogo distinta de la del contexto: `VersionNoSoportada`;
-  - con otro modo, otras tablas base u otras opciones de castillo (huella correcta):
+  - con otro modo, otras tablas base u otra posición de los castillos (huella correcta):
     `EstadoInvalido`;
   - con otro id de partida: `OtraPartida`;
   - con un `contadorComandos` menor que el confirmado: `EstadoViejo`;
@@ -1081,9 +1046,9 @@ todo comando de jugador lleva el `contadorEsperado` correcto, y toda Tirada su
   campo no cambia la huella al cambiarlo. **GIVEN** dos estados que solo difieren en cómo
   se reparten los elementos entre dos colecciones consecutivas (por ejemplo, una pieza
   menos y más tramos de muro), **THEN** sus flujos canónicos y sus huellas son distintos.
-- **AC-46 (k opciones de castillo)** — **GIVEN** una config con castillos sorteados en la
-  que solo la opción 2 de 3 se sale del tablero, **WHEN** se llama CrearPartida, **THEN**
-  `ConfigInvalida` y no se crea partida.
+- **AC-46 (castillos fuera del tablero)** — **GIVEN** una config con un castillo que se sale
+  del tablero (o con dos castillos que se superponen), **WHEN** se llama CrearPartida,
+  **THEN** `ConfigInvalida` y no se crea partida.
 - **AC-47 (Rendirse)** — **GIVEN** una partida en curso, **WHEN** el jugador sin turno envía
   `Rendirse`, también mientras se espera una tirada, **THEN** la partida termina, gana el
   otro jugador, el motivo es Rendicion y no queda tirada pendiente. **WHEN** lo envía el
@@ -1115,11 +1080,9 @@ todo comando de jugador lleva el `contadorEsperado` correcto, y toda Tirada su
   `CerrarPartida(Tablas, vacío)`, **THEN** termina sin ganador con motivo Tablas. **WHEN**
   envía `CerrarPartida(Tablas, 0)`, `CerrarPartida(CierrePorTiempo, 1)`,
   `CerrarPartida(Abandono, vacío)`, `CerrarPartida(Abandono, 2)`, `CerrarPartida(Abandono,
-  −1)` o `CerrarPartida(ReyMuerto, 0)`, **THEN** `CierreInvalido`. **GIVEN** que se espera
-  la tirada del sorteo de castillos, **WHEN** envía `CerrarPartida(CierrePorTiempo,
-  vacío)`, **THEN** `CierreInvalido`; con `CerrarPartida(Tablas, vacío)`, o con `Rendirse`
-  de un jugador, se acepta, el estado queda Terminada con par vacío, 0 piezas y 0 muros, y
-  Cargar(Serializar(estado)) lo acepta igual campo por campo. **WHEN** un jugador la envía, **THEN** `SoloAutoridad`.
+  −1)` o `CerrarPartida(ReyMuerto, 0)`, **THEN** `CierreInvalido`. **GIVEN** una partida Terminada por
+  `CerrarPartida`, **THEN** Cargar(Serializar(estado)) la acepta igual campo por campo.
+  **WHEN** un jugador la envía, **THEN** `SoloAutoridad`.
   **CierrePorTiempo** (desempate PROVISIONAL hasta #3) — **GIVEN** Reyes con 30 y 20 de
   vida, **THEN** gana el de 30; **GIVEN** Reyes con 25 y 25 y 9 contra 7 piezas vivas,
   **THEN** gana el de 9; **GIVEN** 25 y 25 y 8 contra 8, **THEN** termina sin ganador con
@@ -1143,7 +1106,7 @@ todo comando de jugador lleva el `contadorEsperado` correcto, y toda Tirada su
   esa misma); después de un Resolver que rompe un muro del jugador 1, devuelve
   15/45/0/0/40; cuando la tirada del
   jugador 1 queda pendiente, la consulta coincide con la tabla guardada en el estado.
-- **AC-54 (sorteo con k = 1 y orden total)** — **GIVEN** castillos sorteados con k = 1,
+- **AC-54 (creación sin tirada y orden total)** — **GIVEN** una config con castillos fijos,
   **WHEN** se llama CrearPartida, **THEN** la partida nace En curso sin esperar tirada.
   **GIVEN** dos estados iguales campo por campo armados con el constructor de pruebas
   insertando las piezas en distinto orden, con dos objetivos del mismo daño y la misma vida, **WHEN** se resuelve en
@@ -1204,11 +1167,11 @@ todo comando de jugador lleva el `contadorEsperado` correcto, y toda Tirada su
 
 - **AC-62 (clausura generativa)** — **GIVEN** la matriz de clausura de la regla 11, el
   oráculo de dominios de AC-56 y un generador con semilla fija que, desde CrearPartida con
-  castillos fijos y con sorteados, elige en cada paso un comando **legal** (sacado de
+  castillos fijos, elige en cada paso un comando **legal** (sacado de
   `MovimientosLegales`, `ObjetivosValidos` y los comandos aceptables de la fase, también
   Tirada, `TurnTimeout`, `Rendirse` y `CerrarPartida`), **WHEN** se juegan 200 partidas
   hasta su fin o hasta 2.000 comandos, más estas secuencias dirigidas: `Rendirse` y
-  `CerrarPartida(Tablas)` durante el sorteo; un primer turno sin acciones posibles que cae
+  `CerrarPartida(Tablas)` mientras se espera una tirada; un primer turno sin acciones posibles que cae
   en cascada; un recluta automático por `TurnTimeout`; y, con el constructor de pruebas,
   un estado con `contadorComandos` = C_MAX − 1 que recibe `Rendirse`, **THEN** después de
   cada Aceptado el estado cumple el oráculo y `Cargar(Serializar(S))` es igual a S campo

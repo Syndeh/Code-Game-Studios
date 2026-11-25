@@ -451,8 +451,8 @@ centro viven sobre el tablero.
 
 **Medidas a 1080p:** casillas de **68 px**. El tablero mide 24 × 68 = 1632 px de ancho y
 15 × 68 = 1020 px de alto. Quedan 60 px arriba para el timer y 144 px a cada lado para los
-botones, así que ningún elemento del HUD tapa una casilla (los castillos pueden caer en las
-esquinas).
+botones, así que ningún elemento del HUD tapa una casilla (los castillos quedan pegados a
+los bordes laterales, en las filas 5 a 9; sin sorteo, decisión del 2026-11-25).
 
 | Lugar | Qué va |
 |---|---|

@@ -346,7 +346,7 @@ abajo conviene tomarlas temprano.
 | **Audio Needs** | Moderado: golpes, resolución combinada con acento que crece con los atacantes, dado; música ambiente |
 | **Networking** | Cliente-servidor con autoridad en el servidor (Fase 2): Firebase Realtime Database y validación de jugadas (Cloud Run con la librería C# recomendado por el TD, o Cloud Functions en JS con pruebas compartidas) |
 | **Content Volume** | 7 tipos de pieza, 1 tablero, 1 skin base en el MVP |
-| **Procedural Systems** | Ninguno (salvo la posición de los castillos por sectores al azar) |
+| **Procedural Systems** | Ninguno (los castillos van en posición fija: sectores 4 y 6; sin sorteo, decisión del 2026-11-25) |
 
 Presupuestos propuestos por el TD: primera descarga web menor a 20 MB; menos de 40 MB de
 texturas por partida con 2 skins; menos de 150 draw calls; 60 fps en escritorio, 30–60 en web

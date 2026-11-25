@@ -108,8 +108,8 @@ Ya pasadas al concepto (`design/gdd/game-concept.md`).
   (Modificador → mover → asignar → resolver), sin conocer a ningún sistema por nombre. Dueño
   de la pila de deshacer, de `EvaluateMatchEnd(state)` y del **presupuesto de duración de la
   partida** (pilar 4); termina el turno cuando no quedan acciones o llega `TurnTimeout`.
-- **4 Tablero y despliegue inicial.** 24 × 15, castillos en sectores al azar (azar
-  registrado), ejército de 4 soldados, 4 arqueros, 4 escuderos y el Rey en el centro del
+- **4 Tablero y despliegue inicial.** 24 × 15, castillos en posición fija (sectores 4 y 6,
+  sin sorteo), ejército de 4 soldados, 4 arqueros, 4 escuderos y el Rey en el centro del
   castillo.
 - **5 Castillo y muros.** 16 tramos de 30 de vida sin escudo; un tramo roto abre un hueco y,
   con 2 tramos rotos, ese castillo deja de reclutar (v5, 2026-11-24; antes 1). Arqueros sobre el muro (+2 de escudo, daño compartido con el
@@ -249,7 +249,7 @@ servidor.
 | 1 | Librería de reglas (contrato) (inferred) | Core | MVP | In Review | design/gdd/libreria-de-reglas.md | — |
 | 2 | Catálogo de piezas | Core | MVP | Designed | design/gdd/catalogo-de-piezas.md | — |
 | 3 | Máquina de turno y fin de partida | Core | MVP | Designed | design/gdd/maquina-de-turno.md | Librería de reglas, Catálogo de piezas |
-| 4 | Tablero y despliegue inicial | Core | MVP | Not Started | — | Librería de reglas, Catálogo de piezas |
+| 4 | Tablero y despliegue inicial | Core | MVP | Designed | design/gdd/tablero-y-despliegue-inicial.md | Librería de reglas, Catálogo de piezas, Castillo y muros (blanda, solo un dato) |
 | 5 | Castillo y muros | Gameplay | MVP | Not Started | — | Tablero, Catálogo de piezas |
 | 6 | Movimiento | Gameplay | MVP | Not Started | — | Tablero, Catálogo de piezas, Máquina de turno, Castillo y muros |
 | 7 | Alcance y asignación de ataques | Gameplay | MVP | Not Started | — | Tablero, Catálogo de piezas, Máquina de turno |
@@ -523,10 +523,10 @@ Los cuatro ciclos encontrados se cortaron con contratos; ninguno queda abierto.
 | Metric | Count |
 |--------|-------|
 | Total systems identified | 41 |
-| Design docs started | 3 |
+| Design docs started | 4 |
 | Design docs reviewed | 1 |
 | Design docs approved | 0 |
-| MVP systems designed | 3/19 |
+| MVP systems designed | 4/19 |
 | Vertical Slice systems designed | 0/6 |
 
 ---
