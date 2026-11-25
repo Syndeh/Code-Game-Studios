@@ -114,7 +114,7 @@ reiluminan.
 | **Resolución / cosecha** (≤ ~2 s) | Ver el plan cumplido; en un combo, un golpe grande | Pulso de luz blanca cálida (~4000 K) desde cada objetivo, ~0,3 s; después el terreno vuelve a la base | simultáneo, contundente, rápido, concluyente | 5 | Todos los impactos en el mismo cuadro. Un objetivo con varios atacantes recibe un impacto más grande que la suma de los chicos. Las piezas muertas caen juntas |
 | **Turno del rival** | Vigilancia: "veo lo que hace y preparo la respuesta" | Base, con el terreno un 10% más frío (~5800 K) | atento, expuesto, paciente, legible | 2 | Banner del turno con el bando del rival. Sus acciones se ven a medida que ocurren (anti-pilar: sin información oculta). Pesa sobre todo en el online; en el juego local casi no se nota |
 | **Distracción (sin movimiento)** (≤ ~1,5 s) | Fastidio corto que se cierra rápido, no castigo largo | Nublado: terreno desaturado un 40%, ~6500 K, contraste bajo | apagado, caído, breve, seco | 1 | El estandarte propio del HUD se dobla y cae. Una placa gris dice "Distracción" y el turno pasa enseguida a la fase de ataque |
-| **Tramo final** (desde el minuto 10, 40 + 20) | Urgencia sostenida: "se acaba, hay que cerrar" | Atardecer: ~3800 K, sombras de viñeta más largas, terreno un 10% más oscuro, hasta el final de la partida | apurado, dorado, decisivo, estrecho | 4 | Cambio de luz permanente, anunciado una sola vez con un banner "Tramo final". El timer pasa a anillo grueso ámbar |
+| **Tramo final** (desde los 10 min consumidos entre los dos jugadores, 40 + 20) | Urgencia sostenida: "se acaba, hay que cerrar" | Atardecer: ~3800 K, sombras de viñeta más largas, terreno un 10% más oscuro, hasta el final de la partida | apurado, dorado, decisivo, estrecho | 4 | Cambio de luz permanente, anunciado una sola vez con un banner "Tramo final". El timer pasa a anillo grueso ámbar |
 | **Timer en los últimos 10 s** | Presión puntual | Sin cambios en el tablero | pulsante, puntual | 4 | Solo pulsa el timer del HUD, una vez por segundo. El tablero **no** destella: competiría con la ficha |
 | **Victoria** | Orgullo y cierre: "el plan funcionó" | El cielo se despeja: el ámbar del tramo final se va en 0,25 s y el terreno vuelve a la luz base (~5000 K). El Rey propio gana contraste porque baja lo de alrededor: viñeta circular centrada en él y el resto del terreno un 25% más oscuro. La figura no se toca | triunfal, claro, limpio, corto | 4 | Cae el Rey rival, el estandarte del ganador se iza en el centro, resumen de la partida y revancha a un toque (pilar 4) |
 | **Derrota** | Aceptación con ganas de revancha, sin humillación | Crepúsculo frío (~7000 K), terreno desaturado un 30% | sereno, frío, digno, breve | 2 | Cae el Rey propio y baja su estandarte. Revancha a un toque y la misma pantalla de resumen |
@@ -204,7 +204,7 @@ hace un eco leve del mundo.
   1, principio 2; pilar 2).
 - **Marcas sobre el tablero:** movimiento con puntos; alcance de ataque con corchetes en las
   esquinas; área de catapulta con un anillo doble (centro con daño completo, anillo exterior
-  con la mitad); cobertura del escudero con una línea eslabonada entre el escudero y el aliado
+  con el daño de área, hoy 6 de 10); cobertura del escudero con una línea eslabonada entre el escudero y el aliado
   cubierto.
 - **Placas de estado:** MUERE con calavera y texto; ROTO con una grieta en zigzag y texto.
 - **Menús:** el marco toma la piedra de los muros y los estandartes, pero los botones y

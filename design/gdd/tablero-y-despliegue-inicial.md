@@ -59,7 +59,7 @@ El Tablero es la grilla de 24 columnas por 15 filas sobre la que se juega toda l
 8. **IDs.** Siguen la regla 7 de la Librería: azul primero; dentro de cada jugador, por orden de tipo del Catálogo y después por casilla (fila, columna). Azul: soldados 1–4, arqueros 5–8, escuderos 9–12, Rey 13. Rojo: soldados 14–17, arqueros 18–21, escuderos 22–25, Rey 26. El próximo ID es 27.
 9. **Simetría de espejo.** El despliegue es simétrico respecto del eje vertical entre las columnas 11 y 12: a cada pieza azul de tipo `t` en `(c, f)` le corresponde una roja de tipo `t` en `(23 − c, f)`, y lo mismo vale para los tramos. Es una propiedad que se testea.
 10. **Quién empieza.** La partida nace **En curso**, en el turno 1, fase Mover, del jugador 0 (azul). Sin tirada del Modificador y sin compensación. Se vigila con las Métricas locales (#19) y se revisa con las partidas del MVP.
-11. **Consultas que expone (solo lectura).** `dentro(casilla)`, `ocupante(casilla)`, `hayTramo(casilla)`, `distanciaCruz(a, b)`, las dos vecindades, el **anillo** de un castillo (las casillas de afuera pegadas a su muro) y `ladoDelRival(jugador)` (+1 para azul, −1 para rojo). Nadie más guarda coordenadas del tablero.
+11. **Consultas que expone (solo lectura).** `dentro(casilla)`, `ocupante(casilla)`, `hayTramo(casilla)`, `distanciaCruz(a, b)`, las dos vecindades, el **anillo** de un castillo (las casillas de afuera pegadas a su muro), su **interior** (las 9 de dentro) y `ladoDelRival(jugador)` (+1 para azul, −1 para rojo). Nadie más guarda coordenadas del tablero.
 12. **Lo que el jugador no puede hacer.** Elegir lado, mover un castillo o armar su despliegue. Todas las partidas empiezan igual (pilar 1: ninguna información oculta).
 
 ### States and Transitions
@@ -86,10 +86,10 @@ No hay transición que "borre" el tablero: una partida Terminada conserva la ocu
 | #2 Catálogo | Orden de tipos y `topeVivas` | `ConfigInvalida` si el ejército inicial no cabe | Catálogo |
 | #3 Máquina de turno | — | "Empieza el jugador 0, fase Mover" | Máquina de turno |
 | #5 Castillo y muros | Vida inicial del tramo (`vida_tramo`, campo de la config) | Casillas del muro, del interior y del anillo | Castillo y muros |
-| #6 Movimiento | — | `dentro`, `ocupante`, `hayTramo`, cruz, `distanciaCruz` | Tablero |
-| #7 Alcance | — | Contorno de 8 y límites de la grilla | Tablero (grilla); Alcance (círculo) |
+| #6 Movimiento | — | `dentro`, `ocupante`, `hayTramo`, cruz, `distanciaCruz`, anillo e interior | Tablero |
+| #7 Alcance | — | `dentro`, `ocupante`, `hayTramo`, contorno de 8 y límites de la grilla | Tablero (grilla); Alcance (círculo) |
 | #8, #9 Cobertura y Resolución | — | `ocupante`, contorno | Tablero |
-| #10 Reclutamiento | — | Anillo y `ladoDelRival` | Tablero |
+| #10 Reclutamiento | — | Anillo entero, `ocupante` y `ladoDelRival` | Tablero |
 | #15, #16, #18 Cliente | — | Dimensiones, casillas, despliegue (solo lectura) | Tablero |
 | #19 Métricas | — | Constantes de la partida (el par de sectores es fijo) | Métricas |
 
@@ -248,10 +248,10 @@ The `espejo` formula is defined as:
 |---|---|---|
 | #3 Máquina de turno | Blanda | "Empieza el jugador 0, fase Mover, sin compensación" (cierra su Open Question) |
 | #5 Castillo y muros | Dura | Grilla, geometría del castillo (muro, interior, anillo) y tramos colocados |
-| #6 Movimiento | Dura | `dentro`, `ocupante`, `hayTramo`, cruz y `distanciaCruz` |
-| #7 Alcance y asignación | Dura | Contorno de 8 y límites de la grilla |
+| #6 Movimiento | Dura | `dentro`, `ocupante`, `hayTramo`, cruz, `distanciaCruz`, anillo e interior |
+| #7 Alcance y asignación | Dura | `dentro`, `ocupante`, `hayTramo`, contorno de 8 y límites de la grilla |
 | #8 Cobertura, #9 Resolución | Dura | `ocupante` y contorno |
-| #10 Reclutamiento | Dura | Anillo del castillo y `ladoDelRival` |
+| #10 Reclutamiento | Dura | Anillo entero del castillo, `ocupante` y `ladoDelRival` |
 | #15, #16, #18 Cliente | Blanda | Dimensiones, casillas y despliegue (solo lectura) |
 | #19 Métricas | Blanda | Constantes de la partida (el par de sectores es fijo) |
 | #26 Registro | Blanda | La config con los castillos fijos |
@@ -376,7 +376,7 @@ Todos son automatizables en Edit Mode (lógica pura, sin pantalla); el dibujo de
 
 - **AC-21 (casilla fuera de la grilla)** — **GIVEN** el despliegue inicial, **WHEN** se llama `ocupante` con `(−1,0)`, `(24,3)` y `(0,15)`, **THEN** responde "ninguno" sin excepción y sin leer el arreglo. *(Logic)*
 - **AC-22 (anillo recortado)** — **GIVEN** cada castillo, **THEN** su anillo no incluye ninguna casilla fuera de la grilla: tiene 17 casillas, no 24. *(Logic)*
-- **AC-23 (tramo roto)** — **GIVEN** el despliegue con el tramo `(0,5)` destruido, **THEN** la casilla sigue clasificada como muro, `hayTramo(0,5)` es falso y `ocupante` no cambia. **Y GIVEN** un arquero sobre un tramo que se rompe, **THEN** queda en su casilla. *(Logic; el segundo, Integration con #5, PROVISIONAL)*
+- **AC-23 (tramo roto)** — **GIVEN** el despliegue con el tramo `(0,5)` destruido, **THEN** la casilla sigue clasificada como muro, `hayTramo(0,5)` es falso y `ocupante` no cambia. **Y GIVEN** un arquero sobre un tramo que se rompe, **THEN** queda en su casilla. *(Logic; el segundo, Integration con #5)*
 - **AC-24 (estado cargado inválido)** — **GIVEN** un estado con dos piezas en `(7,5)`, o una pieza en `(24,3)`, o un tramo en `(10,10)`, **WHEN** se carga, **THEN** `EstadoInvalido`. *(Logic)*
 - **AC-25 (versión)** — **GIVEN** un estado que declara un tablero de 25 × 15, **WHEN** se carga, **THEN** `VersionNoSoportada`. *(Logic)*
 - **AC-26 (constante sin versión)** — **GIVEN** `RADIO_MURO` cambiado a 3 sin subir la versión de reglas, **WHEN** corre el test del despliegue de referencia (AC-7), **THEN** falla; al restaurar el valor, pasa. *(Logic; se rompe a propósito para comprobar que el test falla)*

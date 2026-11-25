@@ -50,8 +50,8 @@ El jugador lo vive de dos maneras. Como **defensor** decide si sube un arquero a
 
 1. **El tramo.** Cada castillo tiene 16 tramos, uno por casilla de muro (radio = `RADIO_MURO`, regla 5 del Tablero), identificados por su casilla. Cada uno guarda su `vida`, un entero de 0 a `vida_tramo`, y su escudo es 0. Un tramo no es una pieza: no se mueve, no ataca, no tiene ID de pieza y no cuenta como pieza viva (ni para el tope del Catálogo ni para las probabilidades del Modificador). Sí cuenta en `vidaQuitada`.
 2. **Estados.** *En pie* (`vida > 0`) y *Roto* (`vida = 0`). El estado se deriva de la vida, no se guarda aparte. La presentación distingue además "dañado" (`vida × 2 < vida_tramo`, regla del art bible), que no tiene efecto de reglas.
-3. **Bloqueo.** Un tramo en pie ocupa su casilla y la bloquea para el movimiento de todas las piezas, jinete incluido. Tiene dos excepciones: el Rey del dueño del castillo lo atraviesa sin poder terminar sobre él, y un arquero del dueño puede terminar sobre él (regla 6). Los tramos del castillo rival bloquean también al Rey. Un tramo **no bloquea ataques**: el alcance es circular y no hay línea de visión. Este GDD define quién bloquea; Movimiento (#6) lo aplica al armar recorridos.
-4. **Daño al tramo.** Un tramo en pie es objetivo válido de `AsignarAtaque` de una pieza **enemiga** que lo tenga en alcance (#7). El daño de toda la resolución sobre su casilla se suma y se aplica como `vida = max(0, vida − bruto)`, sin restar escudo. El área de la catapulta y la explosión del demoledor lo alcanzan, sea propio o rival (fuego amigo). **No se puede asignar un ataque directo a un tramo propio**, ni a un tramo roto (la casilla es un hueco); el área sí puede caer sobre cualquiera de esas casillas.
+3. **Bloqueo.** Un tramo en pie ocupa su casilla y la bloquea para el movimiento de todas las piezas, jinete incluido. Tiene dos excepciones: el Rey del dueño del castillo lo atraviesa sin poder terminar sobre él, y un arquero del dueño puede pasar por él o terminar sobre él si no hay otro arquero (regla 6; Movimiento, #6, regla 5). Los tramos del castillo rival bloquean también al Rey. Un tramo **no bloquea ataques**: el alcance es circular y no hay línea de visión. Este GDD define quién bloquea; Movimiento (#6) lo aplica al armar recorridos.
+4. **Daño al tramo.** Un tramo en pie es objetivo válido de `AsignarAtaque` de una pieza **enemiga** que lo tenga en alcance (#7). El daño de toda la resolución sobre su casilla se suma y se aplica como `vida = max(0, vida − bruto)`, sin restar escudo. El área de la catapulta y la explosión del demoledor lo alcanzan, sea propio o rival (fuego amigo). **No se puede asignar un ataque directo a un tramo propio**, ni a un tramo roto (la casilla es un hueco). Vale solo para el modo directo: la catapulta puede apuntar a cualquiera de esas casillas (Alcance, #7, regla 6).
 5. **Rotura y hueco.** Cuando la resolución deja un tramo en 0, queda **Roto** hasta el final de la partida (decisión 2026-11-25: no se repara). Una casilla de tramo roto se comporta como una casilla libre común: no bloquea el movimiento de nadie, de ningún bando, y las piezas pueden pararse en ella. Sigue contando como casilla de muro para la geometría (Tablero, Edge Cases).
 6. **Arquero sobre el muro.**
    - *Subir:* `Mover(arquero, destino)` con destino un tramo propio, en pie y sin arquero, llegando desde una casilla del anillo propio, desde otro tramo propio vecino o desde un hueco vecino del mismo muro. Cuesta un paso, como cualquier otro, y cuenta en el límite de piezas movidas. La Librería no necesita un comando nuevo.
@@ -96,15 +96,15 @@ El jugador lo vive de dos maneras. Como **defensor** decide si sube un arquero a
 | #2 Catálogo | `escudo` y `alcanceMax` del arquero, ID del tipo arquero | — | Catálogo |
 | #3 Máquina de turno | — | `vidaQuitada` suma la vida realmente perdida por tramos rivales | Máquina de turno |
 | #4 Tablero | Casillas de muro, interior y anillo; tramos colocados | `vida_tramo` para colocar la vida inicial | Tablero (geometría); este GDD (vida) |
-| #6 Movimiento | Mover hacia o desde un tramo | Quién bloquea (regla 3), huecos transitables | Este GDD *(PROVISIONAL, #6 sin GDD)* |
-| #7 Alcance | — | Tramo enemigo en pie como objetivo válido; alcance efectivo del arquero | #7 *(PROVISIONAL)* |
+| #6 Movimiento | Mover hacia o desde un tramo | Quién bloquea (regla 3), huecos transitables | Este GDD; Movimiento lo aplica |
+| #7 Alcance | — | Tramo enemigo en pie como objetivo válido; alcance efectivo del arquero | #7 |
 | #8 Cobertura | — | Parte del tramo no redirigible | #8 *(PROVISIONAL)* |
 | #9 Resolución | Daño por casilla | Daño a pieza y tramo a la vez; vida nueva, tramos rotos, muertes | #9 *(PROVISIONAL)* |
-| #10 Reclutamiento | — | `puedeReclutar` | Este GDD *(PROVISIONAL)* |
+| #10 Reclutamiento | — | `puedeReclutar` (también define la cara *Agotada*, #10, F3) | Este GDD |
 | #11 Modificador | — | `tramosRotos` / `puedeReclutar` para poner en 0 las caras de reclutar | #11 *(PROVISIONAL)* |
 | #15, #16, #18, #25 | — | Vida de cada tramo, contador, `enMuro`; vista previa del daño y de ROTO | Cliente y IA, solo lectura |
 
-**Suposiciones provisionales:** #6 a #11 todavía no tienen GDD. Las reglas 3, 7, 8 y 10 fijan el contrato que ellos deberán respetar o reabrir.
+**Suposiciones provisionales:** #8, #9 y #11 todavía no tienen GDD. Las reglas 7, 8 y 10 fijan el contrato que ellos deberán respetar o reabrir.
 
 ## Formulas
 
@@ -279,7 +279,7 @@ Estos cambios los provocó este GDD y **se aplicaron el 2026-11-25** (ver Depend
 
 ### Movimiento y huecos
 
-- **If se rompe un tramo de esquina:** el hueco se puede pisar pero **por sí solo no abre paso al interior**: el movimiento es en cruz y las otras dos vecinas de una esquina son tramos. Si además se rompe un tramo vecino, sí lo abre (por ejemplo afuera → `(0, 5)` → `(0, 6)` → interior). Sí cuenta para el corte de reclutamiento. *Consecuencia a medir (Open Questions).*
+- **If se rompe un tramo de esquina:** el hueco se puede pisar pero **por sí solo no abre paso al interior**: el movimiento es en cruz y las otras dos vecinas de una esquina son tramos. Si además se rompe un tramo vecino, sí lo abre (por ejemplo afuera → `(0, 5)` → `(0, 6)` → interior). Sí cuenta para el corte de reclutamiento. Es intencional (Movimiento, #6).
 - **If se rompe un tramo del lado pegado al borde del tablero** (columna 0 del azul, 23 del rojo): el hueco por sí solo queda sin acceso desde afuera (ese lado no tiene anillo): se llega desde el interior, desde un hueco vecino o, si es un arquero propio, desde un tramo vecino.
 - **If un jinete llega a un tramo en pie:** lo frena (regla 3); pasa por encima de piezas enemigas, nunca de tramos.
 - **If el Rey rival intenta atravesar un tramo en pie:** bloqueado; solo el Rey del dueño atraviesa los propios.
@@ -314,7 +314,7 @@ Estos cambios los provocó este GDD y **se aplicaron el 2026-11-25** (ver Depend
 | #1 Librería | Dura | Estado de tramos, `vida_tramo`, consultas `enMuro`, `tramosRotos` y `puedeReclutar`, y el bono en `EffectiveStats` |
 | #4 Tablero | Blanda, solo un dato | `vida_tramo` para colocar la vida inicial de los 16 tramos (llega por la config) |
 | #6 Movimiento | Dura | Quién bloquea el paso, huecos transitables, subir y bajar del muro (reglas 3 y 6) |
-| #7 Alcance y asignación | Dura | Tramo enemigo en pie como objetivo válido; ataque directo a tramo propio o roto rechazado; alcance efectivo del arquero (F5) |
+| #7 Alcance y asignación | Dura | Tramo enemigo en pie como objetivo válido; ataque **directo** a tramo propio o roto rechazado (el área se acepta); alcance efectivo del arquero (F5) |
 | #8 Cobertura | Blanda | La parte del tramo no se redirige (regla 8) |
 | #9 Resolución | Dura | Daño a pieza y tramo a la vez (F1, F2, F6), vida nueva, rotura y la explosión del demoledor sobre muros |
 | #10 Reclutamiento | Dura | `puedeReclutar` |
@@ -332,7 +332,7 @@ Estos cambios los provocó este GDD y **se aplicaron el 2026-11-25** (ver Depend
 - **systems-index:** hecho el 2026-11-25: fila 5 con la Librería y la Máquina de turno, y las aristas de #7, #8, #15, #16, #18 y #25 hacia #5.
 - **art-bible:** pendiente (no se tocó): las dos discrepancias de §6 de Visual/Audio.
 
-**Suposiciones provisionales:** #6 a #11 no tienen GDD; el tipo de cada arista de esas filas es el que este sistema necesita de ellos y se confirma cuando los diseñen.
+**Suposiciones provisionales:** #8, #9 y #11 no tienen GDD; el tipo de cada arista de esas filas es el que este sistema necesita de ellos y se confirma cuando los diseñen.
 
 ## Tuning Knobs
 
@@ -432,18 +432,18 @@ Sin pantalla propia: vive en el tablero y en el HUD (#15).
 
 ## Acceptance Criteria
 
-Los criterios usan las coordenadas del despliegue: el azul tiene el tramo `(4, 7)` con el anillo en `(5, 7)` y el interior en `(3, 7)`, y la esquina es `(4, 5)`. Tipos: **Logic** (prueba unitaria en Edit Mode), **Integration** (con otro sistema) y **Visual** (captura retenida). Los *Integration* que dependen de #6, #7, #8, #9 u #11 quedan **PROVISIONAL** hasta que esos GDD existan.
+Los criterios usan las coordenadas del despliegue: el azul tiene el tramo `(4, 7)` con el anillo en `(5, 7)` y el interior en `(3, 7)`, y la esquina es `(4, 5)`. Tipos: **Logic** (prueba unitaria en Edit Mode), **Integration** (con otro sistema) y **Visual** (captura retenida). Los *Integration* que dependen de #8, #9 u #11 quedan **PROVISIONAL** hasta que esos GDD existan.
 
 **Reglas (Core Rules)**
 
 - **AC-1 (regla 1, el tramo)**: **GIVEN** el despliegue inicial con `vida_tramo` 30, **WHEN** se lee el estado, **THEN** cada castillo tiene 16 tramos con vida 30 y escudo 0, ningún tramo tiene ID de pieza y cada jugador tiene 13 piezas vivas para el tope y para el Modificador. *(Logic)*
 - **AC-2 (regla 2, estados)**: **GIVEN** un tramo con vida 30, **WHEN** recibe bruto 15, 16 y 30 (tres fixtures), **THEN** queda con vida 15 (en pie, no dañado), 14 (en pie, dañado) y 0 (Roto). *(Logic)*
-- **AC-3 (regla 3 y regla 11, bloqueo y Rey)**: **GIVEN** el tramo azul `(4, 7)` en pie y un soldado azul en `(5, 7)` con 4 de movimiento, **WHEN** intenta `Mover` a `(4, 7)` o a `(3, 7)`, **THEN** ambos se rechazan (igual para un jinete). **Y GIVEN** el Rey azul en `(3, 7)`, **THEN** `Mover` a `(5, 7)` atravesando el tramo se acepta y `Mover` a `(4, 7)` se rechaza. **Y GIVEN** el Rey rojo en `(5, 7)`, **THEN** atravesar `(4, 7)` se rechaza. *(Integration con #6, PROVISIONAL)*
-- **AC-4 (regla 3, sin línea de visión)**: **GIVEN** un arquero rojo en `(6, 7)` (alcance máximo 4), el Rey azul en `(2, 7)` y el tramo `(4, 7)` en pie, **WHEN** se piden `ObjetivosValidos`, **THEN** incluye `(2, 7)`. *(Integration con #7, PROVISIONAL)*
-- **AC-5 (regla 4, objetivos y daño)**: **GIVEN** el tramo azul `(4, 7)` en pie y un soldado rojo en `(5, 7)`, **WHEN** se llama `AsignarAtaque` hacia `(4, 7)`, **THEN** se acepta. **Y GIVEN** un soldado azul con el mismo tramo propio, o un tramo roto, **THEN** se rechaza con el código del #7. **Y WHEN** 4 soldados rojos (bruto 32) se resuelven sobre `(4, 7)`, **THEN** su vida queda en 0. *(Integration con #7 y #9, PROVISIONAL)*
+- **AC-3 (regla 3 y regla 11, bloqueo y Rey)**: **GIVEN** el tramo azul `(4, 7)` en pie y un soldado azul en `(5, 7)` con 4 de movimiento, **WHEN** intenta `Mover` a `(4, 7)` o a `(3, 7)`, **THEN** ambos se rechazan (igual para un jinete). **Y GIVEN** el Rey azul en `(3, 7)`, **THEN** `Mover` a `(5, 7)` atravesando el tramo se acepta y `Mover` a `(4, 7)` se rechaza. **Y GIVEN** el Rey rojo en `(5, 7)`, **THEN** atravesar `(4, 7)` se rechaza. *(Integration con #6)*
+- **AC-4 (regla 3, sin línea de visión)**: **GIVEN** un arquero rojo en `(6, 7)` (alcance máximo 4), el Rey azul en `(2, 7)` y el tramo `(4, 7)` en pie, **WHEN** se piden `ObjetivosValidos`, **THEN** incluye `(2, 7)`. *(Integration con #7)*
+- **AC-5 (regla 4, objetivos y daño)**: **GIVEN** el tramo azul `(4, 7)` en pie y un soldado rojo en `(5, 7)`, **WHEN** se llama `AsignarAtaque` hacia `(4, 7)`, **THEN** se acepta. **Y GIVEN** un soldado azul con el mismo tramo propio, **THEN** `ObjetivoPropio`; con un tramo roto vacío, `SinObjetivo`. **Y GIVEN** una catapulta azul en alcance, **THEN** los dos se aceptan. **Y WHEN** 4 soldados rojos (bruto 32) se resuelven sobre `(4, 7)`, **THEN** su vida queda en 0. *(Integration con #7 y #9, PROVISIONAL)*
 - **AC-6 (regla 4, área y fuego amigo)**: **GIVEN** una catapulta azul con centro en una casilla libre junto al tramo propio `(4, 7)` (6 de área sobre el tramo), **WHEN** se resuelve, **THEN** el tramo pasa de 30 a 24 y `vidaQuitada` del azul no cambia. **Y GIVEN** una catapulta azul con centro en el tramo rival `(19, 7)` (10), **THEN** el tramo queda en 20 y `vidaQuitada` del azul suma 10. *(Integration con #9, PROVISIONAL)*
-- **AC-7 (regla 5, rotura y hueco)**: **GIVEN** el tramo `(4, 7)` en vida 0, **WHEN** un soldado azul se mueve de `(5, 7)` a `(4, 7)` y luego a `(3, 7)`, **THEN** ambos pasos se aceptan, `hayTramo(4, 7)` es falso y el Tablero sigue clasificando la casilla como muro. **Y WHEN** pasan 10 turnos sin daño, **THEN** la vida sigue en 0. *(Integration con #6 y #4, PROVISIONAL)*
-- **AC-8 (regla 6, subir, caminar y bajar)**: **GIVEN** un arquero azul en `(5, 5)` y el tramo `(4, 5)` libre, **WHEN** hace `Mover` a `(4, 5)`, **THEN** se acepta y gasta 1 de movimiento. **Y WHEN** va a `(4, 6)` (tramo propio libre) se acepta; **Y** a `(5, 6)` (anillo) se acepta; **Y** a `(3, 6)` (interior) se rechaza. **Y GIVEN** el tramo `(4, 7)` roto y el arquero en `(4, 6)`, **THEN** `Mover` de `(4, 6)` a `(4, 7)` y de vuelta se aceptan. **Y GIVEN** un segundo arquero que apunta a un tramo ocupado, un soldado azul que apunta a un tramo propio libre o un arquero rojo que apunta a un tramo azul en pie, **THEN** los tres se rechazan. *(Integration con #6, PROVISIONAL)*
+- **AC-7 (regla 5, rotura y hueco)**: **GIVEN** el tramo `(4, 7)` en vida 0, **WHEN** un soldado azul se mueve de `(5, 7)` a `(4, 7)` y luego a `(3, 7)`, **THEN** ambos pasos se aceptan, `hayTramo(4, 7)` es falso y el Tablero sigue clasificando la casilla como muro. **Y WHEN** pasan 10 turnos sin daño, **THEN** la vida sigue en 0. *(Integration con #6 y #4)*
+- **AC-8 (regla 6, subir, caminar y bajar)**: **GIVEN** un arquero azul en `(5, 5)` y el tramo `(4, 5)` libre, **WHEN** hace `Mover` a `(4, 5)`, **THEN** se acepta y gasta 1 de movimiento. **Y WHEN** va a `(4, 6)` (tramo propio libre) se acepta; **Y** a `(5, 6)` (anillo) se acepta; **Y** a `(3, 6)` (interior) se rechaza. **Y GIVEN** el tramo `(4, 7)` roto y el arquero en `(4, 6)`, **THEN** `Mover` de `(4, 6)` a `(4, 7)` y de vuelta se aceptan. **Y GIVEN** un segundo arquero que apunta a un tramo ocupado, un soldado azul que apunta a un tramo propio libre o un arquero rojo que apunta a un tramo azul en pie, **THEN** los tres se rechazan. *(Integration con #6)*
 - **AC-9 (regla 7, bono de posición)**: **GIVEN** un arquero azul sobre `(4, 5)` con el tramo en pie, **WHEN** se llama `EffectiveStats`, **THEN** escudo 4, alcance máximo 6, ataque 6 y movimiento 4. **Y GIVEN** el mismo arquero en `(5, 5)` o sobre un tramo roto, **THEN** escudo 2 y alcance 4. **Y GIVEN** Grito de guerra activo con el arquero en el muro, **THEN** ataque 8, movimiento 6, escudo 4 y alcance 6. *(Logic)*
 - **AC-10 (regla 7, el bono rige al empezar la resolución)**: **GIVEN** un arquero azul con 15 de vida sobre el tramo `(4, 5)` con vida 18, **WHEN** se resuelve un bruto de 18 sobre esa casilla, **THEN** el tramo queda en 0 y el arquero sobrevive con 1 de vida (neto 14 con escudo 4; con escudo 2 habría muerto). *(Integration con #9, PROVISIONAL)*
 - **AC-11 (regla 8, daño compartido y cobertura)**: **GIVEN** un arquero azul (15 de vida) sobre el tramo `(4, 5)` (30 de vida), **WHEN** recibe bruto 8, **THEN** el arquero queda en 11 y el tramo en 22. **Y GIVEN** el arquero cubierto por un escudero (escudo 5, vida 20), **THEN** el arquero queda en 15, el escudero en 17 y el tramo en 22. *(Integration con #8 y #9, PROVISIONAL)*
@@ -466,8 +466,8 @@ Los criterios usan las coordenadas del despliegue: el azul tiene el tramo `(4, 7
 
 **Casos borde**
 
-- **AC-25 (esquina)**: **GIVEN** solo el tramo `(4, 5)` roto y las demás casillas libres, **WHEN** un soldado azul con 4 de movimiento parte de `(5, 5)`, **THEN** puede pisar `(4, 5)` pero ningún movimiento legal llega a una casilla del interior. *(Integration con #6, PROVISIONAL)*
-- **AC-26 (lado del borde)**: **GIVEN** solo el tramo `(0, 7)` roto, **WHEN** un soldado con movimiento 12 parte desde cualquier casilla del anillo, **THEN** el conjunto alcanzable no incluye `(0, 7)` ni el interior. **Y GIVEN** rotos solo `(0, 5)` y `(0, 6)`, **THEN** desde `(0, 4)` el interior es alcanzable. *(Integration con #6, PROVISIONAL)*
+- **AC-25 (esquina)**: **GIVEN** solo el tramo `(4, 5)` roto y las demás casillas libres, **WHEN** un soldado azul con 4 de movimiento parte de `(5, 5)`, **THEN** puede pisar `(4, 5)` pero ningún movimiento legal llega a una casilla del interior. *(Integration con #6)*
+- **AC-26 (lado del borde)**: **GIVEN** solo el tramo `(0, 7)` roto, **WHEN** un soldado con movimiento 12 parte desde cualquier casilla del anillo, **THEN** el conjunto alcanzable no incluye `(0, 7)` ni el interior. **Y GIVEN** rotos solo `(0, 5)` y `(0, 6)`, **THEN** desde `(0, 4)` el interior es alcanzable. *(Integration con #6)*
 - **AC-27 (Deshacer)**: **GIVEN** un arquero azul en `(5, 5)`, **WHEN** hace `Mover` a `(4, 5)` y después `Deshacer`, **THEN** vuelve a `(5, 5)`, el tramo queda libre, `EffectiveStats` da escudo 2 y alcance 4, y la huella es igual a la anterior al `Mover`. *(Integration con #3)*
 - **AC-28 (fuego amigo y corte propio)**: **GIVEN** el azul rompe sus 2 tramos con fuego amigo, **WHEN** termina la resolución, **THEN** `puedeReclutar(azul)` es falso y `vidaQuitada` de ambos jugadores no cambia. *(Integration con #9, PROVISIONAL)*
 - **AC-29 (Rey muerto y tramos)**: **GIVEN** el Rey azul muere en la misma resolución que rompe 2 tramos azules, **WHEN** termina, **THEN** la partida pasa a Terminada y el estado final conserva los tramos rotos. *(Integration con #3)*
@@ -482,7 +482,7 @@ Los criterios usan las coordenadas del despliegue: el azul tiene el tramo `(4, 7
 - **Cobertura:** cada regla (1–14), cada fórmula (F1–F7) y los casos borde que podían salir rotos tienen criterio. No quedó ninguna regla ni fórmula sin criterio.
 - **Rendimiento:** no se fija un presupuesto en milisegundos: las pruebas del proyecto no pueden depender del tiempo, y estas consultas son O(16) sin asignaciones. Queda como pregunta para la Librería (#1).
 - **No automatizable:** que el hueco y el contador de tramos rotos *se lean al instante* (Player Fantasy) es una pregunta de playtest, no un criterio. Va a Open Questions.
-- **Tipos:** AC-1, 2, 9, 16 y 18 a 24 son Logic puros; AC-3 a 8, 10 a 15, 17 y 25 a 30 son Integration, casi todos PROVISIONAL por depender de #6–#11; AC-31 es Visual con captura retenida.
+- **Tipos:** AC-1, 2, 9, 16 y 18 a 24 son Logic puros; AC-3 a 8, 10 a 15, 17 y 25 a 30 son Integration, PROVISIONAL los que dependen de #8, #9 u #11; AC-31 es Visual con captura retenida.
 
 ## Open Questions
 
@@ -497,5 +497,5 @@ Los criterios usan las coordenadas del despliegue: el azul tiene el tramo `(4, 7
 | ¿El hueco y el contador "se leen al instante"? No automatizable | Render (#18), HUD (#15), playtest | MVP |
 | Presupuesto de rendimiento de `enMuro` y `tramosRotos` (sin aserción de tiempo en tests) | Librería (#1) | En su ADR |
 | Qué hace la Librería con un registro cuya `vida_tramo` difiere de la config actual | Librería (#1) | En su ADR |
-| Confirmar el contrato PROVISIONAL de #6–#11 (reglas 3, 7, 8 y 10) y la explosión del demoledor sobre muros | #6 a #11 | En sus GDD |
+| Confirmar el contrato PROVISIONAL de #8, #9 y #11 (reglas 7, 8 y 10) y la explosión del demoledor sobre muros | #8, #9 y #11 | En sus GDD |
 | ¿Cuánto suma el muro a la duración de la partida (pilar 4)? Medir turnos hasta el primer tramo roto y turnos extra por brechas; declarar su `Δturnos` contra el presupuesto de la Máquina de turno | Métricas (#19), Máquina de turno (#3) | MVP: compuerta de duración |

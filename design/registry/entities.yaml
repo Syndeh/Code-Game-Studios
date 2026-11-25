@@ -74,6 +74,9 @@ entities:
       - design/gdd/catalogo-de-piezas.md
       - design/gdd/maquina-de-turno.md
       - design/gdd/tablero-y-despliegue-inicial.md
+      - design/gdd/movimiento.md
+      - design/gdd/alcance-y-asignacion-de-ataques.md
+      - design/gdd/reclutamiento-y-limites.md
     id: 0
     movimiento: 4
     alcance_min: 1
@@ -94,6 +97,9 @@ entities:
       - design/gdd/catalogo-de-piezas.md
       - design/gdd/maquina-de-turno.md
       - design/gdd/tablero-y-despliegue-inicial.md
+      - design/gdd/movimiento.md
+      - design/gdd/alcance-y-asignacion-de-ataques.md
+      - design/gdd/reclutamiento-y-limites.md
     id: 1
     movimiento: 4
     alcance_min: 1
@@ -114,6 +120,9 @@ entities:
       - design/gdd/catalogo-de-piezas.md
       - design/gdd/maquina-de-turno.md
       - design/gdd/tablero-y-despliegue-inicial.md
+      - design/gdd/movimiento.md
+      - design/gdd/alcance-y-asignacion-de-ataques.md
+      - design/gdd/reclutamiento-y-limites.md
     id: 2
     movimiento: 4
     alcance_min: 1
@@ -133,6 +142,9 @@ entities:
       - design/gdd/castillo-y-muros.md
       - design/gdd/catalogo-de-piezas.md
       - design/gdd/maquina-de-turno.md
+      - design/gdd/movimiento.md
+      - design/gdd/alcance-y-asignacion-de-ataques.md
+      - design/gdd/reclutamiento-y-limites.md
     id: 3
     movimiento: 2
     alcance_min: 2
@@ -154,6 +166,9 @@ entities:
       - design/gdd/castillo-y-muros.md
       - design/gdd/catalogo-de-piezas.md
       - design/gdd/maquina-de-turno.md
+      - design/gdd/movimiento.md
+      - design/gdd/alcance-y-asignacion-de-ataques.md
+      - design/gdd/reclutamiento-y-limites.md
     id: 4
     movimiento: 6
     alcance_min: 1
@@ -172,6 +187,9 @@ entities:
       - design/gdd/castillo-y-muros.md
       - design/gdd/catalogo-de-piezas.md
       - design/gdd/maquina-de-turno.md
+      - design/gdd/movimiento.md
+      - design/gdd/alcance-y-asignacion-de-ataques.md
+      - design/gdd/reclutamiento-y-limites.md
     id: 5
     movimiento: 6
     alcance_min: 1
@@ -191,6 +209,9 @@ entities:
       - design/gdd/catalogo-de-piezas.md
       - design/gdd/maquina-de-turno.md
       - design/gdd/tablero-y-despliegue-inicial.md
+      - design/gdd/movimiento.md
+      - design/gdd/alcance-y-asignacion-de-ataques.md
+      - design/gdd/reclutamiento-y-limites.md
     id: 6
     movimiento: 6
     alcance_min: 1
@@ -292,6 +313,7 @@ formulas:
     source: design/gdd/libreria-de-reglas.md
     referenced_by:
       - design/gdd/libreria-de-reglas.md
+      - design/gdd/reclutamiento-y-limites.md
     variables:
       - p_i
       - L
@@ -300,7 +322,7 @@ formulas:
     output_range: [0, 100]
     expression: "L = suma de las caras de reclutar que no pueden salir (pasan a 0); p_Grito += L / 2 (division entera hacia abajo); p_Arremetida += L - L / 2; despues, si piezas_sin_rey <= limite_normal: p_Grito += p_Arremetida y p_Arremetida = 0"
     # expression was: sin el bloqueo de Arremetida (v5, 2026-11-24), before 2026-11-25
-    notes: "Arma la tabla efectiva del Modificador (#11) al entrar en esperando tirada. Un solo redondeo sobre el total liberado; el punto impar va a Arremetida. La tabla resultante siempre suma tirada_rango (100) y se valida como en CrearPartida. Ejemplos con mas de 12 piezas sin el Rey: 15/20/25/25/15 con 2 muros rotos -> 15/45/0/0/40; 20/25/15/20/20 con Llamada agotada -> 20/32/0/20/28. Con 12 o menos: la primera -> 15/85/0/0/0."
+    notes: "Arma la tabla efectiva del Modificador (#11) al entrar en esperando tirada. Un solo redondeo sobre el total liberado; el punto impar va a Arremetida. Cubre solo muros y llamadas; tope y lugar van por reparto_sin_lugar (#10) y se suman. La tabla resultante siempre suma tirada_rango (100) y se valida como en CrearPartida. Ejemplos con mas de 12 piezas sin el Rey: 15/20/25/25/15 con 2 muros rotos -> 15/45/0/0/40; 20/25/15/20/20 con Llamada agotada -> 20/32/0/20/28. Con 12 o menos: la primera -> 15/85/0/0/0."
     added: 2026-11-19
     revised: 2026-11-25
   - name: tope_total
@@ -364,13 +386,14 @@ formulas:
     source: design/gdd/maquina-de-turno.md
     referenced_by:
       - design/gdd/maquina-de-turno.md
+      - design/gdd/movimiento.md
     variables:
       - tope_vivas_t
       - movimiento_t
       - t
     output_range: [7, 256]
     expression: "suma de tope_vivas_t * movimiento_t para t = 0 a 6; invariante pila_max <= pila_tope"
-    notes: "D4. Peor caso de entradas de la pila de deshacer en un turno (Arremetida, un paso por comando). Valores vigentes 48+64+48+16+48+24+6 = 254 de 256; PrepararContexto rechaza con ConfigInvalida un Catalogo que supere 256. PROVISIONAL hasta Movimiento (#6)."
+    notes: "D4. Peor caso de entradas de la pila de deshacer en un turno (Arremetida, un paso por comando). Valores vigentes 48+64+48+16+48+24+6 = 254 de 256; PrepararContexto rechaza con ConfigInvalida un Catalogo que supere 256. Confirmada por Movimiento (F5); no cuenta el bono del Grito: por eso limite_normal va de 1 a 37."
     added: 2026-11-20
     revised: ""
   - name: turnos_presupuesto
@@ -420,6 +443,7 @@ formulas:
     referenced_by:
       - design/gdd/tablero-y-despliegue-inicial.md
       - design/gdd/catalogo-de-piezas.md
+      - design/gdd/movimiento.md
     variables:
       - cc_azul
       - cc_rojo
@@ -491,6 +515,7 @@ formulas:
       - design/gdd/castillo-y-muros.md
       - design/gdd/libreria-de-reglas.md
       - design/gdd/catalogo-de-piezas.md
+      - design/gdd/alcance-y-asignacion-de-ataques.md
     variables:
       - escudo
       - alcance_max
@@ -521,12 +546,290 @@ formulas:
     referenced_by:
       - design/gdd/castillo-y-muros.md
       - design/gdd/libreria-de-reglas.md
+      - design/gdd/reclutamiento-y-limites.md
     variables:
       - vida_i
       - tramos_rotos_corte
     output_range: [0, 16]
     expression: "tramos_rotos(j) = tramos del castillo de j con vida = 0; puede_reclutar(j) = tramos_rotos(j) < tramos_rotos_corte"
     notes: "F7. Permanente: un tramo roto no se repara. Lo leen Reclutamiento (#10) y la Libreria, que pone en 0 las caras de reclutar de la tabla efectiva del Modificador (#11) con reparto_liberado. Rige desde la tabla del siguiente turno del dueno del castillo."
+    added: 2026-11-25
+    revised: ""
+  - name: movimiento_restante
+    status: active
+    source: design/gdd/movimiento.md
+    referenced_by:
+      - design/gdd/movimiento.md
+    variables:
+      - movimiento_efectivo
+      - usados
+    output_range: [0, 1010]
+    expression: "max(0, movimiento_efectivo - usados)"
+    notes: "F1 de Movimiento."
+    added: 2026-11-25
+    revised: ""
+  - name: costo_mover
+    status: active
+    source: design/gdd/movimiento.md
+    referenced_by:
+      - design/gdd/movimiento.md
+    variables:
+      - P
+      - destino
+      - costo_paso
+    output_range: [1, 359]
+    expression: "pasos del camino permitido mas corto en cruz; sin camino = FueraDeAlcance"
+    notes: "F2 de Movimiento."
+    added: 2026-11-25
+    revised: ""
+  - name: destinos_abiertos
+    status: active
+    source: design/gdd/movimiento.md
+    referenced_by:
+      - design/gdd/movimiento.md
+    variables:
+      - r
+    output_range: [0, 359]
+    expression: "2 * r * (r + 1), cota superior"
+    notes: "F3 de Movimiento; nunca se ofrecen mas de 359."
+    added: 2026-11-25
+    revised: ""
+  - name: puede_recibir_mover
+    status: active
+    source: design/gdd/movimiento.md
+    referenced_by:
+      - design/gdd/movimiento.md
+    variables:
+      - limite_turno
+      - piezasMovidas
+      - usados
+    output_range: [0, 1]
+    expression: "esRey o usados > 0 o sin limite o piezasMovidas < limite_turno"
+    notes: "F4 de Movimiento; booleano."
+    added: 2026-11-25
+    revised: ""
+  - name: entradas_pila_turno
+    status: active
+    source: design/gdd/movimiento.md
+    referenced_by:
+      - design/gdd/movimiento.md
+    variables:
+      - mov_rey
+      - N
+    output_range: [0, 254]
+    expression: "mov_rey + suma de los N mayores movimiento_efectivo, N = min(limite_turno, piezas_sin_rey)"
+    notes: "F5 de Movimiento, cota. Grito +2: 12 -> 104, 37 -> 254, 38 -> 260 (pasa de 256)."
+    added: 2026-11-25
+    revised: ""
+  - name: ms_por_pieza
+    status: active
+    source: design/gdd/movimiento.md
+    referenced_by:
+      - design/gdd/movimiento.md
+    variables:
+      - dur_mover_s
+      - limite_normal
+    output_range: [789, 45000]
+    expression: "dur_mover_s * 1000 / (limite_normal + 1)"
+    notes: "F6 de Movimiento, oraculo. 60 s -> 4615; 40 s -> 3076."
+    added: 2026-11-25
+    revised: ""
+  - name: en_alcance
+    status: active
+    source: design/gdd/alcance-y-asignacion-de-ataques.md
+    referenced_by:
+      - design/gdd/alcance-y-asignacion-de-ataques.md
+    variables:
+      - dx
+      - dy
+      - alcance_min
+      - alcance_max
+    output_range: [0, 1]
+    expression: "d2 >= 1 y d2 <= alcance_max^2 + 1 y (alcance_min <= 1 o d2 > (alcance_min - 1)^2 + 1), d2 = dx^2 + dy^2"
+    notes: "F1 de Alcance; booleano."
+    added: 2026-11-25
+    revised: ""
+  - name: casillas_en_alcance
+    status: active
+    source: design/gdd/alcance-y-asignacion-de-ataques.md
+    referenced_by:
+      - design/gdd/alcance-y-asignacion-de-ataques.md
+    variables:
+      - casilla
+      - alcance_min
+      - alcance_max
+    output_range: [0, 359]
+    expression: "cantidad de casillas que cumplen en_alcance"
+    notes: "F2 de Alcance, oraculo. En (12,7): 1-1 8, 1-2 20, 1-4 56, 1-6 120, 2-6 112."
+    added: 2026-11-25
+    revised: ""
+  - name: asignaciones_max
+    status: active
+    source: design/gdd/alcance-y-asignacion-de-ataques.md
+    referenced_by:
+      - design/gdd/alcance-y-asignacion-de-ataques.md
+      - design/gdd/libreria-de-reglas.md
+    variables:
+      - piezas_vivas
+    output_range: [1, 61]
+    expression: "piezas_vivas"
+    notes: "F3 de Alcance."
+    added: 2026-11-25
+    revised: ""
+  - name: tipo_disponible
+    status: active
+    source: design/gdd/reclutamiento-y-limites.md
+    referenced_by:
+      - design/gdd/reclutamiento-y-limites.md
+      - design/gdd/libreria-de-reglas.md
+      - design/gdd/maquina-de-turno.md
+    variables:
+      - puedeReclutar
+      - llamadas_restantes
+      - vivas
+      - n_t
+      - topeVivas_t
+      - libres
+    output_range: [0, 1]
+    expression: "puedeReclutar y llamadas_restantes > 0 y vivas + n_t <= topeVivas_t y libres >= n_t"
+    notes: "F1 de Reclutamiento; booleano, todo o nada."
+    added: 2026-11-25
+    revised: ""
+  - name: llamadas_restantes
+    status: active
+    source: design/gdd/reclutamiento-y-limites.md
+    referenced_by:
+      - design/gdd/reclutamiento-y-limites.md
+    variables:
+      - llamadas_max
+      - usadas
+    output_range: [0, 20]
+    expression: "llamadas_max(g) - usadas(j, g)"
+    notes: "F2 de Reclutamiento; g = Comun, Catapulta, Jinete o Demoledor."
+    added: 2026-11-25
+    revised: ""
+  - name: estado_cara
+    status: active
+    source: design/gdd/reclutamiento-y-limites.md
+    referenced_by:
+      - design/gdd/reclutamiento-y-limites.md
+      - design/gdd/libreria-de-reglas.md
+    variables:
+      - puedeReclutar
+      - llamadas_restantes
+      - tipo_disponible
+    output_range: [0, 2]
+    expression: "Agotada / SinLugar / Disponible"
+    notes: "F3 de Reclutamiento; tres valores. La lee el Modificador (#11)."
+    added: 2026-11-25
+    revised: ""
+  - name: orden_aparicion
+    status: active
+    source: design/gdd/reclutamiento-y-limites.md
+    referenced_by:
+      - design/gdd/reclutamiento-y-limites.md
+    variables:
+      - c
+      - f
+      - cc
+      - cf
+      - lado
+    output_range: [1, 17]
+    expression: "clave (-(c - cc) * lado, |f - cf|, f) ascendente sobre las casillas libres del anillo"
+    notes: "F4 de Reclutamiento; orden total de 17 casillas."
+    added: 2026-11-25
+    revised: ""
+  - name: reparto_sin_lugar
+    status: active
+    source: design/gdd/reclutamiento-y-limites.md
+    referenced_by:
+      - design/gdd/reclutamiento-y-limites.md
+      - design/gdd/libreria-de-reglas.md
+    variables:
+      - p_i
+      - Q
+      - m
+    output_range: [0, 100]
+    expression: "Q = suma de caras SinLugar (a 0); Grito, la otra cara de reclutar si esta Disponible y Arremetida suman Q / m; el resto, 1 por cara en ese orden"
+    notes: "F5 de Reclutamiento. Se calcula desde la tabla base y se suma con reparto_liberado; la tabla suma 100."
+    added: 2026-11-25
+    revised: ""
+  - name: delta_reclutamiento
+    status: active
+    source: design/gdd/reclutamiento-y-limites.md
+    referenced_by:
+      - design/gdd/reclutamiento-y-limites.md
+      - design/gdd/maquina-de-turno.md
+    variables:
+      - piezas_reclutadas
+      - bajas_por_turno
+    output_range: [0, 96]
+    expression: "ceil(piezas_reclutadas / bajas_por_turno)"
+    notes: "F6 de Reclutamiento; bajas_por_turno sin medir."
+    added: 2026-11-25
+    revised: ""
+  - name: turno_max_s
+    status: active
+    source: design/gdd/timer-de-turno.md
+    referenced_by:
+      - design/gdd/timer-de-turno.md
+      - design/gdd/maquina-de-turno.md
+    variables:
+      - dur_mover_s
+      - dur_atacar_s
+    output_range: [45, 125]
+    expression: "dur_mover + dur_atacar segun modo y tramo"
+    notes: "D1 de Timer; hoy 90 y 60."
+    added: 2026-11-25
+    revised: ""
+  - name: tramo
+    status: active
+    source: design/gdd/timer-de-turno.md
+    referenced_by:
+      - design/gdd/timer-de-turno.md
+    variables:
+      - consumido_ms
+      - umbral_tramo_final_s
+    output_range: [0, 1]
+    expression: "final si modo = Variable y consumido_ms[0] + consumido_ms[1] >= umbral_tramo_final_s * 1000"
+    notes: "D2 de Timer; tiempo consumido, no hora de pared. Rige desde el turno siguiente."
+    added: 2026-11-25
+    revised: ""
+  - name: vence_en_ms
+    status: active
+    source: design/gdd/timer-de-turno.md
+    referenced_by:
+      - design/gdd/timer-de-turno.md
+    variables:
+      - restante_etapa_ms
+      - restante_reloj_ms
+    output_range: [0, 90000]
+    expression: "min(restante_etapa_ms, restante_reloj_ms[jugador activo]); empate: vale el reloj"
+    notes: "D3 de Timer."
+    added: 2026-11-25
+    revised: ""
+  - name: mostrado_s
+    status: active
+    source: design/gdd/timer-de-turno.md
+    referenced_by:
+      - design/gdd/timer-de-turno.md
+    variables:
+      - restante_ms
+    output_range: [0, 750]
+    expression: "(restante_ms + 999) / 1000, division entera"
+    notes: "D4 de Timer; 0 solo cuando ya vencio."
+    added: 2026-11-25
+    revised: ""
+  - name: forma_plural
+    status: active
+    source: design/gdd/localizacion.md
+    referenced_by:
+      - design/gdd/localizacion.md
+    variables:
+      - n
+    output_range: [0, 1]
+    expression: "uno si n = 1; otros en todo otro caso"
+    notes: "F3 de Localizacion."
     added: 2026-11-25
     revised: ""
 
@@ -585,6 +888,7 @@ constants:
     source: design/gdd/libreria-de-reglas.md
     referenced_by:
       - design/gdd/libreria-de-reglas.md
+      - design/gdd/alcance-y-asignacion-de-ataques.md
     value: 5
     unit: ms
     added: 2026-11-19
@@ -595,6 +899,8 @@ constants:
     referenced_by:
       - design/gdd/libreria-de-reglas.md
       - design/gdd/maquina-de-turno.md
+      - design/gdd/movimiento.md
+      - design/gdd/alcance-y-asignacion-de-ataques.md
     value: 1
     unit: ms
     added: 2026-11-19
@@ -606,6 +912,7 @@ constants:
       - design/gdd/catalogo-de-piezas.md
       - design/gdd/libreria-de-reglas.md
       - design/gdd/maquina-de-turno.md
+      - design/gdd/alcance-y-asignacion-de-ataques.md
     value: 61
     unit: "piezas vivas por jugador; suma maxima de los topeVivas del Catalogo (adoptado de la Libreria, antes PROVISIONAL)"
     added: 2026-11-20
@@ -636,6 +943,7 @@ constants:
     source: design/gdd/maquina-de-turno.md
     referenced_by:
       - design/gdd/maquina-de-turno.md
+      - design/gdd/movimiento.md
     value: 256
     unit: "entradas de la pila de deshacer por turno (el duenio pasa de la Libreria a la Maquina de turno; cambiarlo es un cambio de contrato y sube la version de reglas)"
     added: 2026-11-20
@@ -645,6 +953,7 @@ constants:
     source: design/gdd/maquina-de-turno.md
     referenced_by:
       - design/gdd/maquina-de-turno.md
+      - design/gdd/timer-de-turno.md
     value: 1500
     unit: "segundos de partida (25 min, pilar 4); rango seguro 1290-1500; el reloj por jugador es la mitad (reloj_jugador_s)"
     added: 2026-11-20
@@ -655,6 +964,7 @@ constants:
     referenced_by:
       - design/gdd/maquina-de-turno.md
       - design/gdd/tablero-y-despliegue-inicial.md
+      - design/gdd/timer-de-turno.md
     value: 750
     unit: "segundos por jugador en toda la partida (12:30 = tope_partida_s / 2); corre solo en su turno; Sin limite no tiene reloj"
     added: 2026-11-25
@@ -665,6 +975,8 @@ constants:
     referenced_by:
       - design/gdd/tablero-y-despliegue-inicial.md
       - design/gdd/libreria-de-reglas.md
+      - design/gdd/movimiento.md
+      - design/gdd/alcance-y-asignacion-de-ataques.md
     value: 24
     unit: "columnas de la grilla (0-23); constante del contrato, cambiarla sube la version de reglas (adoptada de la Libreria, antes PROVISIONAL)"
     added: 2026-11-25
@@ -675,6 +987,8 @@ constants:
     referenced_by:
       - design/gdd/tablero-y-despliegue-inicial.md
       - design/gdd/libreria-de-reglas.md
+      - design/gdd/movimiento.md
+      - design/gdd/alcance-y-asignacion-de-ataques.md
     value: 15
     unit: "filas de la grilla (0-14); constante del contrato, cambiarla sube la version de reglas (adoptada de la Libreria, antes PROVISIONAL)"
     added: 2026-11-25
@@ -685,6 +999,7 @@ constants:
     referenced_by:
       - design/gdd/castillo-y-muros.md
       - design/gdd/tablero-y-despliegue-inicial.md
+      - design/gdd/reclutamiento-y-limites.md
     value: 2
     unit: "casillas del centro del castillo al muro (bloque de 5 x 5, 16 tramos, 9 de interior); constante del contrato, rango seguro 1-5"
     added: 2026-11-25
@@ -708,6 +1023,7 @@ constants:
     referenced_by:
       - design/gdd/castillo-y-muros.md
       - design/gdd/libreria-de-reglas.md
+      - design/gdd/reclutamiento-y-limites.md
     value: 2
     unit: "tramos rotos (vida 0) de un castillo a partir de los cuales deja de reclutar, de forma permanente; constante del contrato, valido 1-16, rango seguro 2-3 (era 1 hasta la v4)"
     added: 2026-11-25
@@ -731,8 +1047,247 @@ constants:
       - design/gdd/catalogo-de-piezas.md
       - design/gdd/libreria-de-reglas.md
       - design/gdd/tablero-y-despliegue-inicial.md
+      - design/gdd/alcance-y-asignacion-de-ataques.md
     value: 2
     unit: "alcance maximo extra del arquero sobre un tramo propio con vida > 0 (1-4 pasa a 1-6); constante del contrato, valido 0-10, rango seguro 1-3, sin medir"
+    added: 2026-11-25
+    revised: ""
+  - name: limite_normal
+    status: active
+    source: design/gdd/movimiento.md
+    referenced_by:
+      - design/gdd/movimiento.md
+      - design/gdd/libreria-de-reglas.md
+      - design/gdd/maquina-de-turno.md
+    value: 12
+    unit: "piezas que se mueven por turno, sin el Rey; config, valido 1-37 (PROVISIONAL hasta #11), rango seguro 8-16 sin medir"
+    added: 2026-11-25
+    revised: ""
+  - name: costo_paso
+    status: active
+    source: design/gdd/movimiento.md
+    referenced_by:
+      - design/gdd/movimiento.md
+    value: 1
+    unit: "puntos por paso en cruz; constante del contrato"
+    added: 2026-11-25
+    revised: ""
+  - name: llamadas_comun
+    status: active
+    source: design/gdd/reclutamiento-y-limites.md
+    referenced_by:
+      - design/gdd/reclutamiento-y-limites.md
+    value: 6
+    unit: "llamadas por jugador y partida; config tablaReclutas, valido 0-20"
+    added: 2026-11-25
+    revised: ""
+  - name: llamadas_catapulta
+    status: active
+    source: design/gdd/reclutamiento-y-limites.md
+    referenced_by:
+      - design/gdd/reclutamiento-y-limites.md
+    value: 4
+    unit: "llamadas por jugador y partida; config tablaReclutas, valido 0-20"
+    added: 2026-11-25
+    revised: ""
+  - name: llamadas_jinete
+    status: active
+    source: design/gdd/reclutamiento-y-limites.md
+    referenced_by:
+      - design/gdd/reclutamiento-y-limites.md
+    value: 3
+    unit: "llamadas por jugador y partida; config tablaReclutas, valido 0-20"
+    added: 2026-11-25
+    revised: ""
+  - name: llamadas_demoledor
+    status: active
+    source: design/gdd/reclutamiento-y-limites.md
+    referenced_by:
+      - design/gdd/reclutamiento-y-limites.md
+    value: 4
+    unit: "llamadas por jugador y partida; config tablaReclutas, valido 0-20"
+    added: 2026-11-25
+    revised: ""
+  - name: reclutas_comun
+    status: active
+    source: design/gdd/reclutamiento-y-limites.md
+    referenced_by:
+      - design/gdd/reclutamiento-y-limites.md
+    value: 4
+    unit: "piezas por llamada; config tablaReclutas, valido 1-17 y <= topeVivas"
+    added: 2026-11-25
+    revised: ""
+  - name: reclutas_catapulta
+    status: active
+    source: design/gdd/reclutamiento-y-limites.md
+    referenced_by:
+      - design/gdd/reclutamiento-y-limites.md
+    value: 2
+    unit: "piezas por llamada; config tablaReclutas, valido 1-17 y <= topeVivas"
+    added: 2026-11-25
+    revised: ""
+  - name: reclutas_jinete
+    status: active
+    source: design/gdd/reclutamiento-y-limites.md
+    referenced_by:
+      - design/gdd/reclutamiento-y-limites.md
+    value: 4
+    unit: "piezas por llamada; config tablaReclutas, valido 1-17 y <= topeVivas"
+    added: 2026-11-25
+    revised: ""
+  - name: reclutas_demoledor
+    status: active
+    source: design/gdd/reclutamiento-y-limites.md
+    referenced_by:
+      - design/gdd/reclutamiento-y-limites.md
+    value: 1
+    unit: "piezas por llamada; config tablaReclutas, valido 1-17 y <= topeVivas"
+    added: 2026-11-25
+    revised: ""
+  - name: dur_mover_normal_s
+    status: active
+    source: design/gdd/timer-de-turno.md
+    referenced_by:
+      - design/gdd/timer-de-turno.md
+      - design/gdd/movimiento.md
+    value: 60
+    unit: "s"
+    added: 2026-11-25
+    revised: ""
+  - name: dur_atacar_normal_s
+    status: active
+    source: design/gdd/timer-de-turno.md
+    referenced_by:
+      - design/gdd/timer-de-turno.md
+    value: 30
+    unit: "s"
+    added: 2026-11-25
+    revised: ""
+  - name: dur_mover_final_s
+    status: active
+    source: design/gdd/timer-de-turno.md
+    referenced_by:
+      - design/gdd/timer-de-turno.md
+      - design/gdd/movimiento.md
+    value: 40
+    unit: "s"
+    added: 2026-11-25
+    revised: ""
+  - name: dur_atacar_final_s
+    status: active
+    source: design/gdd/timer-de-turno.md
+    referenced_by:
+      - design/gdd/timer-de-turno.md
+    value: 20
+    unit: "s"
+    added: 2026-11-25
+    revised: ""
+  - name: umbral_tramo_final_s
+    status: active
+    source: design/gdd/timer-de-turno.md
+    referenced_by:
+      - design/gdd/timer-de-turno.md
+    value: 600
+    unit: "s consumidos, suma de los dos"
+    added: 2026-11-25
+    revised: ""
+  - name: aviso_etapa_s
+    status: active
+    source: design/gdd/timer-de-turno.md
+    referenced_by:
+      - design/gdd/timer-de-turno.md
+    value: 10
+    unit: "s"
+    added: 2026-11-25
+    revised: ""
+  - name: aviso_reloj_s
+    status: active
+    source: design/gdd/timer-de-turno.md
+    referenced_by:
+      - design/gdd/timer-de-turno.md
+    value: 60
+    unit: "s"
+    added: 2026-11-25
+    revised: ""
+  - name: aviso_reloj_critico_s
+    status: active
+    source: design/gdd/timer-de-turno.md
+    referenced_by:
+      - design/gdd/timer-de-turno.md
+    value: 10
+    unit: "s"
+    added: 2026-11-25
+    revised: ""
+  - name: salto_reloj_max_ms
+    status: active
+    source: design/gdd/timer-de-turno.md
+    referenced_by:
+      - design/gdd/timer-de-turno.md
+    value: 5000
+    unit: "ms, solo local"
+    added: 2026-11-25
+    revised: ""
+  - name: precision_vencimiento_ms
+    status: active
+    source: design/gdd/timer-de-turno.md
+    referenced_by:
+      - design/gdd/timer-de-turno.md
+    value: 100
+    unit: "ms, constante de verificacion"
+    added: 2026-11-25
+    revised: ""
+  - name: presupuesto_boton
+    status: active
+    source: design/gdd/localizacion.md
+    referenced_by:
+      - design/gdd/localizacion.md
+    value: 18
+    unit: "caracteres visibles"
+    added: 2026-11-25
+    revised: ""
+  - name: presupuesto_etiqueta
+    status: active
+    source: design/gdd/localizacion.md
+    referenced_by:
+      - design/gdd/localizacion.md
+    value: 24
+    unit: "caracteres visibles"
+    added: 2026-11-25
+    revised: ""
+  - name: presupuesto_titulo
+    status: active
+    source: design/gdd/localizacion.md
+    referenced_by:
+      - design/gdd/localizacion.md
+    value: 32
+    unit: "caracteres visibles"
+    added: 2026-11-25
+    revised: ""
+  - name: presupuesto_aviso
+    status: active
+    source: design/gdd/localizacion.md
+    referenced_by:
+      - design/gdd/localizacion.md
+    value: 60
+    unit: "caracteres visibles"
+    added: 2026-11-25
+    revised: ""
+  - name: presupuesto_parrafo
+    status: active
+    source: design/gdd/localizacion.md
+    referenced_by:
+      - design/gdd/localizacion.md
+    value: 240
+    unit: "caracteres visibles"
+    added: 2026-11-25
+    revised: ""
+  - name: expansion_pct
+    status: active
+    source: design/gdd/localizacion.md
+    referenced_by:
+      - design/gdd/localizacion.md
+    value: 40
+    unit: "% de inflado del texto de prueba"
     added: 2026-11-25
     revised: ""
 

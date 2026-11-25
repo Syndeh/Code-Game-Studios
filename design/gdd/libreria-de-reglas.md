@@ -100,14 +100,14 @@ la pantalla del otro pasó distinto", "perdí por algo que no se veía".
    que identifica esa tabla exacta, la calcula PrepararContexto); las tablas de probabilidad del Modificador, con el papel
    de cada cara (reclutar, Grito de guerra, Arremetida u otra); la posición de los
    castillos, fija (la define el Tablero, #4); el **límite normal** de piezas que se mueven
-   por turno, sin el Rey (`limite_normal`, 1 a 60; hoy 12, su dueño es Movimiento, #6); la **vida del tramo** de muro (`vida_tramo`, 1 a 1.000; hoy 30, su dueño es Castillo y muros, #5); y el modo de timer, solo como dato
+   por turno, sin el Rey (`limite_normal`, 1 a 37; hoy 12, su dueño es Movimiento, #6); la **vida del tramo** de muro (`vida_tramo`, 1 a 1.000; hoy 30, su dueño es Castillo y muros, #5); la **tabla de reclutas** (`tablaReclutas`: por tipo, su cara, piezas por llamada y llamadas; dueño Reclutamiento, #10); y el modo de timer, solo como dato
    informativo que no entra al estado (la librería no mide tiempo y ninguna regla depende
    de él). CrearPartida valida **toda** la config antes
    de crear nada: Catálogo no vacío y con el formato del Catálogo (#2); cada tabla de
    probabilidad según *Formulas* (`ProbabilidadesInvalidas`); los **papeles de las caras**
    de cada tabla (`ProbabilidadesInvalidas`): un papel por cara, exactamente una cara de
    Grito de guerra y una de Arremetida, distintas entre sí y distintas de las caras de
-   reclutar; `limite_normal` entre 1 y 60; `vida_tramo` entre 1 y 1.000; y los castillos dentro del tablero y sin
+   reclutar; `limite_normal` entre 1 y 37; `vida_tramo` entre 1 y 1.000; `tablaReclutas` según Reclutamiento (#10, *Config*), con dos caras de reclutar como mucho en las tablas base y cada una con al menos un tipo; y los castillos dentro del tablero y sin
    superponerse. Si fallan las
    tablas y algo más, gana `ProbabilidadesInvalidas`; cualquier otro fallo devuelve
    `ConfigInvalida`. En los dos casos no se crea partida; si no, devuelve el estado y el
@@ -116,7 +116,7 @@ la pantalla del otro pasó distinto", "perdí por algo que no se veía".
    2026-11-25: no hay sorteo de castillos). **El primer turno de la partida no tira el
    Modificador** (Máquina de turno, regla 3): después de crear la
    partida empieza directo en reclutar/mover. La versión, el id de partida, la huella del
-   Catálogo, el modo, las tablas base con sus papeles, el límite normal, la vida del tramo y la posición de los
+   Catálogo, el modo, las tablas base con sus papeles, el límite normal, la vida del tramo, la tabla de reclutas y la posición de los
    castillos no cambian en toda la partida.
 3. **Comandos: una lista cerrada.** Mover(pieza, destino) · Deshacer · TerminarMovimiento ·
    AsignarAtaque(pieza, objetivo) · QuitarAtaque(pieza) · Cubrir(escudero, aliado) ·
@@ -182,7 +182,7 @@ la pantalla del otro pasó distinto", "perdí por algo que no se veía".
    | 11 | `NoEsTuTurno` | El emisor no es el jugador del turno | Sí |
    | 12 | `PiezaInexistente` · `NoEsTuPieza` | El ID de la pieza que actúa no existe (o la pieza murió) · es del rival. El objetivo de AsignarAtaque y el aliado de Cubrir los valida la regla de cada uno (fila 14) | Sí |
    | 13 | `FaseIncorrecta` | El comando no corresponde a la fase actual | Sí |
-   | 14 | Códigos de cada regla del núcleo | `FueraDeAlcance`, `DestinoOcupado`, `SinMovimientos`, `NadaQueDeshacer`, `TipoNoReclutable`… Cada GDD del núcleo define los suyos y si los ve el jugador | Según su GDD |
+   | 14 | Códigos de cada regla del núcleo | Movimiento (#6, regla 13): `DestinoFueraDelTablero`, `DestinoIgualOrigen`, `PiezaAgotada`, `SinMovimientos`, `DestinoOcupado`, `DestinoBloqueado`, `FueraDeAlcance`. Alcance (#7, regla 12): `ObjetivoFueraDelTablero`, `ObjetivoInvalido`, `FueraDeAlcance`, `ObjetivoPropio`, `SinObjetivo`, `SinAtaqueAsignado`. Reclutamiento (#10, regla 7): `TipoNoReclutable`, `CastilloSinReclutar`, `SinLlamadas`, `TopeDePiezas`, `SinLugarParaReclutar`. Máquina (#3): `NadaQueDeshacer`. Faltan #8, #9 y #11. Cada GDD define el orden de los suyos y si los ve el jugador | Según su GDD |
    | 15 | `LimitePartida` | Lista cerrada (decisión del 2026-11-19): `contadorComandos` = C_MAX − 1, para todo comando salvo `Rendirse` y `CerrarPartida` (también un Resolver que terminaría la partida); un Mover con la pila de deshacer en 256; un Reclutar o un `TurnTimeout` con recluta automático que llevaría el próximo ID por encima de C_MAX | Interno (aviso neutro) |
 
    Fuera de Aplicar hay más códigos: `ConfigInvalida` y `ProbabilidadesInvalidas`
@@ -234,9 +234,10 @@ la pantalla del otro pasó distinto", "perdí por algo que no se veía".
    salvo el primero (Modificador, regla 2; el momento exacto lo define la Máquina de turno, #3).
    - **Tabla efectiva del Modificador.** La librería calcula la tabla al entrar en
      "esperando tirada" y la guarda en el estado: elige la tabla base según la regla del
-     Modificador (#11) y pone en 0 las caras de reclutar que no pueden salir (2 muros rotos o
-     llamadas agotadas), repartiendo su parte con `reparto_liberado` (*Formulas*), que
-     también bloquea Arremetida con 12 piezas o menos sin el Rey. La
+     Modificador (#11) y pone en 0 las caras de reclutar que no pueden salir: las *Agotadas* (2 muros rotos o
+     llamadas agotadas) reparten su parte con `reparto_liberado` (*Formulas*) y las *SinLugar*
+     (tope o casillas) con `reparto_sin_lugar` (Reclutamiento, #10, F5). Los dos se calculan desde
+     la tabla base y se suman; al final se bloquea Arremetida con 12 piezas o menos sin el Rey. La
      tabla efectiva se valida igual que en CrearPartida; si no pasa, es ErrorInterno, que
      la validación de los papeles en CrearPartida (regla 2) más la fórmula hacen
      inalcanzable.
@@ -280,7 +281,8 @@ la pantalla del otro pasó distinto", "perdí por algo que no se veía".
     sobre el muro), `ProbabilidadesSiguienteTirada(estado, jugador)` (regla 6) y
     `EvaluateMatchEnd(estado)` leen el estado sin cambiarlo. Las fórmulas de *Formulas*
     también son funciones puras públicas: `CaraPorTirada(tabla, n)`,
-    `OpcionPorSorteo(n, k)` y `RepartoLiberado(tabla, liberadas)`.
+    `RepartoLiberado(tabla, liberadas)`. También son consultas puras `CasillasEnAlcance(pieza)` (#7),
+    `hayMovimientoLegal(jugador)` (#6), y `tipo_disponible` y `estado_cara` (#10).
 11. **Todo a la vista y una huella.** El estado contiene toda la partida: no hay
     información oculta (lo único que no existe todavía es la próxima tirada). Se guarda y
     se lee completo en una **forma canónica**: campos en orden fijo, enteros de 4 bytes
@@ -291,7 +293,7 @@ la pantalla del otro pasó distinto", "perdí por algo que no se veía".
     el `GetHashCode` de la plataforma. Cubre **todos los campos del estado, sin
     excepción**: lo que no esté en la forma canónica no puede estar en el estado. Hoy eso
     incluye versión, id de partida, huella del Catálogo (no su contenido), modo, tablas
-    base del Modificador **con el papel de cada cara**, el **límite normal**, la **vida del tramo**, la **posición de los castillos**,
+    base del Modificador **con el papel de cada cara**, el **límite normal**, la **vida del tramo**, la **tabla de reclutas**, la **posición de los castillos**,
     `numeroTurno`, fase y etapa, jugador del
     turno, tabla base y cara del Modificador de este turno y sus bonos (Grito de guerra), piezas con sus
     movimientos usados, muros, ataques asignados, coberturas,
@@ -322,17 +324,18 @@ la pantalla del otro pasó distinto", "perdí por algo que no se veía".
     | Versión, huella del Catálogo | Soportadas; huella = la del contexto (si no, `VersionNoSoportada`) | — |
     | Id de partida, modo | Cualquier int32 · local u online | — |
     | Tablas base con papeles, posición de los castillos | Válidas según la regla 2 y *Formulas* | Castillos dentro del tablero y sin superponerse |
-    | `limite_normal` | 1 a 60 | — |
+    | `limite_normal` | 1 a 37 | Con Grito +2 y el Catálogo vigente la pila no pasa de 256 (Movimiento, F5); se revisa con #11 o si cambia el Catálogo |
+    | `tablaReclutas` | Piezas por llamada 1 a 17 y ≤ `topeVivas`; llamadas 0 a 20 | Cada tipo en una sola cara; sin el Rey (#10) |
     | `vida_tramo` | 1 a 1.000 | Tope de la vida de cada tramo de muro (#5) |
     | Tablero | 24 columnas (0–23) × 15 filas (0–14), constante (Tablero, #4) | Toda casilla del estado está dentro |
     | `contadorTirada`, `contadorComandos` · `numeroTurno` | 0 a C_MAX · 1 a C_MAX + 1 (empieza en 1) | `contadorTirada` ≤ `contadorComandos`; `numeroTurno` ≤ `contadorComandos` + 2 (CrearPartida y cada Aceptado avanzan como mucho un turno, porque una cascada se detiene en el turno siguiente, que necesita tirada); En curso ⇒ `contadorComandos` ≤ C_MAX − 1 (lugar para `Rendirse` o `CerrarPartida`) |
     | Fase, etapa, jugador del turno | Valores de sus enums (#3) · 0 o 1 | Etapa mover con reclutar o mover; atacar con atacar; ninguna etapa esperando tirada. Resolver no es una fase en reposo (#3, regla 2) |
-    | Tabla base del turno, cara del Modificador, bonos | Vacía o índice de una tabla base · vacía o 1 al largo de esa tabla · cada bono 0 a 10 (#11) | Tabla y cara, las dos vacías (primer turno y esperando la tirada) o las dos presentes (decisión del 2026-11-19); la cara tiene p > 0 en esa tabla base o es la de Grito o la de Arremetida (pueden recibir lo liberado); bono > 0 solo con la cara de Grito |
+    | Tabla base del turno, cara del Modificador, bonos | Vacía o índice de una tabla base · vacía o 1 al largo de esa tabla · cada bono 0 a 10 (#11) | Tabla y cara, las dos vacías (primer turno y esperando la tirada) o las dos presentes (decisión del 2026-11-19); la cara tiene p > 0 en esa tabla base o es la de Grito, la de Arremetida o una de reclutar Disponible (pueden recibir lo liberado); bono > 0 solo con la cara de Grito |
     | Piezas | Como mucho 61 vivas por jugador y, por tipo, su tope de piezas vivas (#2); una pieza que muere sale del estado | IDs únicos, de 1 a próximo ID − 1; tipo en el Catálogo; vida 1 a la de su tipo; movimientos usados 0 a movimiento del tipo + 10; nunca dos piezas en una casilla (un arquero puede estar sobre un tramo); En curso ⇒ un Rey por jugador |
     | Muros | 16 tramos por castillo colocado | Casillas del perímetro de su castillo; vida 0 a la del tramo (#5) |
-    | Ataques asignados, coberturas | Uno por pieza como mucho | Ataque: atacante vivo del jugador del turno, objetivo dentro del tablero según su tipo (#7), solo en la etapa atacar. Cobertura: escudero y aliado vivos del mismo jugador (siguen en el turno rival, #8) |
+    | Ataques asignados, coberturas | Uno por pieza como mucho | Ataque: atacante vivo del jugador del turno, objetivo = una casilla que `AsignarAtaque` aceptaría (#7), solo en la etapa atacar (una partida Terminada ahí los conserva). Un escudero del jugador del turno no ataca y cubre a la vez. Cobertura: escudero y aliado vivos del mismo jugador (siguen en el turno rival, #8) |
     | Pila de deshacer | 0 a 256 entradas (`pila_tope`, #3) | IDs de piezas vivas y casillas dentro del tablero; vacía fuera de la fase de mover |
-    | Contadores de reclutas | 0 a su tope de llamadas (#2, #11) | — |
+    | Contadores de reclutas | 4 por jugador (Común, Catapulta, Jinete, Demoledor), de 0 a su tope de llamadas (`tablaReclutas`, #10) | — |
     | `vidaQuitada` de cada jugador | 0 a `estadistica_max × (C_MAX − 1) + 16 × vida_tramo` = 1.000.015.000 con `vida_tramo` 1.000 (PROVISIONAL, #9) | Vida realmente quitada a piezas y muros del rival en toda la partida; sin fuego amigo; lo que absorbe un escudero al cubrir cuenta. Es estadística: ninguna regla la lee (jugador, 2026-11-25) |
     | Próximo ID | 1 a C_MAX | Mayor que todo ID de pieza |
     | Tirada pendiente | Vacía o {Modificador, jugador, tabla base, tabla efectiva} | Solo En curso; Modificador: jugador = jugador del turno y tabla efectiva = la que se recalcula |
@@ -349,7 +352,7 @@ la pantalla del otro pasó distinto", "perdí por algo que no se veía".
     | Reclutar · recluta automático | Piezas, próximo ID, contadores de reclutas | Todo o nada; topes de piezas por tipo y de llamadas (fila 14); próximo ID ≤ C_MAX por la fila 15 |
     | AsignarAtaque · QuitarAtaque · Cubrir | Ataques, coberturas | Fila 14 valida atacante, objetivo, escudero y aliado |
     | TerminarMovimiento · `TurnTimeout` de mover | Pila (vacía), fase y etapa | Igual que TerminarMovimiento; cascadas solo al empezar una fase (regla 17) |
-    | Resolver · `TurnTimeout` de atacar | Vida, piezas muertas (salen), muros, ataques, coberturas, `vidaQuitada`, fin, `numeroTurno`, tirada | Vida en 0 sale; `vidaQuitada` suma solo vida realmente perdida (cota en la Máquina de turno, regla 15); resto con `max(0, …)`; `EvaluateMatchEnd` fija motivo y ganador de la regla 16; si sigue, abre el turno siguiente (tabla, cara y bonos vacíos) y su tirada |
+    | Resolver · `TurnTimeout` de atacar | Vida, piezas muertas (salen), movimientos usados (a 0, también si el turno cierra por saltos; #3, regla 11), muros, ataques, coberturas, `vidaQuitada`, fin, `numeroTurno`, tirada | Vida en 0 sale; `vidaQuitada` suma solo vida realmente perdida (cota en la Máquina de turno, regla 15); resto con `max(0, …)`; `EvaluateMatchEnd` fija motivo y ganador de la regla 16; si sigue, abre el turno siguiente (tabla, cara y bonos vacíos) y su tirada |
     | `Rendirse` · `CerrarPartida` | Motivo, ganador, tirada (se borra) | Motivo y ganador por la regla 16 |
     | Todo Aceptado | `contadorComandos` (+1), `contadorTirada` (+1 con Tirada) | Fila 15: en C_MAX − 1 solo pasan `Rendirse` y `CerrarPartida`, que terminan la partida |
 
@@ -387,7 +390,7 @@ la pantalla del otro pasó distinto", "perdí por algo que no se veía".
        `VersionNoSoportada`.
     3. `Huella(estadoAutoridad)` no es `huellaDeclarada` (estado dañado en el camino),
        `estadoAutoridad` no es un estado válido (regla 11), o algún campo inmutable
-       de la regla 2 (modo, tablas base con sus papeles, límite normal, posición de los castillos) difiere del
+       de la regla 2 (modo, tablas base con sus papeles, límite normal, vida del tramo, tabla de reclutas, posición de los castillos) difiere del
        de `confirmado` → `EstadoInvalido`.
     4. El id de partida de `estadoAutoridad` no es el de `confirmado` → `OtraPartida`.
     5. El `contadorComandos` de `estadoAutoridad` es menor que el de `confirmado` →
@@ -421,8 +424,8 @@ la pantalla del otro pasó distinto", "perdí por algo que no se veía".
 17. **Qué hace `TurnTimeout`** (definitivo: Máquina de turno, #3, regla 12).
     - **Etapa mover:** si hay un Reclutar obligatorio pendiente, la librería recluta el
       primer tipo **disponible** en el orden del Catálogo (decisión del 2026-11-19: el
-      jugador no pierde el recurso). Disponible quiere decir que le quedan llamadas y que
-      hay lugar para todas sus piezas (todo o nada, como Reclutar). El evento del
+      jugador no pierde el recurso). Disponible es `tipo_disponible` (#10, F1): el castillo
+      recluta, le quedan llamadas, entran en el tope y hay lugar para todas sus piezas (todo o nada). El evento del
       reclutamiento lleva la marca `automatico`, así la interfaz dice que lo eligió el
       timeout. (Un Reclutar pendiente siempre tiene un tipo disponible: si no lo hubiera,
       se habría perdido al empezar la fase.) Después cierra la pila de deshacer y pasa a
@@ -430,7 +433,7 @@ la pantalla del otro pasó distinto", "perdí por algo que no se veía".
     - **Recluta imposible** (decisión del 2026-11-19): si al empezar la fase de reclutar
       ningún tipo está disponible, el reclutamiento se pierde en ese momento
       (`ReclutaPerdido`) y la partida sigue en la fase de mover, así el turno nunca se
-      traba, con timer o sin él.
+      traba. Es una defensa: la tabla y la fase usan la misma consulta (#10, regla 6).
     - **Etapa atacar:** resuelve los ataques asignados, como Resolver. Las coberturas ya
       asignadas siguen valiendo. Sin ataques, el turno termina con `TurnoTerminado`.
     - **Fin automático, solo al empezar una fase** (decisión del 2026-11-19): una fase que
@@ -478,7 +481,7 @@ espera una tirada: la autoridad la envía en cuanto se pide.
 | 26 Registro | Config, comandos y tiradas guardados | Reproduce aplicando los mismos comandos | Registro |
 | 28 Servidor | Es la autoridad de Tirada, `TurnTimeout` y `CerrarPartida` (abandono y reloj agotado); transporte autenticado | Corre la misma librería; compara (`contadorComandos`, huella) con el cliente | Servidor |
 
-Existen los GDD #2, #3 y #4. Con los demás, las interfaces son contrato provisional.
+Existen los GDD #2 a #7, #10, #12 y #14. Con los demás, las interfaces son contrato provisional.
 
 ## Formulas
 
@@ -528,7 +531,7 @@ Después, **si el jugador tiene `piezas_sin_rey ≤ limite_normal`** (Arremetida
 | p_i | int | 0–100 | tabla base elegida (Modificador, #11) | Probabilidad de cada cara antes del reparto |
 | L | int | 0–100 | calculado | Suma de las caras de reclutar liberadas: por 2 muros rotos, las dos; por llamadas agotadas, la que se agotó. Se calcula siempre desde la tabla base y sobre el conjunto entero de caras liberadas, nunca encima de una tabla efectiva anterior |
 | piezas_sin_rey | int | 0–60 | calculado | Piezas vivas del jugador, sin el Rey y sin muros |
-| limite_normal | int | 1–60 (hoy 12; PROVISIONAL, #6) | data file (config, regla 2; dueño Movimiento, #6) | Límite normal de piezas que se mueven por turno, sin el Rey |
+| limite_normal | int | 1–37 (hoy 12) | data file (config, regla 2; dueño Movimiento, #6) | Límite normal de piezas que se mueven por turno, sin el Rey |
 | p_Grito', p_Arremetida' | int | 0–100 | calculado | Caras que reciben lo liberado; cuáles son lo dice el papel de cada cara en la config (regla 2) |
 
 **Output Range:** una tabla de las mismas k caras que suma exactamente `tirada_rango`, porque
@@ -671,10 +674,10 @@ tocaría vive en el GDD que lo define; la librería solo lo recibe como dato:
   determinismo; no se ajustan.
 - **Topes de la tabla de dominios (regla 11): C_MAX = 1.000.000, tablero 24 × 15, 61
   piezas vivas por jugador, bono de 0 a 10, estadísticas de 0 a 1.000, pila de deshacer
-  de 256, límite normal de 1 a 60, vida del tramo de 1 a 1.000.** Los de estadísticas y piezas son del Catálogo (#2), la
+  de 256, límite normal de 1 a 37, vida del tramo de 1 a 1.000.** Los de estadísticas y piezas son del Catálogo (#2), la
   vida del tramo de Castillo y muros (#5), la
   pila de la Máquina de turno (#3) y el tablero del Tablero (#4); C_MAX, el bono (#11) y el
-  límite normal (#6) siguen PROVISIONALES. No son balance, garantizan
+  máximo del límite normal (#6) siguen PROVISIONALES hasta #11. No son balance, garantizan
   que ninguna cuenta desborde, y cambiarlos sube la versión de reglas.
 - **Presupuestos de rendimiento: vista previa 5 ms y comando 1 ms (percentil 95, AC-24 y
   AC-25).** Salen del cuadro de 16,6 ms a 60 fps; cambiarlos es una decisión de UX, no de
@@ -772,7 +775,7 @@ todo comando de jugador lleva el `contadorEsperado` correcto, y toda Tirada su
   rechaza con `ComandoDesconocido`.
 - **AC-5 (todo o nada)** — **GIVEN** un fixture con 3 casillas libres para reclutar y un
   tipo que recluta 4 piezas, **WHEN** se envía Reclutar de ese tipo, **THEN** se rechaza
-  con el código de Reclutamiento (#10; PROVISIONAL `SinLugarParaReclutar`), 0 piezas
+  con el código de Reclutamiento (#10; `SinLugarParaReclutar`), 0 piezas
   nuevas, la huella sigue siendo H y hay 0 eventos. **GIVEN** 4 casillas libres, **THEN**
   se acepta con 4 piezas nuevas.
 - **AC-6 (determinismo entre plataformas)** — **GIVEN** la misma config y la misma
@@ -881,15 +884,15 @@ todo comando de jugador lleva el `contadorEsperado` correcto, y toda Tirada su
 - **AC-23 (cliente y servidor)** — **GIVEN** dos instancias con la misma config, **WHEN** la
   autoridad aplica 200 comandos y los reenvía en orden al cliente, **THEN** las huellas
   coinciden después de cada comando.
-- **AC-24 (vista previa rápida)** (fixture PROVISIONAL hasta Movimiento, #5, y
+- **AC-24 (vista previa rápida)** (fixture PROVISIONAL hasta
   Resolución, #9) — **GIVEN** el fixture del peor tablero, guardado en el
   repositorio: 2 × (60 + 1) = 122 piezas (los topes de piezas vivas del concepto,
   12 + 16 + 12 + 8 + 8 + 4 = 60, más el Rey, por jugador), los 2 × 16 tramos de muro, y
-  60 ataques válidos asignados por el jugador del turno,
+  61 ataques válidos asignados por el jugador del turno (Alcance, #7, F3),
   **WHEN** se pide la vista previa 100 veces después de 20 corridas de calentamiento,
   **THEN** el percentil 95 es de 5 ms o menos en la máquina, el navegador y el build de
   referencia (razón en *Tuning Knobs*).
-- **AC-25 (comando rápido)** (PROVISIONAL, como AC-24) — **GIVEN** la variante del
+- **AC-25 (comando rápido)** — **GIVEN** la variante del
   fixture de AC-24 en la fase de mover (las mismas piezas y muros, 0 ataques asignados),
   **WHEN** se aplica un Mover válido 100 veces, cada vez sobre una copia nueva del fixture
   (la copia no se mide), después de 20 de calentamiento, **THEN** las 100 devuelven
@@ -1005,7 +1008,8 @@ todo comando de jugador lleva el `contadorEsperado` correcto, y toda Tirada su
   siempre da una cara. **GIVEN** una base con Grito y Arremetida en 0, **THEN** igual suma
   100. Los casos anteriores usan 13 piezas sin el Rey. **GIVEN** 12 piezas sin el Rey,
   **THEN** el primero da 15/85/0/0/0 y 20/20/20/20/20 sin nada liberado da 20/40/20/20/0;
-  con 13, queda 20/20/20/20/20. El Rey no cuenta en ninguno.
+  con 13, queda 20/20/20/20/20. El Rey no cuenta en ninguno. Las caras SinLugar (tope o
+  casillas) las prueban AC-18 y AC-19 de Reclutamiento (#10).
 - **AC-41 (orden de los IDs)** — **GIVEN** un despliegue inicial con castillos fijos,
   **WHEN** se colocan las piezas, **THEN** los IDs coinciden con un
   archivo dorado guardado en el repositorio (jugador 0 primero, después tipo del Catálogo,
@@ -1033,7 +1037,7 @@ todo comando de jugador lleva el `contadorEsperado` correcto, y toda Tirada su
   - en modo local: `SoloOnline`;
   - con otra versión, o con una versión soportada pero distinta de la de `confirmado`, o
     con una huella de Catálogo distinta de la del contexto: `VersionNoSoportada`;
-  - con otro modo, otras tablas base, otra `vida_tramo` u otra posición de los castillos (huella correcta):
+  - con otro modo, otras tablas base, otra `vida_tramo`, otra `tablaReclutas` u otra posición de los castillos (huella correcta):
     `EstadoInvalido`;
   - con otro id de partida: `OtraPartida`;
   - con un `contadorComandos` menor que el confirmado: `EstadoViejo`;
@@ -1055,9 +1059,9 @@ todo comando de jugador lleva el `contadorEsperado` correcto, y toda Tirada su
   se reparten los elementos entre dos colecciones consecutivas (por ejemplo, una pieza
   menos y más tramos de muro), **THEN** sus flujos canónicos y sus huellas son distintos.
 - **AC-46 (castillos fuera del tablero)** — **GIVEN** una config con un castillo que se sale
-  del tablero (o con dos castillos que se superponen, o con `limite_normal` 0 o 61, o con `vida_tramo` 0 o 1.001), **WHEN**
+  del tablero (o con dos castillos que se superponen, o con `limite_normal` 0 o 38, o con `vida_tramo` 0 o 1.001), **WHEN**
   se llama CrearPartida, **THEN** `ConfigInvalida` y no se crea partida; con `limite_normal`
-  1 y 60 se acepta, y con `vida_tramo` 1 y 1.000 también.
+  1 y 37 se acepta, y con `vida_tramo` 1 y 1.000 también.
 - **AC-47 (Rendirse)** — **GIVEN** una partida en curso, **WHEN** el jugador sin turno envía
   `Rendirse`, también mientras se espera una tirada, **THEN** la partida termina, gana el
   otro jugador, el motivo es Rendicion y no queda tirada pendiente. **WHEN** lo envía el
@@ -1201,7 +1205,7 @@ todo comando de jugador lleva el `contadorEsperado` correcto, y toda Tirada su
 | Reconexión, modelo de red del cliente y reemisión de pendientes descartados, cada cuánto se comparan huellas, límite de pedidos de estado completo, y qué pasa si la autoridad no envía la tirada | Servidor de partida (#28) y Timer (#12) | Antes de lanzar el online |
 | Cuándo una desconexión es abandono (`CerrarPartida` con Abandono) | Servidor de partida (#28) | Antes de lanzar el online |
 | Borde entre la librería, la red y la presentación (séptima pasada): ¿se presentan eventos de un comando predicho (Resolver, fin de partida) antes de la confirmación? Con varios comandos de jugador sin confirmar, `contadorEsperado` no identifica el estado que vio el jugador (¿uno solo pendiente, o huella del estado de decisión?). Relé servidor→cliente con emisor, en orden y sin huecos. Ante un rechazo en cascada, nombrar el primer comando fallido y su motivo. Tope de comandos por turno contra el relleno del contador | Servidor (#28) para la predicción, la cola y el relé; Vista previa (#16) para presentar eventos | Antes de lanzar el online |
-| ¿Qué pasa si el reloj del jugador y el timer de etapa vencen a la vez? Hoy vale el que la autoridad aplica primero | Timer (#12) y Servidor (#28) | En sus GDD |
+| ¿`LimitePartida` sobre un comando de autoridad cierra con Tablas? El Timer (#12, regla 9) lo supone | ADR y Servidor (#28) | Antes de lanzar el online |
 | Resincronizar: ¿exigir que `contadorTirada`, `numeroTurno` y próximo ID no bajen (sin trabar la corrección de una divergencia)?, código para un estado idéntico, `ComandoAdelantado` frente a `ComandoViejo`, `Rendirse` sin id de partida (id asignado por el servidor y único), `TurnTimeout` y `CerrarPartida` sin contador ante un reenvío reordenado | Servidor (#28) y ADR | Antes de lanzar el online |
 | Juego: con 12 piezas o menos y las caras de reclutar bloqueadas, Grito llega al 85%: ¿choca con el pilar 3a (dar opciones, nunca estadísticas)? (Modificador, #11); el recluta automático del timeout no se ve antes; falta un AC de fuego amigo que mata al Rey propio (gana el rival por ReyMuerto) | Máquina de turno (#3), Reclutamiento (#10) y Vista previa (#16) | En sus GDD |
 | QA: generar AC-29 desde el enum de filas (todos los pares); mutante plantado en AC-45; AC-54 con un constructor que conserve el orden de inserción; AC-59 frente a la regeneración de dorados mientras las reglas son PROVISIONALES | qa-lead | Antes de escribir los tests |

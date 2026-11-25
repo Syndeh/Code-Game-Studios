@@ -116,7 +116,7 @@ Un archivo que no se puede leer no llega a ser un Catálogo: el cliente no ofrec
 | #4 Tablero | Tipos, `topeVivas` y orden para IDs; valida que el ejército inicial (4 soldados, 4 arqueros, 4 escuderos y Rey) cabe en los topes | Tablero |
 | #5 Castillo | `escudo` y `alcanceMax` del arquero y el ID del tipo arquero (el +2 de escudo y el +2 de alcance en el muro son suyos; la `vida` del arquero es de Resolución) | Castillo |
 | #6 Movimiento | `movimiento`, vía `EffectiveStats` | Movimiento |
-| #7 Alcance | `alcanceMin` y `alcanceMax`; el sentido geométrico es suyo | Alcance |
+| #7 Alcance | `alcanceMin`, `alcanceMax` (sentido geométrico: su F1), `danoArea` (modo de ataque) y los IDs 2 y 5. Los alcances del demoledor son inertes: explota sobre su casilla | Alcance |
 | #9 Resolución | `ataque`, `escudo`, `vida`, `danoArea` | Resolución |
 | #10 Reclutamiento | `topeVivas` y el orden de tipos (recluta automático); las llamadas por tipo son suyas | Reclutamiento |
 | #15 Ficha y HUD | Cifras base y efectivas para mostrar | Ficha y HUD |
@@ -125,9 +125,9 @@ Un archivo que no se puede leer no llega a ser un Catálogo: el cliente no ofrec
 | #19 Métricas, #32 Analítica | `versionBalance` y huella de cada partida | Métricas |
 | #26 Registro, #28 Servidor | El Registro guarda la tabla en la config de cada partida (así el Catálogo no conserva versiones viejas); el Servidor carga el mismo archivo y compara huellas | Registro y Servidor (provisional hasta que existan) |
 
-**Provisional:** #5, #6, #7, #9, #10 y #26 todavía no tienen GDD. Estos contratos son lo que este documento espera de ellos.
+**Provisional:** #9 y #26 todavía no tienen GDD. Estos contratos son lo que este documento espera de ellos.
 
-**Observaciones que pasan a Open Questions:** el demoledor mata solo a cualquier pieza que no sea el Rey; si el Grito de guerra (+2 de ataque) también suma al daño de área de la catapulta; cómo se ordena el recluta automático del Cuerno de guerra (catapulta, jinete, demoledor por ID).
+**Observaciones que pasan a Open Questions:** el demoledor mata solo a cualquier pieza que no sea el Rey; si el Grito de guerra (+2 de ataque) también suma al daño de área de la catapulta.
 
 ## Formulas
 
@@ -236,13 +236,13 @@ Esto evita un ciclo: la Librería depende del esquema del Catálogo, y el Catál
 | #3 Máquina de turno | Blanda | `movimiento` y `topeVivas` (F8, invariante de la pila) y orden de tipos | Existe y ya nombra al Catálogo |
 | #4 Tablero y despliegue | Dura | Tipos, `topeVivas`, orden para IDs; valida que el ejército inicial cabe en los topes; `movimiento` para sus oráculos | Existe y ya nombra al Catálogo |
 | #5 Castillo y muros | Dura | `escudo` y `alcanceMax` del arquero y el ID del tipo arquero | Existe y ya nombra al Catálogo |
-| #6 Movimiento | Dura | `movimiento`, vía `EffectiveStats` | Pendiente |
-| #7 Alcance y asignación | Dura | `alcanceMin` y `alcanceMax` | Pendiente |
+| #6 Movimiento | Dura | `movimiento`, vía `EffectiveStats`, y los IDs de arquero, jinete y Rey | Existe y ya nombra al Catálogo |
+| #7 Alcance y asignación | Dura | `alcanceMin`, `alcanceMax`, `danoArea` y los IDs 2 y 5 | Existe y ya nombra al Catálogo |
 | #9 Resolución simultánea | Dura | `ataque`, `escudo`, `vida`, `danoArea` | Pendiente |
-| #10 Reclutamiento | Dura | `topeVivas` y el orden de tipos | Pendiente |
+| #10 Reclutamiento | Dura | `topeVivas`, el orden de tipos y la vida | Existe y ya nombra al Catálogo |
 | #15 Ficha de pieza y HUD | Dura | Cifras base y efectivas para mostrar | Pendiente |
 | #18 Render, #37 Skins | Blanda | Solo el ID de tipo | Pendiente |
-| #14 Localización | Blanda | Solo el ID de tipo (nombre de pieza) | Pendiente |
+| #14 Localización | Blanda | Solo el ID de tipo (nombre de pieza, singular y plural) | Existe y ya nombra al Catálogo |
 | #19 Métricas, #28 Servidor | Blanda | `versionBalance` y huella; el Servidor carga el mismo archivo | Pendiente |
 | #26 Registro | Blanda | Guarda la tabla en la config de cada partida | Pendiente |
 | #8 Cobertura | Referencia | Nombra al Escudero por su ID (2); no lee el archivo | Pendiente |
@@ -275,7 +275,7 @@ Todas las cifras están en el archivo de datos del Catálogo; ninguna está en e
 - `ataque` del demoledor y `escudo + vida` del Rey (I2): hay que mirar los dos juntos.
 - `danoArea` y `escudo + vida` del demoledor (I3): el demoledor es el que fija el techo del área de todos los tipos.
 - `escudo + vida` del demoledor y los `ataque` de los demás (I1): su valor decide cuáles piezas lo matan solas.
-- `topeVivas` de catapulta y demoledor, y las llamadas del Cuerno de guerra: con 4 llamadas de 2 catapultas y de 1 demoledor, los topes 8 y 4 se llenan justo. Con 3 llamadas de 4 jinetes (12 en total) el tope de 8 llega antes: la última llamada recluta menos. Si Reclutamiento sube llamadas sin subir el tope, las llamadas sobrantes no reclutan.
+- `topeVivas` de catapulta y demoledor, y las llamadas del Cuerno de guerra: con 4 llamadas de 2 catapultas y de 1 demoledor, los topes 8 y 4 se llenan justo. Con 3 llamadas de 4 jinetes (12 en total) el tope de 8 llega antes: con 5 o más jinetes vivos la llamada queda bloqueada, todo o nada (Reclutamiento, regla 4). Si Reclutamiento sube llamadas sin subir el tope, las llamadas sobrantes no reclutan.
 
 **Perillas que son de otro GDD (no se duplican acá):** el +2 del Grito de guerra (Modificador, #11), el +2 de escudo y el +2 de alcance del arquero sobre el muro y la vida de los tramos (Castillo, #5), las llamadas por tipo (Reclutamiento, #10), el tamaño del tablero (Tablero, #4).
 
@@ -362,8 +362,6 @@ Sin pantalla propia. Las cifras de cada tipo se muestran en la ficha de pieza y 
 |---|---|---|
 | El demoledor mata solo a cualquier pieza que no sea el Rey, y con una pieza de ataque 5 o más mata al Rey con 2 piezas: ¿es el ritmo deseado? | Resolución (#9), Castillo (#5), playtest | En sus GDD y en el MVP |
 | ¿El bono de ataque del Grito de guerra (+2) suma también al `danoArea` de la catapulta? | Modificador (#11) y Resolución (#9) | En sus GDD |
-| Orden del recluta automático del Cuerno de guerra (catapulta, jinete, demoledor por ID) | Reclutamiento (#10) y Máquina de turno (#3) | En sus GDD |
-| Con 3 llamadas de 4 jinetes (12) y tope de 8, la última recluta menos: ¿se acepta o se ajusta? | Reclutamiento (#10) | En su GDD |
 | Pisos de `ataque`, `vida`, `escudo` y `danoArea` sin fundamentar | Métricas (#19), partidas humanas | Compuerta de duración |
 | Techo de `alcanceMax` (costo de la vista previa). El de `movimiento` quedó en 12 (Tablero, #4) | Librería | Al medir la vista previa |
 | `PrepararContexto` sin presupuesto de tiempo propio | Librería (ADR) | Antes de escribir código |

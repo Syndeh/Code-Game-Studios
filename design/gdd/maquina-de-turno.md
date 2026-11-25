@@ -108,7 +108,7 @@ de mover se pierde; se mide en playtest (Open Questions).
    jugador tiene más de 12 piezas sin contar el Rey** (decisión del 2026-11-24): con 12 o menos
    no cambia nada, y el Modificador (#11) pasa su probabilidad entera a Grito de guerra.
 6. **Fase `Reclutar`.** Solo existe con `ReclutarObligatorio`. Si al abrirla ningún tipo
-   está disponible → `ReclutaPerdido` y pasa a `Mover`. Si no, solo sale con
+   está disponible (`tipo_disponible`, #10) → `ReclutaPerdido` y pasa a `Mover`; es una defensa, porque la tabla usa la misma consulta. Si no, solo sale con
    `Reclutar(tipo)` o con el timeout (recluta automático). No hay "no reclutar".
 7. **Fase `Mover`.** Valen `Mover`, `Deshacer` y `TerminarMovimiento`. Una fase ya empezada
    nunca termina sola: aunque se haya usado todo el límite, la cierra `TerminarMovimiento`
@@ -130,7 +130,7 @@ de mover se pierde; se mide en playtest (Open Questions).
     la partida.
 11. **Cerrar un turno.** Después de resolver (con `Resolver`, con el timeout de atacar o por
     salto automático) se limpian los bonos del Grito de guerra, las asignaciones y el límite
-    del turno. Luego se corre `EvaluateMatchEnd` y, si no hay ganador, pasa el jugador, sube
+    del turno, y los movimientos usados de todas las piezas vuelven a 0 (Movimiento, #6, regla 16). Luego se corre `EvaluateMatchEnd` y, si no hay ganador, pasa el jugador, sube
     `numeroTurno` y se abre el siguiente turno (regla 4).
 12. **`TurnTimeout` (definitivo; antes provisional, Librería regla 17).**
     - *Etapa mover:* si hay un `Reclutar` pendiente, la librería recluta el primer tipo
@@ -187,7 +187,8 @@ de mover se pierde; se mide en playtest (Open Questions).
 | `EsperandoTirada` (turno ≥ 2) | `Reclutar` | `Tirada` válida → `ReclutarObligatorio` |
 | `EsperandoTirada` | `Mover` | `Tirada` → `Seguir` o `LimiteMovimientos(sin límite)` |
 | `EsperandoTirada` | `Atacar` | `Tirada` → `SaltearMovimiento` |
-| `Reclutar` | `Mover` | `Reclutar(tipo)`, recluta automático por timeout, o `ReclutaPerdido` al abrirla |
+| `Reclutar` | `Mover` | `Reclutar(tipo)`, o `ReclutaPerdido` al abrirla |
+| `Reclutar` | `Atacar` | Recluta automático por `TurnTimeout` de mover (regla 12) |
 | `Mover` | `Atacar` | `TerminarMovimiento` o `TurnTimeout` de mover (la pila se vacía) |
 | `Mover` o `Atacar` | siguiente fase / cierre | Salto automático (`FaseSaltada`) al abrirla sin acción posible |
 | `Atacar` | `EsperandoTirada` (turno + 1) | `Resolver` o `TurnTimeout` de atacar, sin ganador |
@@ -211,9 +212,9 @@ de mover se pierde; se mide en playtest (Open Questions).
 | 15 HUD, 19 Métricas, 25 Rival IA | Eventos de fase, etapa y pila | Nada (IA: mismos comandos que un jugador) | Cada GDD |
 
 **Supuestos PROVISIONALES sobre GDD sin escribir:** el resultado `ReclutarObligatorio`
-(#11 y #10), el límite normal de movimientos (#6), el contador `vidaQuitada` (#9) y el reloj
-por jugador en los tres modos con timer (#12). Si las piezas
-reclutadas pueden moverse ese turno queda para #10 y #6.
+(#11) y el contador `vidaQuitada` (#9). Las piezas reclutadas se mueven ese turno, salvo las
+del recluta automático (#6, regla 11; #10, reglas 9 y 10). Con una catapulta o un demoledor
+propios vivos, `Atacar` nunca se salta (#7, regla 14).
 
 ## Formulas
 
@@ -314,8 +315,8 @@ comando. Con Grito de guerra (12 piezas más el Rey, +2 de movimiento) el máxim
 **Dónde se rompe:** subir el movimiento del soldado en 1 da 266 > 256. Por eso el
 invariante.
 
-**PROVISIONAL hasta Movimiento (#6):** el peor caso supone que cada `Mover` gasta un solo
-punto de movimiento. Si #6 define otra cosa, el máximo baja.
+**Confirmado por Movimiento (#6, F5):** cada `Mover` cuesta 1 punto o más. La fórmula no cuenta
+el bono del Grito; por eso `limite_normal` llega como mucho a 37 (con 38 daría 260).
 
 ## Edge Cases
 
@@ -324,10 +325,10 @@ punto de movimiento. Si #6 define otra cosa, el máximo baja.
 - **Si Distracción sale y ninguna pieza propia tiene objetivo válido** (ni un escudero con
   aliado que cubrir): `Atacar` se salta con `FaseSaltada` y el turno cierra solo. Evita los
   30 s vacíos del prototipo.
-- **Si `Reclutar` se abre y ningún tipo está disponible** (llamadas agotadas o sin lugar
-  para todas sus piezas): `ReclutaPerdido` y pasa a `Mover`.
+- **Si `Reclutar` se abre y ningún tipo está disponible** (llamadas agotadas, tope de piezas
+  vivas o sin lugar para todas sus piezas; inalcanzable, #10, regla 6): `ReclutaPerdido` y pasa a `Mover`.
 - **Si ya se usó todo el límite de movimientos:** la fase `Mover` sigue abierta hasta
-  `TerminarMovimiento` o el timeout; un `Mover` más se rechaza con `SinMovimientos`.
+  `TerminarMovimiento` o el timeout; un `Mover` de una pieza sin mover se rechaza con `SinMovimientos`; las ya movidas y el Rey siguen (#6, regla 10).
 - **Si `Mover` empieza sin ningún movimiento legal:** `FaseSaltada` y pasa a `Atacar`.
 - **Si se saltan `Mover` y `Atacar` en el mismo turno:** `TurnoTerminado` sin `Resolver`;
   `EvaluateMatchEnd` corre igual.
@@ -395,14 +396,15 @@ Dependencies*). Por eso esos sistemas dependen de ella y no al revés.
 
 | Sistema | Tipo | Qué usa | Estado del GDD |
 |---|---|---|---|
-| #6 Movimiento | Dura | Fase `Mover`, pila de deshacer, límite del turno | Pendiente |
-| #7 Alcance y asignación | Dura | Fase `Atacar` y el criterio "acción posible" | Pendiente |
+| #6 Movimiento | Dura | Fase `Mover`, pila de deshacer, límite del turno | Existe |
+| #7 Alcance y asignación | Dura | Fase `Atacar` y el criterio "acción posible" | Existe |
 | #8 Cobertura | Blanda | Momento de borrar las coberturas (al abrir el turno de su dueño) | Pendiente |
 | #5 Castillo y muros | Blanda | Momento del corte de reclutamiento (reclutar es de la fase de mover; la tabla se calcula al abrir el turno), `Deshacer` sobre los `Mover` de subir y bajar del muro y `vidaQuitada` | Existe |
 | #9 Resolución | Dura | Transición `Resolver`; escribe `vidaQuitada`; declara `Δturnos` | Pendiente |
-| #10 Reclutamiento | Dura | Fase `Reclutar`, recluta automático; declara `Δturnos` | Pendiente |
+| #10 Reclutamiento | Dura | Fase `Reclutar`, recluta automático; declara `Δturnos` (su F6, sin valor medido) | Existe |
 | #11 Modificador | Dura | Resultados tipados y fase de tirada; declara `Δturnos` | Pendiente |
-| #12 Timer | Dura | `numeroTurno`, etapa y `reloj_jugador_s`; emite `TurnTimeout` y `CerrarPartida(RelojAgotado)` | Pendiente |
+| #12 Timer | Dura | `numeroTurno`, etapa y `reloj_jugador_s`; emite `TurnTimeout` y `CerrarPartida(RelojAgotado)` | Existe |
+| #14 Localización | Blanda | Nombres de fases y motivos de fin | Existe |
 | #15 Ficha y HUD | Blanda | Fase, etapa y cuántos movimientos se pueden deshacer | Pendiente |
 | #19 Métricas | Blanda | Eventos de fase, `TurnoTerminado`, `PartidaTerminada` | Pendiente |
 | #21 Menú principal | Blanda | Inicia la partida y recibe `PartidaTerminada` | Pendiente |
@@ -429,7 +431,7 @@ Métricas, nunca en el código):
 
 | Valor | Dueño | Qué cambia aquí |
 |---|---|---|
-| Etapas del timer (60 + 30, 40 + 20) y minuto de cambio | Timer (#12) | `turno_max_s`: cuántos turnos completos caben en `reloj_jugador_s` (8 de 90 s, 12 de 60 s) |
+| Etapas del timer (60 + 30, 40 + 20) y minuto de cambio | Timer (#12) | `turno_max_s` (dueño: Timer, D1): cuántos turnos completos caben en `reloj_jugador_s` (8 de 90 s, 12 de 60 s) |
 | `movimiento` y `topeVivas` por tipo | Catálogo (#2) | `pila_max` (D4): hoy 254 de 256; subir el movimiento del soldado en 1 lo rompe |
 | Límite normal de movimientos (12 piezas más el Rey) | Movimiento (#6) | Cuántas entradas llega a tener la pila en un turno normal |
 | `Δturnos` de Resolución, Reclutamiento y Modificador | #9, #10, #11 | `turnos_estimados` contra `turnos_presupuesto` (D1) |
@@ -561,7 +563,7 @@ integración con otro sistema. **Config/Data** = chequeo de humo. Los criterios 
   **THEN** pasa a `Mover`. **Y GIVEN** que al abrirla ningún tipo está disponible, **THEN**
   se emite `ReclutaPerdido` y el estado queda en `Mover`.
 - **AC-7 (Logic, regla 7)** — **GIVEN** la fase `Mover` con todo el límite usado, **WHEN**
-  llega un `Mover`, **THEN** `SinMovimientos` y la fase sigue en `Mover`; **WHEN** llega
+  llega un `Mover` de una pieza sin mover, **THEN** `SinMovimientos` y la fase sigue en `Mover`; **WHEN** llega
   `TerminarMovimiento`, **THEN** pasa a `Atacar` y la pila queda vacía.
 - **AC-8 (Logic, regla 8)** — **GIVEN** un turno con tres `Mover` (piezas A, B, A),
   **WHEN** se envían tres `Deshacer`, **THEN** las piezas y sus movimientos usados vuelven
@@ -575,7 +577,7 @@ integración con otro sistema. **Config/Data** = chequeo de humo. Los criterios 
   `AsignarAtaque`, `QuitarAtaque` y `Cubrir` en cualquier orden, **THEN** todos se aceptan;
   **WHEN** llega `Resolver`, **THEN** el turno cierra y el estado queda en `EsperandoTirada`
   del rival.
-- **AC-11 (Logic, regla 10: `Atacar`)** — **GIVEN** una tirada de Distracción y ninguna
+- **AC-11 (Logic, regla 10: `Atacar`)** — **GIVEN** una tirada de Distracción, ni catapultas ni demoledores propios y ninguna
   pieza propia con objetivo válido ni escudero con aliado, **WHEN** se aplica la `Tirada`,
   **THEN** los eventos son `FaseSaltada(Atacar)`, `TurnoTerminado` y `TurnoIniciado`, y el
   estado queda en `EsperandoTirada` del rival sin esperar ningún timer.
@@ -587,7 +589,7 @@ integración con otro sistema. **Config/Data** = chequeo de humo. Los criterios 
   pieza y un solo movimiento legal, **WHEN** se usa ese movimiento, **THEN** la fase sigue en
   `Mover` hasta `TerminarMovimiento` o timeout.
 - **AC-14 (Logic, regla 11)** — **GIVEN** un turno con Grito de guerra (bonos 2), ataques
-  asignados y límite alterado, **WHEN** el turno cierra, **THEN** bonos 0, asignaciones
+  asignados, límite alterado y piezas movidas, **WHEN** el turno cierra por `Resolver`, por timeout o por saltos, **THEN** bonos 0, movimientos usados 0, asignaciones
   vacías, límite normal y `EvaluateMatchEnd` consultado.
 - **AC-15 (Logic, regla 12: etapa mover en `Reclutar`)** — **GIVEN** `Reclutar` con soldados
   y arqueros disponibles, **WHEN** llega `TurnTimeout(turno, mover)`, **THEN** se recluta el
@@ -609,7 +611,7 @@ integración con otro sistema. **Config/Data** = chequeo de humo. Los criterios 
   vivos con vida 1), **WHEN** se consulta `EvaluateMatchEnd`, **THEN** `ReyMuerto` ganando el
   dueño del Rey vivo; `DobleRey` ganando el jugador 0; `ReyMuerto` ganando el rival; sin
   ganador.
-- **AC-20 (Integration, regla 14; cruce con #12 y #28, PROVISIONAL)** — **GIVEN** modo
+- **AC-20 (Integration, regla 14; cruce con #12; con #28, PROVISIONAL)** — **GIVEN** modo
   Variable, turno de azul con 1 s en su reloj, **WHEN** pasa 1 s en `Mover` (y, en otra copia,
   en `Reclutar` y en `Atacar`), **THEN** la autoridad envía `CerrarPartida(RelojAgotado,
   rojo)`. **GIVEN** `EsperandoTirada`, **WHEN** pasan 60 s, **THEN** ningún reloj cambia.
@@ -636,7 +638,7 @@ integración con otro sistema. **Config/Data** = chequeo de humo. Los criterios 
   de una partida (N = 24, 1.381 s), **WHEN** se calcula el presupuesto, **THEN** `seg_medio`
   = 57 y `turnos_presupuesto` = 26; con `seg_medio` = 0 se usa 1 y da 1.500. El archivo marca
   si la partida entró en 1.500 s.
-- **AC-26 (Logic, D2; cruce con #12, PROVISIONAL)** — **GIVEN** `T_tope` = 1.500, 1.291 y
+- **AC-26 (Logic, D2; cruce con #12)** — **GIVEN** `T_tope` = 1.500, 1.291 y
   1.290, **WHEN** se calcula `reloj_jugador_s`, **THEN** da 750, 645 y 645; Sin límite no da
   reloj.
 - **AC-27 (Logic, D4, con valores del límite)** — **GIVEN** el Catálogo vigente, **WHEN**
@@ -677,10 +679,8 @@ tiene criterio porque quedó como pregunta abierta.
 
 | Pregunta | Dueño | Para cuándo |
 |---|---|---|
-| ¿Las piezas reclutadas pueden moverse ese turno? | Reclutamiento (#10) y Movimiento (#6) | En sus GDD |
-| ¿Los relojes se pausan durante una desconexión (online)? Con la espera de la tirada ya se pausan | Timer (#12) y Servidor (#28) | En sus GDD |
-| ¿Qué pasa si el reloj y el timer de etapa vencen a la vez? Hoy vale el que la autoridad aplica primero | Timer (#12) | En su GDD |
-| ¿Cómo se ven los dos relojes y desde cuándo avisan que queda poco? | Ficha y HUD (#15) y Timer (#12) | En sus GDD |
+| ¿Los relojes se pausan durante una desconexión (online)? En el MVP no (Timer, #12) | Servidor (#28) | En su GDD |
+| ¿Cómo se ven los dos relojes? (Los umbrales de aviso son del Timer, #12: 60 s y 10 s) | Ficha y HUD (#15) | En su GDD |
 | ¿Las partidas Sin límite cuentan para la compuerta del arte (3 partidas seguidas ≤ 25 min)? Propuesta: no | Métricas (#19) | En su GDD |
 | ¿El timeout durante `Reclutar` salta `Mover` y se siente como castigo? | Playtest | MVP |
 | ¿El reloj decide partidas que el tablero no decidió? Medir cuántas terminan por reloj y quién iba adelante. Con pasividad total pierde azul, que empieza | Métricas (#19) | MVP |
