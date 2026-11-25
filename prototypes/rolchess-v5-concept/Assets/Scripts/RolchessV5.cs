@@ -18,6 +18,7 @@ public class RolchessV5 : MonoBehaviour
     const int WallLife = 30;
     const int BoostAmount = 2;            // Grito de guerra: +2 attack and +2 movement the turn it is rolled (no charges)
     const int WallArcherShield = 2;       // archer standing on its own wall
+    const int WallArcherRange = 2;        // v5 (2026-11-25): +2 range on its own wall (1-4 → 1-6); it attacks from there
     const float SlowdownAfter = 600f;     // Variable mode: after 10 min the turn timer gets shorter
     static readonly int[] MoveTime   = { 60, 40 };   // seconds: 90-mode / 60-mode (Variable: before / after SlowdownAfter)
     static readonly int[] AttackTime = { 30, 20 };
@@ -513,7 +514,7 @@ public class RolchessV5 : MonoBehaviour
     // 8 neighbours. With range 1 the zone is the 8 neighbours, as before.
     bool InRange(Piece a, Vector2Int t)
     {
-        int min = RMin[(int)a.kind], max = RMax[(int)a.kind];
+        int min = RMin[(int)a.kind], max = RMax[(int)a.kind] + (a.kind == Kind.Arquero && OnWall(a) ? WallArcherRange : 0);
         if (hex)
         {
             int d = Dist(a.pos, t);
@@ -1682,7 +1683,7 @@ public class RolchessV5 : MonoBehaviour
                 GUILayout.Label("<b>MOVER</b>", richStyle);
                 GUILayout.Label(unlimitedMoves ? "Piezas movidas: sin límite" : $"Piezas movidas: {movesUsed}/{MaxMoves} (+ Rey)");
                 GUILayout.Label("<size=11>Clic en tu pieza y luego en una casilla verde. Puedes atravesar a tus compañeros.</size>", richStyle);
-                GUILayout.Label("<size=11>Arqueros: pueden subir a un tramo libre de su propio muro (+2 de defensa). El daño a esa casilla lo reciben el arquero y el muro.</size>", richStyle);
+                GUILayout.Label($"<size=11>Arqueros: pueden subir a un tramo libre de su propio muro (+{WallArcherShield} de defensa y +{WallArcherRange} de alcance: de 1 a {RMax[(int)Kind.Arquero] + WallArcherRange}; atacan desde ahí). El daño a esa casilla lo reciben el arquero y el muro.</size>", richStyle);
                 GUILayout.Label("<size=11>Rey: atraviesa sus propios muros como si no estuvieran, pero no puede quedarse sobre ellos.</size>", richStyle);
                 GUI.enabled = undo.Count > 0;
                 if (GUILayout.Button(undo.Count > 0 ? $"Deshacer movimiento ({undo.Count} en este turno)" : "Deshacer movimiento")) Undo();
@@ -1725,7 +1726,7 @@ public class RolchessV5 : MonoBehaviour
         if (castles) GUILayout.Label($"Muros rotos: azul {breaches[0]}, rojo {breaches[1]} (con {BreachesToLoseRecruit} muros derribados no se recluta)");
         DrawOdds();
         DrawStats(false);
-        GUILayout.Label("<size=11>Fichas: letra + V vida, A ataque, D defensa. S Soldado, A Arquero, E Escudero, C Catapulta, J Jinete, D Demoledor, R Rey. Arquero sobre su muro: +2 defensa; el número chico abajo es la vida del muro. Casillas rojizas: alcance de ataque de la pieza seleccionada o bajo el cursor.</size>", richStyle);
+        GUILayout.Label($"<size=11>Fichas: letra + V vida, A ataque, D defensa. S Soldado, A Arquero, E Escudero, C Catapulta, J Jinete, D Demoledor, R Rey. Arquero sobre su muro: +{WallArcherShield} defensa y +{WallArcherRange} alcance; el número chico abajo es la vida del muro. Casillas rojizas: alcance de ataque de la pieza seleccionada o bajo el cursor.</size>", richStyle);
         GUILayout.EndScrollView();
         GUILayout.EndArea();
     }

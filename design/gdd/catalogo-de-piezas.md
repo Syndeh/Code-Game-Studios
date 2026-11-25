@@ -78,7 +78,7 @@ El Catálogo **no tiene lógica ni estado**: no calcula daño, no mueve piezas y
    - La explosión del demoledor no usa `danoArea` (queda en 0). La regla de que daña las 8 vecinas con su `ataque` (supuesto del prototipo) es de Resolución (#9), que la confirma.
    - Cambios de la v5 (2026-11-24), decididos por el jugador después de las partidas v4 del 2026-11-21: alcance máximo del arquero 6 → 4, alcance máximo del escudero 1 → 2 (su cobertura sigue siendo a un aliado vecino, regla del Escudero), ataque de la catapulta 12 → 10, su daño de área 8 → 6 y su escudo 3 → 2, escudo del soldado 2 → 3.
    - Los topes suman 60 más el Rey, igual que las 61 piezas vivas de la Librería.
-5. **Estático.** El Catálogo no cambia durante la partida. Los bonos de turno (Grito de guerra +2) viven en el estado y se combinan con `EffectiveStats(estado, pieza)`. El +2 de escudo del arquero sobre el muro es del Castillo (#5), no del Catálogo.
+5. **Estático.** El Catálogo no cambia durante la partida. Los bonos de turno (Grito de guerra +2) viven en el estado y se combinan con `EffectiveStats(estado, pieza)`. El +2 de escudo y el +2 de alcance del arquero sobre el muro (v5, 2026-11-25: alcance 1–4 → 1–6) son del Castillo (#5), no del Catálogo.
 6. **Formato válido.** Cualquier violación da `ConfigInvalida` al preparar el contexto (Librería, regla 2):
    - **F1:** exactamente 7 filas, con IDs de 0 a 6 en orden, sin repetir.
    - **F2:** `movimiento`, `ataque`, `vida` y `alcanceMax` entre 1 y 1.000.
@@ -112,7 +112,7 @@ Un archivo que no se puede leer no llega a ser un Catálogo: el cliente no ofrec
 |---|---|---|
 | #1 Librería (indirecto, esquema) | Las filas ya cargadas en la config; esta sección define el formato | Librería (valida y calcula la huella) |
 | #4 Tablero | Tipos, `topeVivas` y orden para IDs; valida que el ejército inicial (4 soldados, 4 arqueros, 4 escuderos y Rey) cabe en los topes | Tablero |
-| #5 Castillo | `vida` y `escudo` del arquero (el +2 en el muro es suyo) | Castillo |
+| #5 Castillo | `vida`, `escudo` y `alcanceMax` del arquero (el +2 de escudo y el +2 de alcance en el muro son suyos) | Castillo |
 | #6 Movimiento | `movimiento`, vía `EffectiveStats` | Movimiento |
 | #7 Alcance | `alcanceMin` y `alcanceMax`; el sentido geométrico es suyo | Alcance |
 | #9 Resolución | `ataque`, `escudo`, `vida`, `danoArea` | Resolución |
@@ -277,7 +277,7 @@ Todas las cifras están en el archivo de datos del Catálogo; ninguna está en e
 - `escudo + vida` del demoledor y los `ataque` de los demás (I1): su valor decide cuáles piezas lo matan solas.
 - `topeVivas` de catapulta y demoledor, y las llamadas del Cuerno de guerra: con 4 llamadas de 2 catapultas y de 1 demoledor, los topes 8 y 4 se llenan justo. Con 3 llamadas de 4 jinetes (12 en total) el tope de 8 llega antes: la última llamada recluta menos. Si Reclutamiento sube llamadas sin subir el tope, las llamadas sobrantes no reclutan.
 
-**Perillas que son de otro GDD (no se duplican acá):** el +2 del Grito de guerra (Modificador, #11), el +2 de escudo del arquero sobre el muro y la vida de los tramos (Castillo, #5), las llamadas por tipo (Reclutamiento, #10), el tamaño del tablero (Tablero, #4).
+**Perillas que son de otro GDD (no se duplican acá):** el +2 del Grito de guerra (Modificador, #11), el +2 de escudo y el +2 de alcance del arquero sobre el muro y la vida de los tramos (Castillo, #5), las llamadas por tipo (Reclutamiento, #10), el tamaño del tablero (Tablero, #4).
 
 **No es perilla de balance:** `versionBalance`. Es contabilidad: sube con cualquier cambio de cifra (regla 10).
 
