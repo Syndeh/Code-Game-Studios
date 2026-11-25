@@ -229,7 +229,7 @@ The `espejo` formula is defined as:
 
 **Estrategia degenerada**
 
-- **If nadie cruza las 8 columnas libres** (las dos líneas de escuderos están a 9 casillas y todo el hueco queda bajo la amenaza de los arqueros enemigos): no es un error del Tablero y no se resuelve acá. La partida termina por el cierre por tiempo de la Máquina de turno y su desempate (Rey, piezas vivas, vida quitada); con todo igual, nadie gana. *PROVISIONAL: es la hipótesis que acordamos medir; se vigila con las Métricas y se lleva a Open Questions.*
+- **If nadie cruza las 8 columnas libres** (8 a 15): no es un error del Tablero y no se resuelve acá. Termina por el reloj de 12:30 por jugador (Máquina de turno, regla 14): pierde quien lo agota primero. En el modo Sin límite no hay reloj y la partida no termina sola. *PROVISIONAL: es la hipótesis que acordamos medir; se vigila con las Métricas y se lleva a Open Questions.*
 
 ## Dependencies
 
@@ -281,24 +281,25 @@ The `espejo` formula is defined as:
 
 | Constante | Vigente | Rango seguro | Si es demasiado alto | Si es demasiado bajo |
 |---|---|---|---|---|
-| `COLUMNAS` (con el margen de 2, distancia entre centros = `COLUMNAS − 5`) | 24 | 21 a 24 mantiene el contacto en el turno 2; piso duro 17 (`distancia_frente ≥ 2`) | 25 o más: contacto en el turno 3 o después, partida más lenta (pilar 4); se pierde el 16:9 (24 × 15 = 1,6) | 20 o menos: contacto en el turno 1, ventaja de golpe para quien mueve primero (sin medir) |
+| `COLUMNAS` (con el margen de 2, distancia entre centros = `COLUMNAS − 5`) | 24 | 22 a 24: contacto en el turno 2 y nadie golpea en el turno 1 (v5); piso duro 17 (`distancia_frente ≥ 2`) | 25 o más: contacto en el turno 3 o después, partida más lenta (pilar 4); se pierde el 16:9 (24 × 15 = 1,6) | 21 o menos: arqueros y escuderos golpean en el turno 1; 20 o menos: contacto en el turno 1. Ventaja de golpe para quien mueve primero (sin medir) |
 | `FILAS` | 15 | Piso duro 5 (entra el castillo); piso útil sin medir, 7 para dejar una fila de flanqueo a cada lado | Tablero más ralo y más rodeos, sin medir | Sin flanqueo: se pierden opciones de planificar (pilar 1) |
-| Margen del castillo al borde | 2 | 2 a 5 (cada +1 baja la distancia entre centros en 2) | Contacto antes y espalda libre para rodear el castillo | Piso duro 2: el bloque de 5 × 5 tiene que caber |
-| `RADIO_MURO` | 2 | 1 a 5 (con 6 la distancia de frente queda en menos de 2) | Más tramos (`8 × radio`) y menos distancia de frente | Con 1 el castillo es de 3 × 3: 8 tramos y solo el Rey adentro |
+| Margen del castillo al borde | 2 | 2 a 3 sin golpe en el turno 1 (`distancia_frente ≥ 7`); hasta 5 es válido (cada +1 baja la distancia entre centros en 2) | Contacto antes y espalda libre para rodear el castillo | Piso duro 2: el bloque de 5 × 5 tiene que caber |
+| `RADIO_MURO` | 2 | 1 a 3 sin golpe en el turno 1 (`distancia_frente ≥ 7`); hasta 5 es válido (con 6 la distancia de frente queda en menos de 2) | Más tramos (`8 × radio`) y menos distancia de frente | Con 1 el castillo es de 3 × 3: 8 tramos y solo el Rey adentro |
 | Composición inicial (soldados / arqueros / escuderos) | 4 / 4 / 4 | De 1 hasta el `topeVivas` de cada tipo | Ejército más ancho y partida más larga | Pocas piezas para combinar (pilar 2) |
 
 **Relación entre `COLUMNAS` y el turno de contacto** (con `movimiento` 4, margen 2 y `RADIO_MURO` 2):
 
 | `COLUMNAS` | Distancia entre centros | `distancia_frente` | Contacto posible en el turno |
 |---|---|---|---|
-| 21 a 24 | 16 a 19 | 6 a 9 | **2** (lo probado en la v4) |
+| 22 a 24 | 17 a 19 | 7 a 9 | **2** (24 es lo probado en los prototipos) |
+| 21 | 16 | 6 | **2**, pero arqueros y escuderos golpean en el turno 1 |
 | 17 a 20 | 12 a 15 | 2 a 5 | **1** (azul golpea antes de que rojo mueva) |
 | 25 o más | 20 o más | 10 o más | 3 o más |
 
 **Perillas que interactúan:**
 
 - `COLUMNAS`, el margen, `RADIO_MURO` y el `movimiento` del Catálogo se miran juntos: los tres primeros fijan la `distancia_frente` y el último decide en qué turno llega el contacto.
-- **Soldados iniciales y `piezas_para_matar` del Catálogo:** `ceil((escudo + vida del Rey) / ataque del soldado) = ceil(35 / 8) = 5`. Con 4 soldados un grupo de solo soldados no puede matar al Rey con un golpe combinado; con 5 o más sí. Subir los soldados iniciales exige revisar eso con Resolución (#9).
+- **Soldados iniciales y `piezas_para_matar` del Catálogo:** `ceil((escudo + vida del Rey) / ataque del soldado) = ceil(35 / 8) = 5`. Con 4 soldados un grupo de solo soldados no puede matar al Rey con un golpe combinado; con 5 o más sí (el Rey y el ataque del soldado no cambiaron en la v5). Subir los soldados iniciales exige revisar eso con Resolución (#9).
 - **Composición y `topeVivas`:** tienen que cumplir `composición ≤ topeVivas` (si no, `ConfigInvalida`).
 
 ## Visual/Audio Requirements
@@ -397,9 +398,9 @@ Todos son automatizables en Edit Mode (lógica pura, sin pantalla); el dibujo de
 
 | Pregunta | Dueño | Para cuándo |
 |---|---|---|
-| Quien se acerca primero recibe el primer golpe: las 8 columnas libres están bajo la amenaza de los arqueros enemigos. ¿El segundo en mover tiene ventaja? (v4: ganó Rojo las 2 partidas, n = 2) | Métricas (#19), playtest | MVP; medir quién da el primer daño y si esa partida la gana |
-| Margen de 1 casilla: arqueros a 11 de la línea enemiga contra amenaza `movimiento + alcanceMax = 10`. Un +1 permite golpear en el turno 1 | Catálogo (#2), Modificador (#11) | Al revisar el Catálogo y en el GDD del Modificador |
-| Si nadie cruza las 8 columnas libres, la partida cierra por tiempo y desempate. ¿Es aceptable? | Máquina de turno (#3), playtest | MVP |
+| Quien se acerca primero recibe el primer golpe: con los valores v5 azul amenaza hasta la columna 13 y rojo desde la 10, así que 8 y 9 son seguras para azul, 14 y 15 para rojo, y 10 a 13 están en disputa. ¿Mover primero o segundo da ventaja? Sin medir: el análisis de las 11 partidas v4 señala la ventaja de abrir reclutando (azul lo hizo en 7 y ganó 5), que la v5 quita al no tirar el Modificador en el turno 1 | Métricas (#19), playtest | MVP; medir quién da el primer daño y si esa partida la gana |
+| Margen de 3 casillas contra el golpe del turno 1 (v5; con la v4 era 1): el arquero está a 11 de la línea enemiga y amenaza 4 + 4 = 8; el escudero está a 9 y amenaza 4 + 2 = 6. Con Grito de guerra queda en 1. El arquero que se queda en su muro (+2 de alcance) llega solo a la columna 10 | Catálogo (#2), Modificador (#11) | Al revisar el Catálogo y en el GDD del Modificador |
+| Si nadie cruza las 8 columnas libres, decide el reloj de 12:30 por jugador, y en Sin límite la partida no termina sola. ¿Es aceptable? | Máquina de turno (#3), playtest | MVP |
 | Azul siempre a la izquierda y siempre el primero: no se separa el efecto de lado del de turno. ¿La revancha alterna lados? | Menú (#21), Métricas (#19) | Fase 1 |
 | Esquema de config para la vida inicial del tramo (arista de datos #4 → #5) | Castillo y muros (#5) | En su GDD |
 | Textos por la decisión sin sorteo: hecho el 2026-11-25 en Librería, Máquina de turno, registro, concepto, índice y art bible. Falta nombrar a #4 en la Máquina de turno y levantar las marcas PROVISIONAL del Catálogo | Máquina de turno (#3), Catálogo (#2) | Antes de aprobar este GDD |

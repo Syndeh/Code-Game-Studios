@@ -78,12 +78,13 @@ entities:
     alcance_min: 1
     alcance_max: 1
     ataque: 8
-    escudo: 2
+    escudo: 3
+    # escudo was: 2 before 2026-11-25
     vida: 25
     dano_area: 0
     tope_vivas: 12
     added: 2026-11-20
-    revised: ""
+    revised: 2026-11-25
   - name: arquero
     status: active
     source: design/gdd/catalogo-de-piezas.md
@@ -94,14 +95,15 @@ entities:
     id: 1
     movimiento: 4
     alcance_min: 1
-    alcance_max: 6
+    alcance_max: 4
+    # alcance_max was: 6 before 2026-11-25
     ataque: 6
     escudo: 2
     vida: 15
     dano_area: 0
     tope_vivas: 16
     added: 2026-11-20
-    revised: ""
+    revised: 2026-11-25
   - name: escudero
     status: active
     source: design/gdd/catalogo-de-piezas.md
@@ -112,14 +114,15 @@ entities:
     id: 2
     movimiento: 4
     alcance_min: 1
-    alcance_max: 1
+    alcance_max: 2
+    # alcance_max was: 1 before 2026-11-25
     ataque: 4
     escudo: 5
     vida: 20
     dano_area: 0
     tope_vivas: 12
     added: 2026-11-20
-    revised: ""
+    revised: 2026-11-25
   - name: catapulta
     status: active
     source: design/gdd/catalogo-de-piezas.md
@@ -130,13 +133,16 @@ entities:
     movimiento: 2
     alcance_min: 2
     alcance_max: 6
-    ataque: 12
-    escudo: 3
+    ataque: 10
+    # ataque was: 12 before 2026-11-25
+    escudo: 2
+    # escudo was: 3 before 2026-11-25
     vida: 15
-    dano_area: 8
+    dano_area: 6
+    # dano_area was: 8 before 2026-11-25
     tope_vivas: 8
     added: 2026-11-20
-    revised: ""
+    revised: 2026-11-25
   - name: jinete
     status: active
     source: design/gdd/catalogo-de-piezas.md
@@ -316,7 +322,7 @@ formulas:
     added: 2026-11-20
     revised: ""
   - name: umbral_cierre_s
-    status: active
+    status: deprecated
     source: design/gdd/maquina-de-turno.md
     referenced_by:
       - design/gdd/maquina-de-turno.md
@@ -325,11 +331,11 @@ formulas:
       - turno_max_s
     output_range: [1410, 1440]
     expression: "T_tope - turno_max_s"
-    notes: "D2. Desde este t_partida la autoridad cierra con CierrePorTiempo en el primer entre-turnos. Variable tras el minuto 10 = 1440 s, Fijo 90 = 1410, Fijo 60 = 1440, Sin limite exento. La usan el Timer (#12) y el Servidor (#28); no corre en el nucleo (no tiene reloj)."
+    notes: "REEMPLAZADA 2026-11-24 por el reloj por jugador (Maquina de turno, regla 14). Antes: D2. Desde este t_partida la autoridad cierra con CierrePorTiempo en el primer entre-turnos. Variable tras el minuto 10 = 1440 s, Fijo 90 = 1410, Fijo 60 = 1440, Sin limite exento. La usan el Timer (#12) y el Servidor (#28); no corre en el nucleo (no tiene reloj)."
     added: 2026-11-20
-    revised: ""
+    revised: 2026-11-25
   - name: ganador_tiempo
-    status: active
+    status: deprecated
     source: design/gdd/maquina-de-turno.md
     referenced_by:
       - design/gdd/maquina-de-turno.md
@@ -339,9 +345,9 @@ formulas:
       - vidaQuitada_j
     output_range: [0, 1]
     expression: "gana el jugador de mayor (vidaRey, piezasVivas, vidaQuitada) en orden lexicografico; claves iguales = sin ganador"
-    notes: "D3. Desempate de CierrePorTiempo (decision 2026-11-20, cambia la Libreria: vidaQuitada es un campo nuevo del estado y sube la version de reglas). vidaQuitada es la vida realmente perdida por piezas y muros rivales, sin fuego amigo, escrita por Resolucion (#9). Salida: jugador 0 o 1, o vacio."
+    notes: "REEMPLAZADA 2026-11-24 (Maquina de turno, regla 15). Antes: D3. Desempate de CierrePorTiempo (decision 2026-11-20, cambia la Libreria: vidaQuitada es un campo nuevo del estado y sube la version de reglas). vidaQuitada es la vida realmente perdida por piezas y muros rivales, sin fuego amigo, escrita por Resolucion (#9). Salida: jugador 0 o 1, o vacio."
     added: 2026-11-20
-    revised: ""
+    revised: 2026-11-25
   - name: pila_max
     status: active
     source: design/gdd/maquina-de-turno.md
@@ -529,8 +535,18 @@ constants:
     referenced_by:
       - design/gdd/maquina-de-turno.md
     value: 1500
-    unit: "segundos de partida (25 min, pilar 4); rango seguro 1290-1500; el cierre por tiempo se dispara en tope_partida_s - turno_max_s"
+    unit: "segundos de partida (25 min, pilar 4); rango seguro 1290-1500; el reloj por jugador es la mitad (reloj_jugador_s)"
     added: 2026-11-20
+    revised: 2026-11-25
+  - name: reloj_jugador_s
+    status: active
+    source: design/gdd/maquina-de-turno.md
+    referenced_by:
+      - design/gdd/maquina-de-turno.md
+      - design/gdd/tablero-y-despliegue-inicial.md
+    value: 750
+    unit: "segundos por jugador en toda la partida (12:30 = tope_partida_s / 2); corre solo en su turno; Sin limite no tiene reloj"
+    added: 2026-11-25
     revised: ""
   - name: tablero_columnas
     status: active
