@@ -546,7 +546,7 @@ formulas:
       - ataque_a
     output_range: [1, 1000]
     expression: "ceil(vida_tramo / ataque_a) = (vida_tramo + ataque_a - 1) / ataque_a, division entera hacia abajo"
-    notes: "F3. Oraculo de tests de balance; no entra al nucleo. Con vida_tramo 30: soldado 4, arquero 5, escudero 8, catapulta 3, jinete 4, demoledor 1, rey 4 (con Grito de guerra +2: 3, 4, 5, 3, 3, 1, 3). Borde: ataque del demoledor 30 = vida_tramo 30; con 31 pasa a 2 (excepcion aprobada 2026-11-25, PROVISIONAL hasta Resolucion #9)."
+    notes: "F3. Oraculo de tests de balance; no entra al nucleo. Con vida_tramo 30: soldado 4, arquero 5, escudero 8, catapulta 3, jinete 4, demoledor 1, rey 4 (con Grito de guerra +2: 3, 4, 5, 3, 3, 1, 3). Borde: ataque del demoledor 30 = vida_tramo 30; con 31 pasa a 2 (excepcion aprobada 2026-11-25; Confirmado por Resolución (#9), regla 8 y F6)."
     added: 2026-11-25
     revised: ""
   - name: piezas_para_cortar
@@ -960,6 +960,7 @@ formulas:
     referenced_by:
       - design/gdd/cobertura-del-escudero.md
       - design/gdd/libreria-de-reglas.md
+      - design/gdd/resolucion-simultanea-del-dano.md
     variables:
       - escuderos_j
       - vivas_j
@@ -1194,10 +1195,11 @@ formulas:
     variables:
       - bruto
       - bruto_tope_mostrado
-      - vida_max
-      - escudo_ef_max
+      - vida_t
+      - escudo_ef_max_t
+      - bono_escudo_muro
     output_range: [0, 1]
-    expression: "golpe_abreviado = bruto >= bruto_tope_mostrado + 1 (se muestra 99+); invariante: vida_max + escudo_ef_max <= bruto_tope_mostrado + 1"
+    expression: "golpe_abreviado = bruto >= bruto_tope_mostrado + 1 (se muestra 99+); invariante por tipo: max_t (vida_t + escudo_ef_max_t) <= bruto_tope_mostrado + 1, con escudo_ef_max_t = escudo_t + bono_escudo_muro solo si t es el arquero (decision del 2026-11-26)"
     notes: "F2 de la Vista previa; la restriccion del Catalogo hace que un 99+ nunca esconda si la pieza muere."
     added: 2026-11-26
     revised: ""
@@ -1210,7 +1212,7 @@ formulas:
     variables:
       - neto
       - vidaPerdida
-    output_range: [0, 123220]
+    output_range: [0, 61609]
     expression: "exceso = neto - vidaPerdida"
     notes: "F3 de la Vista previa; fila Sobra de la tarjeta (lo pidio Resolucion)."
     added: 2026-11-26
@@ -1475,6 +1477,8 @@ constants:
       - design/gdd/libreria-de-reglas.md
       - design/gdd/maquina-de-turno.md
       - design/gdd/alcance-y-asignacion-de-ataques.md
+      - design/gdd/resolucion-simultanea-del-dano.md
+      - design/gdd/ficha-de-pieza-y-hud.md
     value: 61
     unit: "piezas vivas por jugador; suma maxima de los topeVivas del Catalogo (adoptado de la Libreria, antes PROVISIONAL)"
     added: 2026-11-20
@@ -1487,8 +1491,10 @@ constants:
       - design/gdd/libreria-de-reglas.md
       - design/gdd/maquina-de-turno.md
       - design/gdd/resolucion-simultanea-del-dano.md
+      - design/gdd/ficha-de-pieza-y-hud.md
     value: 1000
     unit: "valor maximo de una estadistica del Catalogo (rango 0-1.000; adoptado de la Libreria, antes PROVISIONAL)"
+    notes: "#15 acota la ficha a cifra_ficha_max = 99 (AC-4)"
     added: 2026-11-20
     revised: ""
   - name: tipos_de_pieza
@@ -1598,6 +1604,8 @@ constants:
       - design/gdd/libreria-de-reglas.md
       - design/gdd/reclutamiento-y-limites.md
       - design/gdd/vista-previa-de-ataques.md
+      - design/gdd/resolucion-simultanea-del-dano.md
+      - design/gdd/ficha-de-pieza-y-hud.md
     value: 2
     unit: "tramos rotos (vida 0) de un castillo a partir de los cuales deja de reclutar, de forma permanente; constante del contrato, valido 1-16, rango seguro 2-3 (era 1 hasta la v4)"
     added: 2026-11-25
@@ -1609,6 +1617,8 @@ constants:
       - design/gdd/castillo-y-muros.md
       - design/gdd/catalogo-de-piezas.md
       - design/gdd/libreria-de-reglas.md
+      - design/gdd/resolucion-simultanea-del-dano.md
+      - design/gdd/ficha-de-pieza-y-hud.md
     value: 2
     unit: "escudo extra del arquero sobre un tramo propio con vida > 0; constante del contrato, valido 0-10, rango seguro 1-4"
     added: 2026-11-25
@@ -1622,6 +1632,7 @@ constants:
       - design/gdd/libreria-de-reglas.md
       - design/gdd/tablero-y-despliegue-inicial.md
       - design/gdd/alcance-y-asignacion-de-ataques.md
+      - design/gdd/ficha-de-pieza-y-hud.md
     value: 2
     unit: "alcance maximo extra del arquero sobre un tramo propio con vida > 0 (1-4 pasa a 1-6); constante del contrato, valido 0-10, rango seguro 1-3, sin medir"
     added: 2026-11-25
@@ -1730,6 +1741,7 @@ constants:
       - design/gdd/timer-de-turno.md
       - design/gdd/movimiento.md
       - design/gdd/entrada-y-seleccion.md
+      - design/gdd/ficha-de-pieza-y-hud.md
     value: 60
     unit: "s"
     added: 2026-11-25
@@ -1740,6 +1752,7 @@ constants:
     referenced_by:
       - design/gdd/timer-de-turno.md
       - design/gdd/entrada-y-seleccion.md
+      - design/gdd/ficha-de-pieza-y-hud.md
     value: 30
     unit: "s"
     added: 2026-11-25
@@ -1751,6 +1764,7 @@ constants:
       - design/gdd/timer-de-turno.md
       - design/gdd/movimiento.md
       - design/gdd/entrada-y-seleccion.md
+      - design/gdd/ficha-de-pieza-y-hud.md
     value: 40
     unit: "s"
     added: 2026-11-25
@@ -1761,6 +1775,7 @@ constants:
     referenced_by:
       - design/gdd/timer-de-turno.md
       - design/gdd/entrada-y-seleccion.md
+      - design/gdd/ficha-de-pieza-y-hud.md
     value: 20
     unit: "s"
     added: 2026-11-25
@@ -1974,7 +1989,7 @@ constants:
       - design/gdd/ficha-de-pieza-y-hud.md
       - design/gdd/entrada-y-seleccion.md
     value: 300
-    unit: "ms en que Avanzar ignora toques tras cambiar de fase; rango 200-600"
+    unit: "ms en que Avanzar ignora toques tras cambiar de fase y tras cada toque aceptado; rango 200-600"
     added: 2026-11-25
     revised: ""
   - name: ficha_opacidad_pct
@@ -2096,7 +2111,7 @@ constants:
       - design/gdd/catalogo-de-piezas.md
       - design/gdd/vista-previa-de-ataques.md
     value: 100
-    unit: "tope de vida_max + escudo_ef_max por tipo (restriccion pedida por #16)"
+    unit: "tope de vida_t + escudo_ef_max_t para cada tipo t, con bono_escudo_muro solo en el arquero (restriccion pedida por #16, F2 y AC-11); hoy el maximo es el Rey, 30 + 5 = 35; arquero 15 + 4 = 19 (decision del 2026-11-26)"
     added: 2026-11-26
     revised: ""
   - name: resolucion_max_s
@@ -2107,6 +2122,7 @@ constants:
       - design/gdd/resolucion-simultanea-del-dano.md
       - design/gdd/maquina-de-turno.md
       - design/gdd/timer-de-turno.md
+      - design/gdd/ficha-de-pieza-y-hud.md
     value: 2.0
     unit: "s, techo de la presentacion de la resolucion"
     added: 2026-11-26

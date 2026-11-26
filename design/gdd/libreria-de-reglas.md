@@ -657,7 +657,7 @@ nombra a la librería como consumidora de su esquema.
 | 25 Rival IA | Dura | Juega con la misma API y las consultas |
 | 26 Registro de partida | Dura | Guarda config, comandos y tiradas; reproduce con Aplicar |
 | 28 Servidor de partida | Dura | Corre la misma librería; es la autoridad; compara huellas |
-| 15 Ficha de pieza y HUD | Blanda | `EffectiveStats`, consultas puras (vida, tipo, casilla, dueño, `enMuro`, `tramosRotos`, `Cubre`/`CubiertoPor`) y la condición de `Rendirse`; solo lectura |
+| 15 Ficha de pieza y HUD | Dura | `EffectiveStats`, consultas puras (vida, tipo, casilla, dueño, `enMuro`, `tramosRotos`, `Cubre`/`CubiertoPor`) y la condición de `Rendirse`; solo lectura |
 | 17 Interfaz del Modificador | Blanda | `ProbabilidadesSiguienteTirada` con el id de la tabla base, evento `Tirada`, `contadorTirada`; solo lectura |
 | 13, 16, 18, 19, 22, 24 Cliente | Blanda | Consultas, eventos y vista previa; funcionan con cualquier implementación que cumpla el contrato |
 
@@ -689,7 +689,7 @@ tocaría vive en el GDD que lo define; la librería solo lo recibe como dato:
   pila de la Máquina de turno (#3) y el tablero del Tablero (#4); el bono, del Modificador (#11), y el
   límite normal, de Movimiento (#6). C_MAX sigue PROVISIONAL. No son balance, garantizan
   que ninguna cuenta desborde, y cambiarlos sube la versión de reglas.
-- **Presupuestos de rendimiento: vista previa 5 ms y comando 1 ms (percentil 95, AC-24 y
+- **Presupuestos de rendimiento: vista previa 5 ms (`vista_previa_presupuesto_ms`) y comando 1 ms (`comando_presupuesto_ms`) (percentil 95, AC-24 y
   AC-25).** Salen del cuadro de 16,6 ms a 60 fps; cambiarlos es una decisión de UX, no de
   balance.
 

@@ -224,7 +224,7 @@ Lente `systems-designer` aplicada a las secciones C y D (modo `full`, sin agente
 
 ### Selección
 
-- **Si la pieza elegida muere en la resolución** (propia por fuego amigo, o rival en inspección): la selección se suelta con el evento de muerte; los resaltados desaparecen en el mismo cuadro.
+- **Si la pieza elegida muere en la resolución** (propia por fuego amigo, o rival en inspección): la selección se suelta a más tardar en `t_impacto` de Render, el cuadro en que la ficha desaparece y aparece la placa MUERE (#15, regla 11; #18, regla 20), sin esperar la caída de la figura; los resaltados desaparecen en el mismo cuadro (decisión del 2026-11-26).
 - **Si la fase o el turno cambian con una pieza elegida** (incluido un `TurnTimeout`): se suelta. Un gesto a medio hacer se descarta; un comando que ya salió antes del cambio llega rechazado con `ComandoViejo` (el contador cambió con el timeout; la fila 10 de la Librería se revisa antes que `FaseIncorrecta`) y muestra `sistema.aviso_neutro` (regla 14).
 - **Si el jugador elige una pieza rival durante su turno:** queda en inspección (solo alcance); ningún toque siguiente la usa como origen de un comando.
 - **Si elige una pieza propia agotada en `Mover`:** queda elegida como comandable con sus destinos vacíos y el restante en 0 visible. Tocar una casilla vacía muestra `PiezaAgotada` (regla 6, fila 4).
@@ -436,7 +436,7 @@ Lente `qa-lead` aplicada al final (modo `full`, sin agente). Tipo de evidencia e
 - **AC-33 [Playtest]** — **GIVEN** un teléfono real y el tablero con la casilla más grande que permita #41, **WHEN** un jugador mueve 12 piezas y ataca con todas en el modo Variable, **THEN** se registran el tiempo por toque y los toques errados por turno, contra `ms_toque_objetivo`; el riesgo del índice se cierra solo si la mediana está por debajo del objetivo y no hay un comando enviado por error en la sesión.
 - **AC-34 [Playtest]** — **GIVEN** una partida local con mouse, **THEN** ningún jugador de la sesión reporta haber atacado a una pieza propia con una catapulta sin quererlo, y ninguno reclutó el tipo que no quería; el resultado decide si se reabre la regla de un solo paso (regla 12).
 - **AC-35 [Logic]** — **GIVEN** una prueba automática que solo mueve el puntero sobre el tablero y los botones sin pulsar, **THEN** no aparece ninguna información que no aparezca también tras elegir con un toque (sin información solo por hover).
-- **AC-36 [Integration]** — **GIVEN** un ataque asignado, **THEN** la vista previa (#16) se recalcula dentro de `vista_previa_presupuesto_ms` (5 ms p95, Alcance) y la flecha aparece en el mismo cuadro.
+- **AC-36 [Integration]** — **GIVEN** un ataque asignado, **THEN** la vista previa (#16) se recalcula dentro de `vista_previa_presupuesto_ms` (5 ms p95, Librería) y la flecha aparece en el mismo cuadro.
 
 **Gaps y líneas no verificables encontrados por la lente `qa-lead`:** (1) AC-33 y AC-34 son de playtest, no automáticos, por decisión: son los riesgos del índice; (2) no hay criterio para el aviso "se registra una vez por clave e idioma" de Localización, que es de #14; (3) el comportamiento del botón de avanzar tras un doble clic (Edge Cases) queda sin criterio hasta que #15 lo defina.
 

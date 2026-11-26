@@ -258,7 +258,7 @@ Blanda significa que el sistema funciona sin esas listas, pero no puede probar q
 | `presupuesto` título | 32 | 20–45 | Títulos en dos líneas | Títulos vagos | Con `expansion_pct` |
 | `presupuesto` chip | 18 | 12–26 | Chips que no entran en la celda de una cara (#17, F3) | Motivos crípticos | Con `expansion_pct` |
 | `presupuesto` efecto | 48 | 30–70 | El efecto de la cara no entra en la placa (#17) | Efectos incompletos | Con `expansion_pct` |
-| `presupuesto` placa | 6 | 5–8 | MUERE o ROTO no entran en la placa de la vista previa (#16) | Abreviaturas | Con `expansion_pct` |
+| `presupuesto` placa | 6 | 6 (piso: `BROKEN`; 4 solo si cambia el inglés; decisión del 2026-11-26) | Con 7 la placa pasa de 64 px (#16, F1) | MUERE o ROTO no entran en la placa de la vista previa (#16): abreviaturas | Con `expansion_pct` |
 | `presupuesto` nota | 180 | 120–260 | Notas del panel «?» que nadie lee | Falta la explicación del reparto | — |
 | `presupuesto` aviso | 60 | 40–90 | No se lee dentro del turno | No alcanza para decir la causa | Con la duración del aviso (#13) |
 | `presupuesto` párrafo | 240 | 120–400 | Nadie lo lee | Reglas incompletas | — |

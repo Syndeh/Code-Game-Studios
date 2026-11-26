@@ -319,7 +319,7 @@ Lente art-director, sobre la regla visual del art bible (§1: ficha, figura, ban
 |---|---|---|
 | Cara de reclutar sale | Recuadro central con las opciones de la cara | Llamada y cuerno, distinguibles entre sí |
 | `Reclutado` | Las piezas aparecen a la vez en sus casillas, con el bando marcado, ≤ 0,5 s | Un golpe de llegada por tanda, no por pieza |
-| `automatico` | Marca "Elegido por el tiempo" (Máquina, #3) | Sin sonido de error |
+| `automatico` | Aviso de texto "Elegido por el tiempo" en la zona de avisos del HUD, sin marca sobre la pieza ni la ficha (#15, regla 18; decisión del 2026-11-26) | Sin sonido de error |
 | `ReclutaPerdido` | Leyenda "Sin reclutas disponibles", ≤ 1 s (Máquina, #3) | Ninguno |
 | Opción bloqueada | Atenuada con ícono y motivo escrito, no solo color | Ninguno |
 

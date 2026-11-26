@@ -460,7 +460,7 @@ define no se repiten acá; solo se listan los eventos que **ya tienen** tratamie
 | Distracción (`SaltearMovimiento`) | Placa gris "Distracción", ≤ 1,5 s, y pasa a atacar | Definido (§2 *Estados*) |
 | `FaseSaltada` (Mover o Atacar) | **Leyenda breve al centro** ("Sin movimientos" o "Sin objetivos"), ≤ 1 s, sin ambiente propio y sin sonido de error: no es una falla, es un turno que se cierra solo | **Falta**: hay que agregarlo a §2 |
 | `ReclutaPerdido` | Leyenda breve "Sin reclutas disponibles", ≤ 1 s, en la placa central de leyendas (HUD, #15, regla 19) | **Falta** en el art bible; lugar cerrado por #15 |
-| Recluta automático (`automatico`) | La pieza aparece con una marca breve "Elegido por el tiempo", para que el jugador sepa que decidió el timer; la marca va sobre su ficha, ≤ 1 s (HUD, #15) | **Falta** en el art bible; lugar cerrado por #15 |
+| Recluta automático (`automatico`) | Aviso transitorio de texto "Elegido por el tiempo" en la zona de avisos del HUD, para que el jugador sepa que decidió el timer; sin ícono ni marca sobre la pieza ni la ficha (HUD, #15, regla 18; decisión del 2026-11-26) | **Falta** en el art bible; lugar cerrado por #15 |
 | `PartidaTerminada` con `ReyMuerto`, Rendición o Abandono | Pantallas espejo de Victoria y Derrota | Definido (§2 *Estados*) |
 | `PartidaTerminada` con `DobleRey` | Victoria para el jugador del turno: las dos figuras de Rey caen en el mismo cuadro y después entra la luz de Victoria (Render, #18) | Definido en #18; falta en el art bible |
 | `PartidaTerminada` con `RelojAgotado` | Victoria o Derrota; el resumen dice a quién se le acabó el reloj | **Falta** el texto en el resumen |
