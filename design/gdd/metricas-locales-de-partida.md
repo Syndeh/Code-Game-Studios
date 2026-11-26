@@ -587,7 +587,7 @@ La fórmula `tamano_registro` se define así:
 | Pregunta | Dueño | Para cuándo |
 |---|---|---|
 | Formato del archivo (JSON por línea u otro), dónde se guarda en el navegador desde Unity Web, cómo se descarga y cuánto cuesta escribir en el hilo principal (F6, F7: **NOT SOURCEABLE** en la referencia del motor) | ADR de Métricas (`/architecture-decision`) | Antes de implementar #19 |
-| ¿Entran al esquema los eventos de cliente que Render (#18) puede entregar, `SkinRechazada(jugador, motivo)` y `ResolucionSaltada(turno, ms_transcurridos)`? Hoy no (regla 4: un evento nuevo sube `versionEsquema`); el uso de la vista previa (#16) tampoco se guarda (regla 4) | Este GDD, con Render (#18) y Vista previa (#16) | Después de las primeras partidas del MVP |
+| ¿Entra al esquema el evento de cliente que Render (#18) puede entregar, `SkinRechazada(jugador, motivo)`? Hoy no (regla 4: un evento nuevo sube `versionEsquema`); el uso de la vista previa (#16) tampoco se guarda (regla 4). ~~`ResolucionSaltada(turno, ms_transcurridos)`~~ **cerrada 2026-11-26:** el evento ya no existe, porque la cosecha no se salta (Render #18, regla 24) (decisión del 2026-11-26) | Este GDD, con Render (#18) y Vista previa (#16) | Después de las primeras partidas del MVP |
 | Cuota real del almacenamiento del navegador en las plataformas web objetivo; si es menor que unos 51 MB, bajar `partidas_guardadas_max` | ADR de Métricas | Antes de implementar #19 |
 | Lenguaje y entrega de la herramienta de informe (consola C# que reusa los tipos del esquema, u otra) | ADR de Métricas, `tools-programmer` | Antes del primer playtest del MVP |
 | ~~Nombre del evento de `Deshacer`~~ **Resuelta 2026-11-26:** `MovimientoDeshecho`, en la lista cerrada de la Máquina (regla 16) | — | — |

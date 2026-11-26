@@ -1,6 +1,6 @@
 # Render, animación y feedback de combate
 
-> **Status**: Designed (pendiente de `/design-review` en una sesión nueva)
+> **Status**: Designed (`/design-review` 2026-11-26: NEEDS REVISION; correcciones aplicadas, pendiente de re-review)
 > **Author**: Martin Arin + Claude
 > **Last Updated**: 2026-11-26
 > **Last Verified**: 2026-11-26
@@ -9,7 +9,7 @@
 
 ## Summary
 
-Render dibuja el campo de batalla: el terreno, los castillos con sus tramos en tres estados, las figuras leídas de una skin como datos y las marcas del plan (destinos, alcance, flechas con punta fundida, área, explosión, cobertura). También anima lo que el núcleo ya decidió. Su momento central es la cosecha: en 1,65 s (techo 2 s), todos los golpes de la resolución caen en el mismo cuadro, el golpe combinado se ve más grande que la suma de los chicos con el mismo escalón que prometía la flecha, y los muertos caen juntos. Se puede saltar con un toque, y en local no le cuesta reloj al jugador siguiente. Define el formato de skin que heredan la colección y el Kit, y nunca toca la ficha ni ninguna cifra.
+Render dibuja el campo de batalla: el terreno, los castillos con sus tramos en tres estados, las figuras leídas de una skin como datos y las marcas del plan (destinos, alcance, flechas con punta fundida, área, explosión, cobertura). También anima lo que el núcleo ya decidió. Su momento central es la cosecha: en 1,65 s (techo 2 s), todos los golpes de la resolución caen en el mismo cuadro, el golpe combinado se ve más grande que la suma de los chicos con el mismo escalón que prometía la flecha, y los muertos caen juntos. No se puede saltar: un toque durante la cosecha se ignora (decisión del 2026-11-26). En local no le cuesta reloj al jugador siguiente. Define el formato de skin que heredan la colección y el Kit, y nunca toca la ficha ni ninguna cifra.
 
 > **Quick reference** — Layer: `Presentation` · Priority: `MVP` · Key deps: `Librería (#1), Catálogo (#2), Máquina (#3), Tablero (#4), Castillo (#5), Movimiento (#6), Alcance (#7), Cobertura (#8), Resolución (#9), Interfaz del Modificador (#17), Entrada (#13), Ficha y HUD (#15); blandas: Reclutamiento (#10), Modificador (#11), Timer (#12), Localización (#14), Vista previa (#16)`
 
@@ -17,7 +17,7 @@ Render dibuja el campo de batalla: el terreno, los castillos con sus tramos en t
 
 Render es la capa del cliente que **dibuja el mundo y anima lo que el núcleo ya decidió**. Dibuja el terreno, los dos castillos con sus tramos en tres estados (entero, mellado, roto), las figuras de las piezas y las marcas sobre el tablero que piden los sistemas de reglas: puntos de movimiento, corchetes de alcance, flechas de ataque con punta fundida, el anillo doble del área, la zona de explosión, la línea eslabonada de cobertura y las casillas de aparición numeradas del reclutamiento. Además traduce en movimiento, luz y efectos cada evento del núcleo: el desplazamiento de `PiezaMovida`, la llegada de `Reclutado`, el cambio de luz de `TramoFinalIniciado` y, sobre todo, la **resolución del turno**. En ≤ ~2 s, todos los golpes caen en el mismo cuadro, el golpe combinado se ve más grande que la suma de los chicos, los muertos caen juntos y el terreno queda marcado.
 
-Render **no decide nada del juego**. Lee el estado público y los eventos de la Librería, de solo lectura, como el HUD (#15). Cuando llega un evento, el estado ya es el final, así que la animación se puede acelerar o saltar sin cambiar el resultado. Tampoco dibuja la capa del sistema que vive sobre las piezas: la ficha y el HUD son de #15, y el contenido de la vista previa (números, MUERE, ROTO) es de #16. Render les da la posición en pantalla de cada casilla y respeta su lugar en el orden de capas. Así, ninguna skin puede tapar una cifra.
+Render **no decide nada del juego**. Lee el estado público y los eventos de la Librería, de solo lectura, como el HUD (#15). Cuando llega un evento, el estado ya es el final, así que acelerar o cortar una animación no cambia el resultado (regla 2). La cosecha, igual, se ve siempre entera (regla 24). Tampoco dibuja la capa del sistema que vive sobre las piezas: la ficha y el HUD son de #15, y el contenido de la vista previa (números, MUERE, ROTO) es de #16. Render les da la posición en pantalla de cada casilla y respeta su lugar en el orden de capas. Así, ninguna skin puede tapar una cifra.
 
 Render **define el formato de skin**. Toda figura se dibuja leyendo una skin como datos: un manifiesto que asigna a cada tipo del Catálogo (ID 0 a 6) sus cuadros de reposo y de ataque, y que opcionalmente trae un castillo en sus tres estados. La skin básica es la primera skin en ese formato, no un caso especial. Así el Kit de creación de skins (#38) y la colección (#37) heredan el formato sin rehacer el render (índice de sistemas, #18). En el MVP el render está **reducido**: una sola orientación dibujada, espejada para el bando derecho, con reposo corto y movimiento y ataque animados por código. No hay ciclo de caminata ni 8 direcciones, porque no se produce arte final hasta pasar la compuerta de duración de partida (índice, *High-Risk Systems*).
 
@@ -27,7 +27,7 @@ Sin este sistema, las reglas existen pero el jugador no las ve. El pilar 2 prome
 
 **El plan, hecho miniatura.** El tablero es una mesa de figuras pintadas sobre un campo de batalla, y esas figuras hacen **exactamente** lo que planeaste. Mientras planificás, el mundo se queda quieto y callado: el terreno apagado, las figuras respirando apenas, y encima las flechas de tu plan, más gruesas donde juntaste más piezas. Cuando tocás Resolver, todo pasa a la vez. Las flechas se vuelven golpes, los golpes caen en el mismo cuadro, y donde juntaste varias piezas el impacto es uno solo y grande. Los que tenían que caer caen juntos, y la tierra queda removida donde cayó la piedra de la catapulta.
 
-**Momento ancla:** tres soldados y un arquero tuyos apuntan al soldado rival, y sus cuatro flechas ya se funden en una punta del doble de grosor. Tocás Resolver. Los cuatro hacen su gesto corto al mismo tiempo, el pulso de luz sale del objetivo una sola vez y más ancho que el de un golpe suelto, el 27 flota sobre él igual que en la vista previa, y el soldado se desatura y cae. En menos de dos segundos el tablero queda quieto otra vez, listo para el que sigue.
+**Momento ancla:** tres soldados y un arquero tuyos apuntan al soldado rival, y sus cuatro flechas ya se funden en una punta del doble de grosor. Tocás Resolver. Los cuatro hacen su gesto corto al mismo tiempo, el pulso de luz sale del objetivo una sola vez y más ancho que el de un golpe suelto, la placa MUERE aparece sobre él igual que en la vista previa, y el soldado se desatura y cae. En menos de dos segundos el tablero queda quieto otra vez, listo para el que sigue.
 
 **Una cláusula que la sostiene: se lee de un vistazo.** El tablero cuenta la batalla sin texto. Los huecos y los escombros dicen qué castillo viene perdiendo, las marcas de tierra y de quemado dicen dónde cayó lo pesado, y cada pieza se reconoce por su silueta aunque lleve una skin que nunca viste. Ningún adorno compite con la ficha ni con una flecha.
 
@@ -71,7 +71,7 @@ Sin este sistema, las reglas existen pero el jugador no las ve. El pilar 2 prome
    - los eventos de Movimiento, Reclutamiento, Resolución, Cobertura, Máquina y Timer.
 
    **Render no escribe en el estado ni en la huella y no recalcula ninguna cifra del juego.** Su estado propio (animaciones en curso, cola de presentación, marcas del terreno, variantes de casilla) es del cliente, igual que el estado del HUD (#15, regla 1).
-2. **El estado ya es el final.** Cuando un evento llega, el comando ya se aplicó. Una animación es solo el camino visual del estado anterior al nuevo. **Acelerar u omitir una animación nunca cambia lo que queda dibujado al terminar.** Si llega un estado nuevo mientras una animación corre, esa animación salta a su cuadro final en el cuadro siguiente y empieza la nueva. Es la misma regla que usa la Interfaz del Modificador (#17).
+2. **El estado ya es el final.** Cuando un evento llega, el comando ya se aplicó. Una animación es solo el camino visual del estado anterior al nuevo. **Acelerar u omitir una animación nunca cambia lo que queda dibujado al terminar.** Si llega un estado nuevo mientras una animación corre, esa animación **de la misma entidad** (figura, tramo, marca) salta a su cuadro final en el cuadro siguiente y empieza la nueva. Las animaciones de otras entidades siguen. **La resolución (grupo 1) no se interrumpe por un estado nuevo**: lo que llega espera en la cola (regla 19). El único corte es la rendición durante la cosecha (Edge Cases) (decisión del 2026-11-26). Es la misma regla que usa la Interfaz del Modificador (#17).
 3. **Determinismo de la presentación.** Dados el mismo estado y la misma secuencia de eventos, Render dibuja lo mismo:
    - la variante de suelo de cada casilla sale de su coordenada, no del azar;
    - las marcas del terreno se ubican por casilla;
@@ -87,15 +87,17 @@ Sin este sistema, las reglas existen pero el jugador no las ve. El pilar 2 prome
    |---|---|---|---|
    | 1 | Terreno: tierra, pasto, piedras, las 4–6 variantes de casilla y las **marcas de batalla** (tierra removida, quemado) | Render (skin básica) | **Sí, la única** |
    | 2 | Castillo: interior empedrado, tramos en 3 estados, escombros | Render (castillo de la skin de su dueño) | No |
-   | 3 | **Suelo de bando** de la casilla con pieza (Hueso o Ciruela, borde interior 2 px en Ciruela) y las cuatro matas de pasto de las esquinas | Render (capa del sistema, colores del art bible §4) | No |
-   | 4 | Marcas bajas: puntos de movimiento, corchetes de alcance, anillo doble del área, zona de explosión, casillas de aparición numeradas, casilla pulsada | Render (forma), cada sistema (qué casillas) | No |
+   | 3 | **Relleno del suelo de bando** de la casilla con pieza (Hueso o Ciruela) y las cuatro matas de pasto de las esquinas. Una skin opaca lo puede tapar; el respaldo de bando que no se tapa es el **marco de bando** de la capa 7 | Render (capa del sistema, colores del art bible §4) | No |
+   | 4 | Marcas bajas: puntos de movimiento, corchetes finos de alcance (sin objetivo), casillas de aparición numeradas, casilla pulsada | Render (forma), cada sistema (qué casillas) | No |
    | 5 | **Figuras** (la skin), ordenadas por fila (la de más abajo encima) y, en una misma casilla, el arquero sobre su tramo con el parapeto | Skin | No |
    | 6 | Efectos de la resolución: proyectiles, pulsos, explosión, polvo de la rotura | Render | No |
-   | 7 | Marcas altas: flechas de ataque, línea eslabonada de cobertura, contornos de elegida, inspección y «propia en zona» | Render | No |
+   | 7 | Marcas altas, **encima de la figura**: **marco de bando** (Hueso o Ciruela, con el borde interior de 2 px en Ciruela), **marcas de objetivo** (corchetes gruesos de objetivo válido, anillo doble del área, contorno dentado de la explosión), flechas de ataque, línea eslabonada de cobertura, contornos de elegida, inspección y «propia en zona» (decisión del 2026-11-26) | Render | No |
    | 8 | Capa del sistema sobre la pieza: ficha y banderín (#15), vista previa (#16), placas MUERE y ROTO, números flotantes | #15 y #16 (contenido); Render (ancla y momento en la resolución) | No |
    | 9 | HUD de pantalla: timer, botones, etiqueta y recuadros del Modificador | #15 y #17 | No |
 
    La gradación de los estados de ambiente (regla 26) **solo toca la capa 1**. Figura, ficha y suelo de bando se dibujan con exposición fija (art bible §2, *Regla de ambiente*).
+
+   **Marcas de objetivo y bando sobre la figura (decisión del 2026-11-26).** Así una skin opaca que llena su lienzo no tapa el bando ni un objetivo (regla 5, anti-pilar «NOT pagar para ganar»). El suelo de bando entero encima de la figura la taparía, así que en la capa 7 va como **marco**: una franja sobre el borde de la casilla, y el relleno sigue en la capa 3. **El ancho de la franja lo fija el director de arte** (art bible §4; TBD). El lienzo de la skin no cambia. La casilla pulsada y los corchetes finos de alcance quedan en la capa 4: sobre una casilla con pieza los puede tapar la skin, y la elegida ya tiene su contorno en la capa 7.
 5. **La skin dibuja solo la capa 5.** Una skin no puede dibujar en otra capa ni fuera de la casilla de su pieza, ni leer o cambiar una cifra, un color del sistema o la posición de la ficha. Ese es el anti-pilar «NOT pagar para ganar» y el principio 3 del ancla («la capa del sistema es intocable»). Las capas 3, 4, 6, 7 y 8 usan **solo** activos del sistema, iguales con cualquier skin.
 6. **Formato de skin (manifiesto de datos).** Una skin es un paquete de datos sin código:
    - **Identidad:** `skinId`, `versionFormato` (hoy 1) y la clave de su nombre (Localización).
@@ -132,7 +134,7 @@ Todas las marcas son de la capa del sistema (art bible §3, *Gramática de forma
     - Un hueco transitable se marca igual que una casilla libre (Castillo, Visual/Audio).
     - **Nunca hay flechas para mover**: las flechas son de ataque (Movimiento, Visual/Audio).
 12. **Ataque y cobertura (Alcance #7, Cobertura #8).**
-    - **Alcance:** corchetes quietos en las esquinas, bermellón al 70% (conflicto a). La zona ciega queda sin corchete, y los objetivos válidos llevan corchetes más gruesos.
+    - **Alcance:** corchetes quietos en las esquinas, bermellón al 70% (conflicto a). La zona ciega queda sin corchete, y los objetivos válidos llevan corchetes más gruesos, en la capa 7, encima de la figura (regla 4).
     - **Flecha:** una por asignación, en arco desde el atacante hasta la casilla objetivo, bermellón `#E55A40` al 100% con borde Tinta de 2 px. Las flechas que llegan a la misma casilla **se funden en una sola punta**, con un grosor según `escala_combo` (F2). La punta queda sobre la casilla objetivo, que es el blanco táctil (Entrada, regla 8).
     - **Área:** el arco más un **anillo doble** en el centro elegido. El anillo interior marca el centro y el exterior las vecinas dentro del tablero (las de afuera no se dibujan).
     - **Explosión:** sin flecha. Lleva una **mecha** sobre el demoledor y un **contorno dentado** alrededor de cada una de sus 8 vecinas dentro del tablero, muros incluidos. Falta en el art bible y lo define este GDD.
@@ -148,7 +150,7 @@ Todas las marcas son de la capa del sistema (art bible §3, *Gramática de forma
 #### D. Animación fuera del combate
 
 14. **Reposo.** Cada figura cicla sus cuadros de `reposo` con respiración mínima (1–2 px, ≤ 4 cuadros; art bible §5). El terreno, los muros enteros y las matas no se animan (art bible §3).
-15. **`PiezaMovida`.** La figura se desplaza por código **por el camino** que trae el evento, con frenado suave y ≤ 0,25 s en total, sin ciclo de caminata (Movimiento, Visual/Audio). El jinete que pasa sobre otra pieza se dibuja por encima mientras pasa. `Deshacer` la devuelve por el mismo camino en ≤ 0,25 s. **La animación no bloquea**: el siguiente comando se acepta mientras la figura se desplaza (Movimiento, Game Feel).
+15. **`PiezaMovida`.** La figura se desplaza por código **por el camino** que trae el evento, con frenado suave y ≤ 0,25 s en total, sin ciclo de caminata (Movimiento, Visual/Audio). El jinete que pasa sobre otra pieza se dibuja por encima mientras pasa. `MovimientoDeshecho` (Máquina, #3) la devuelve de `destino` a `origen` en ≤ 0,25 s **recorriendo al revés el camino del último `PiezaMovida` de esa pieza**, que Render guarda en su estado de cliente (una pila de caminos por pieza, que se vacía al cerrar `Mover`). Es determinista porque sale de los eventos. Si no hay camino guardado, vuelve en línea recta. **La animación no bloquea**: el siguiente comando se acepta mientras la figura se desplaza (Movimiento, Game Feel).
 16. **`Reclutado`.** Las piezas de la tanda **aparecen a la vez** en sus casillas, con su suelo de bando, en ≤ 0,5 s (Reclutamiento, Visual/Audio). Si la tanda es `automatico`, la marca «Elegido por el tiempo» es de #15.
 17. **Arquero en el muro.** El arquero que sube a un tramo propio se dibuja sobre el tramo con el **parapeto** del castillo, sin que la silueta pierda su forma (art bible §3). Al bajar o al romperse su tramo, el parapeto se va en el mismo cuadro.
 
@@ -160,10 +162,10 @@ Todas las marcas son de la capa del sistema (art bible §3, *Gramática de forma
     2. `TurnoTerminado` y, según el caso, `PartidaTerminada`, o bien las `CoberturaQuitada` por caducidad (las líneas se desvanecen) y `TurnoIniciado`. El contorno del tablero, el banner y el emblema del turno nuevo son de #15.
     3. Si llega después, la `Tirada` (placa de #17).
 
-    El grupo 2 no empieza antes de que termine el grupo 1 o de que se lo salte. Los eventos que llegan con otro comando (por ejemplo `Tirada`) se presentan cuando llegan, sobre lo que esté en pantalla.
+    El grupo 2 no empieza antes de que termine el grupo 1, que no se salta (regla 24); solo lo corta una rendición (Edge Cases). Los eventos que llegan con otro comando (por ejemplo `Tirada`) se presentan cuando llegan, sobre lo que esté en pantalla.
 20. **Línea de tiempo única y simultánea (F1).** Toda la resolución comparte un solo reloj de presentación, que empieza en 0 al empezar el grupo:
-    - **Gesto (0 → `t_impacto`):** en el cuadro 0 se van las placas de la vista previa (#16, regla 19), y todos los atacantes de `AtaqueEjecutado` hacen a la vez su animación de `ataque`. El **cuadro de golpe** de cada skin se cuadra con `t_impacto`. Los proyectiles (flecha del arquero, piedra de la catapulta) recorren el arco de su flecha y llegan exactamente en `t_impacto`. Las flechas del plan se apagan en cuanto empieza el gesto («de plan a golpe», #9).
-    - **Impacto (`t_impacto`, un solo cuadro):** se disparan juntos todos los `DanoRecibido` y `DanoATramo`, la explosión de cada demoledor y la caída de la piedra del área. En ese cuadro aparecen los números flotantes, las placas MUERE y ROTO, y la vida de cada ficha cambia de una vez, sin cuenta regresiva (#15, Edge Cases).
+    - **Gesto (0 → `t_impacto`):** en el cuadro 0 se van las placas de la vista previa (#16, regla 19), y todos los atacantes de `AtaqueEjecutado` hacen a la vez su animación de `ataque`. El **cuadro de golpe** de cada skin se cuadra con `t_golpe` (F1b): `t_impacto` en el cuerpo a cuerpo, y el momento de soltar para quien lanza un proyectil. Los proyectiles (flecha del arquero, piedra de la catapulta) recorren el arco de su flecha y llegan exactamente en `t_impacto`. Las flechas del plan se apagan en cuanto empieza el gesto («de plan a golpe», #9).
+    - **Impacto (`t_impacto`, un solo cuadro):** se disparan juntos todos los `DanoRecibido` y `DanoATramo`, la explosión de cada demoledor y la caída de la piedra del área. En ese cuadro aparecen los números flotantes, las placas MUERE y ROTO, y la vida de cada ficha cambia de una vez, sin cuenta regresiva (#15, Edge Cases). La ficha de cada pieza que muere se va en ese mismo cuadro, junto con la aparición de su placa MUERE, y no con la figura (#15, regla 11) (decisión del 2026-11-26).
     - **Pulso (`t_impacto` → `t_impacto + t_pulso`):** un pulso de luz blanca cálida (~4000 K) sale de cada receptor con daño, con el tamaño de F2.
     - **Caída y rotura (después del pulso, durante `t_caida`):** cada `PiezaMuerta` por daño se desatura y cae, todas en el mismo cuadro. Cada `TramoRoto` pasa de su estado a hueco. Cada `CoberturaQuitada` corta su línea en ese mismo cuadro (Cobertura, Visual/Audio).
     - **Lectura (`t_lectura`):** quedan a la vista los números, MUERE y ROTO sobre las casillas.
@@ -186,8 +188,8 @@ Todas las marcas son de la capa del sistema (art bible §3, *Gramática de forma
     - Cada tramo roto suma **escombros** junto al castillo.
 
     La tierra removida y el quemado se desvanecen según `marca_visible` (F5). Los escombros y el hueco del tramo son estado del castillo y **no se desvanecen nunca** (Castillo, Visual/Audio; el art bible §6 queda por corregir). Ninguna marca supera el contraste de una figura ni la saturación del terreno.
-24. **Saltar la resolución.** Cualquier toque o clic sobre la pantalla durante la presentación de la resolución la **salta**: todo pasa en el cuadro siguiente a su estado final, como si hubiera terminado la salida, y sigue el grupo siguiente de la cola. El toque **se consume**: no se pasa a Entrada como comando ni como selección. Saltar no cambia el estado (regla 2).
-25. **La Tirada espera a la presentación (decisión del jugador, 2026-11-26).** En partida local, el cliente es la autoridad que envía `Tirada` (Modificador, regla 9). La envía **cuando termina el grupo 1 de la cola** (la resolución, por tiempo o por salto), no antes. El grupo 2 (cambio de turno, #15) empieza en el mismo cuadro. En el centro hay una sola placa: desde el turno 2 la placa de la tirada (#17) lleva el renglón del turno y reemplaza al banner del HUD (#15, regla 13; decisión del jugador, 2026-11-26). Como el reloj del jugador no corre en `EsperandoTirada` (Máquina, regla 14), **la animación de la resolución no le cuesta tiempo al jugador siguiente** y la Open Question del Timer queda cerrada para el modo local. El costo va al tiempo de pared: ≤ `resolucion_max_s` por turno con ataques, fuera de los relojes, igual que las esperas de la tirada que el pilar 4 ya excluye. En el turno 1 no hay tirada (Máquina, regla 3) ni resolución previa. En el modo online la autoridad es el servidor (#28), y la espera queda como pregunta abierta.
+24. **No se salta (decisión del 2026-11-26).** La cosecha se ve siempre **entera**, de 0 a `t_resolucion`: ningún toque, clic ni tecla la acorta. Un toque o clic sobre el tablero mientras dura **se ignora**: no salta, no elige, no inspecciona y no manda comandos (Entrada, #13, Edge Cases). Los controles del HUD y de la placa siguen con sus propias reglas (#15, #17), y `Rendirse` es el único que corta la cosecha (Edge Cases). Un toque en el cuadro siguiente al fin va a Entrada como siempre.
+25. **La Tirada espera a la presentación (decisión del jugador, 2026-11-26).** En partida local, el cliente es la autoridad que envía `Tirada` (Modificador, regla 9). La envía **cuando termina el grupo 1 de la cola** (la resolución, que siempre corre entera, regla 24), no antes. El grupo 2 (cambio de turno, #15) empieza en el mismo cuadro. En el centro hay una sola placa: desde el turno 2 la placa de la tirada (#17) lleva el renglón del turno y reemplaza al banner del HUD (#15, regla 13; decisión del jugador, 2026-11-26). Como el reloj del jugador no corre en `EsperandoTirada` (Máquina, regla 14), **la animación de la resolución no le cuesta tiempo al jugador siguiente** y la Open Question del Timer queda cerrada para el modo local. El costo va al tiempo de pared: ≤ `resolucion_max_s` por turno con ataques, fuera de los relojes, igual que las esperas de la tirada que el pilar 4 ya excluye. **Si el turno se cerró sin resolución** (sin asignaciones, o `FaseSaltada` de atacar), el cliente envía la `Tirada` cuando terminan la placa de #17 en curso y la leyenda central de #15 (`leyenda_ms`, ≤ 1,5 s), o en el mismo cuadro si no hay ninguna, fuera de los relojes (decisión del 2026-11-26). En el turno 1 no hay tirada (Máquina, regla 3) ni resolución previa. En el modo online la autoridad es el servidor (#28), y la espera queda como pregunta abierta.
 
 #### F. Ambiente y pantalla
 
@@ -209,7 +211,7 @@ Todas las marcas son de la capa del sistema (art bible §3, *Gramática de forma
     - Para cualquier otra ventana, todo se escala de forma **uniforme** con `escala_pantalla` (F3) y se centra. El terreno sigue más allá del tablero y se oscurece hacia los bordes (art bible §6), así que el sobrante de otra proporción se ve como terreno, no como bandas negras.
     - Con la escala por debajo de 1, #15 muestra su aviso de 1080p.
     - Los activos se exportan a 136 px por casilla (2×), así que a 4K se ven nítidos.
-    - Render expone **`casillaEnPantalla(casilla)`** (rectángulo en píxeles), que #15 y #16 usan para anclar la ficha y la vista previa. Nadie más convierte coordenadas.
+    - Render expone **`casillaEnPantalla(casilla)`** (rectángulo en píxeles), que #15 y #16 usan para anclar la ficha y la vista previa, y su inversa **`casillaEnPunto(x, y)`** (F3), que usa Entrada (#13, regla 3) para saber qué casilla se tocó. Nadie más convierte coordenadas.
 28. **Sin cámara.** Hay una sola vista: el tablero entero, sin zoom ni desplazamiento en el MVP. El zoom táctil del móvil es de la Adaptación móvil (#41; Entrada, E3). Ningún efecto mueve, sacude ni acerca la vista.
 29. **«Reducir efectos» (#23; opción guardada por el cliente hasta #20).**
     - Reemplaza el pulso de luz por un contorno breve del mismo tamaño y la explosión por un fundido.
@@ -231,17 +233,18 @@ Render no tiene estado de juego. Tiene tres máquinas de **presentación**, toda
 |---|---|---|---|
 | Inicio | `CrearPartida` aceptada | Primer cuadro dibujado | El despliegue completo **de golpe**, sin animación de entrada (Tablero, Visual/Audio) |
 | Libre | Fin de cualquier grupo de la cola | Un grupo nuevo en la cola | Reposo, marcas de la fase, animaciones de comando (mover, reclutar, asignar), que no bloquean |
-| Resolviendo | Grupo 1 de la cola (regla 19) | Fin de F1 o salto (regla 24) | La línea de tiempo de la regla 20; los toques se consumen como salto |
+| Resolviendo | Grupo 1 de la cola (regla 19) | Fin de F1, o una rendición durante la cosecha (Edge Cases) | La línea de tiempo de la regla 20; los toques sobre el tablero se ignoran (regla 24) |
 | Cambio de turno | Grupo 2 | Fin de sus transiciones (≤ 0,25 s; el banner es de #15) | Caducidad de coberturas, estado de ambiente de la nueva fase |
-| Final | `PartidaTerminada` después de su resolución | Salida de la pantalla de partida (#21) | Luz de Victoria o Derrota; el tablero queda como lo dejó el último evento |
+| Final | `PartidaTerminada` después de su resolución, o al cortar una rendición la cosecha | Salida de la pantalla de partida (#21) | Luz de Victoria o Derrota; el tablero queda como lo dejó el último evento |
 
 | De → a | Disparador | Efecto |
 |---|---|---|
 | Libre → Resolviendo | Llegan eventos de Resolución | Se apagan las flechas del plan y empieza el gesto |
-| Resolviendo → Libre | `t_resolucion` cumplido o salto | Estado final dibujado; en local, el cliente envía `Tirada` (regla 25) |
-| Resolviendo → Final | La resolución trae `PartidaTerminada` | Primero termina (o se salta) la resolución; después la luz del final |
+| Resolviendo → Libre | `t_resolucion` cumplido | Estado final dibujado; en local, el cliente envía `Tirada` (regla 25) |
+| Resolviendo → Final | La resolución trae `PartidaTerminada` | Primero termina la resolución entera (no se salta, regla 24); después la luz del final (≤ 0,25 s). Render avisa a #15 el **fin del grupo 1** y el **fin de la luz del final**; la pantalla de resultado (#21) entra recién ahí |
+| Resolviendo → Final | `PartidaTerminada` por rendición durante la cosecha | La cosecha se corta: en el cuadro siguiente todo pasa al estado final de la resolución y empieza la luz del final; no hay `Tirada` (decisión del 2026-11-26) |
 | Libre → Final | `PartidaTerminada` sin resolución (rendición, reloj agotado, abandono) | Directo a la luz del final |
-| Cualquiera → el mismo | Estado nuevo mientras anima | La animación en curso salta a su final (regla 2) |
+| Cualquiera → el mismo | Estado nuevo mientras anima | La animación en curso **de la misma entidad** salta a su final; las de otras entidades siguen y la cosecha no se interrumpe (regla 2) |
 
 **2. Figura (una por pieza viva dibujada).**
 
@@ -249,7 +252,7 @@ Render no tiene estado de juego. Tiene tres máquinas de **presentación**, toda
 |---|---|---|
 | Apareciendo | `Reclutado` o Inicio | ≤ 0,5 s (reclutar) o 0 s (inicio) → Reposo |
 | Reposo | Por defecto | Moviéndose, Atacando, Muriendo |
-| Moviéndose | `PiezaMovida` o `Deshacer` | Fin del camino (≤ 0,25 s) → Reposo |
+| Moviéndose | `PiezaMovida` o `MovimientoDeshecho` | Fin del camino (≤ 0,25 s) → Reposo |
 | Atacando | Gesto de la regla 20 | Último cuadro de `ataque` → Reposo, o Muriendo si murió en esa resolución |
 | Muriendo | `PiezaMuerta` motivo `Dano`, después del pulso | `t_caida` cumplido → **se borra**; no deja cuerpo (art bible §6) |
 | Estallando | `PiezaMuerta` motivo `Explosion` | En `t_impacto` → se borra dentro de la explosión |
@@ -274,26 +277,26 @@ Una figura que ataca **y** muere en la misma resolución hace su gesto completo 
 | #3 Máquina | `TurnoTerminado`, `TurnoIniciado`, `FaseIniciada`, `FaseSaltada`, `PartidaTerminada`; el lado del jugador del turno | — | Máquina (qué se emite); Render (cola y ambiente) |
 | #4 Tablero | Grilla 24 × 15, casillas, castillos, `ladoDelRival`, despliegue | `casillaEnPantalla` para el cliente | Tablero (geometría); Render (pantalla) |
 | #5 Castillo | Vida de cada tramo, `vida_tramo`, `enMuro`, `tramosRotos`, `DanoATramo`, `TramoRoto` | Los tres estados dibujados, el parapeto y los escombros | Castillo (estados y umbral); Render (dibujo) |
-| #6 Movimiento | `MovimientosLegales` con costo, `PiezaMovida` con camino, `Deshacer` | — | Movimiento |
+| #6 Movimiento | `MovimientosLegales` con costo, `PiezaMovida` con camino; `MovimientoDeshecho` (lo emite la Máquina, #3, regla 16) | — | Movimiento |
 | #7 Alcance | `CasillasEnAlcance`, objetivos válidos, asignaciones con modo, zona de explosión | — | Alcance |
 | #8 Cobertura | `Coberturas()`, `AliadosCubribles`, `CoberturaAsignada` / `Quitada` | — | Cobertura |
 | #9 Resolución | Los eventos de la regla 14 con `combinado`, `atacantesRivales` y `brutoDesviado` | — | Resolución (forma); Render (presentación) |
 | #10 Reclutamiento, #17 Interfaz del Modificador | `Reclutado`; lista de `K` casillas a numerar y cuándo; pedido de resplandor | — | #17 (cuáles y cuándo); Render (cómo) |
 | #11 Modificador | `Tirada` con la cara (para el ambiente de Distracción y de la tirada) | En local, **el momento** en que el cliente envía `Tirada` (regla 25) | Modificador (la tirada); Render (cuándo termina la presentación) |
 | #12 Timer | `TramoFinalIniciado` | — | Timer |
-| #13 Entrada | Pieza elegida o en inspección, casilla pulsada | El toque de salto se consume (regla 24) | Entrada (qué se elige); Render (cómo se ve) |
+| #13 Entrada | Pieza elegida o en inspección, casilla pulsada | `casillaEnPunto` (F3); si la cosecha está en curso, para que Entrada ignore los toques sobre el tablero (regla 24) | Entrada (qué se elige); Render (cómo se ve) |
 | #14 Localización | Nada: Render no tiene textos propios (MUERE y ROTO son de #16) | — | — |
-| #15 Ficha y HUD | — | `casillaEnPantalla`, orden de capas, el cuadro de impacto (para cambiar la vida de una vez), el fin del grupo 1 | #15 (ficha y HUD); Render (anclas y tiempos) |
+| #15 Ficha y HUD | — | `casillaEnPantalla`, orden de capas, el cuadro de impacto (para cambiar la vida de una vez y quitar la ficha de las piezas que mueren), el fin del grupo 1, el corte por rendición y el fin de la luz del final | #15 (ficha y HUD); Render (anclas y tiempos) |
 | #16 Vista previa | Contenido de las placas y números de la fase de ataque | Ancla en pantalla; las mismas placas y números durante la resolución | #16 (qué se muestra); Render (dónde y cuándo) |
 | #19 Métricas | — | Skin rechazada al cargar (motivo), fps y tiempo de carga (errores y medidas técnicas) | Métricas (esquema) |
-| #22 Audio | — | El reloj de presentación: `t_impacto`, `t_caida` y el salto, para sincronizar los golpes | Audio (qué suena); Render (cuándo) |
+| #22 Audio | — | El reloj de presentación: `t_impacto`, `t_caida` y el corte por rendición, para sincronizar los golpes | Audio (qué suena); Render (cuándo) |
 | #23 Accesibilidad, #20 Ajustes | «Reducir efectos», «Mostrar cuadrícula» (Tablero, UI Requirements) | — | #23 / #20 |
 | #35 Repeticiones | Eventos guardados | El mismo dibujo (regla 3) | Render |
 | #37 Skins, #38 Kit, #39 Tienda | Skins en el formato de la regla 6 | Validación de carga (regla 7); dibujo de una skin fuera de partida (vista previa de la tienda, Full Vision) | Render (formato); #38 (pruebas humanas) |
 
 **«Mostrar cuadrícula»** (Tablero, UI Requirements; opción apagada por defecto): Render dibuja una línea fina y tenue entre casillas sobre la capa 1, por debajo del suelo de bando.
 
-**Supuestos PROVISIONALES:** Audio (#22), Accesibilidad (#23), Ajustes (#20), Repeticiones (#35) y Skins, Kit y Tienda (#37 a #39) no tienen GDD. Vista previa (#16) y Métricas (#19) se escribieron en paralelo y se verificaron al cerrar la tanda 4. Con #16 se verificaron, al cerrar esta sesión, el momento de la entrega (su regla 19) y la casilla del arquero (su regla 11). Con #19 no hubo verificación: los eventos del cliente que Render ofrece van como pedido en Cross-References.
+**Supuestos PROVISIONALES:** Audio (#22), Accesibilidad (#23), Ajustes (#20), Repeticiones (#35) y Skins, Kit y Tienda (#37 a #39) no tienen GDD. Vista previa (#16) y Métricas (#19) se escribieron en paralelo y se verificaron al cerrar la tanda 4. Con #16 se verificaron, al cerrar esta sesión, el momento de la entrega (su regla 19) y la casilla del arquero (su regla 11). Con #19 se verificó al cerrar la tanda 4: trata los eventos de cliente de Render en su Open Question (l.590), donde `ResolucionSaltada` queda cerrada porque la cosecha no se salta (regla 24).
 
 ## Formulas
 
@@ -323,12 +326,12 @@ La fórmula `t_resolucion` se define así:
 
 **Validación:** la config se rechaza al cargar si `t_resolucion` > `resolucion_max_s` o si no se cumple la condición de `lectura_min_s`. Es el mismo patrón que las perillas de la placa del Modificador (#17, F1). **No depende de la cantidad de ataques**: 1 ataque o 61 duran lo mismo. Con 0 eventos de Resolución no hay presentación (regla 18), y la duración es **0**, no `t_resolucion`.
 
-**Example:** cuatro atacantes sobre un soldado. Todos empiezan el gesto en 0. El arquero suelta en 0,20 s, su flecha vuela 0,15 s, y los cuatro impactan en 0,35 s. El pulso dura hasta 0,65 s, la caída hasta 0,90 s, la lectura hasta 1,40 s y la salida hasta 1,65 s. En local, la `Tirada` sale en 1,65 s (o en el cuadro del salto).
+**Example:** cuatro atacantes sobre un soldado. Todos empiezan el gesto en 0. El arquero suelta en 0,20 s, su flecha vuela 0,15 s, y los cuatro impactan en 0,35 s. El pulso dura hasta 0,65 s, la caída hasta 0,90 s, la lectura hasta 1,40 s y la salida hasta 1,65 s. En local, la `Tirada` sale en 1,65 s.
 
 **F1b. Ritmo del gesto (cuadro de golpe).** Para una skin con `n` cuadros de `ataque` y el cuadro de golpe en la posición `k` (1 ≤ `k` ≤ `n`):
 
 `t_golpe = t_impacto − t_vuelo` si la pieza lanza un proyectil, si no `t_impacto`
-`dur_pre = t_golpe / (k − 1)` si `k ≥ 2`; con `k = 1` el cuadro de golpe se muestra desde 0
+`dur_pre = t_golpe / (k − 1)` si `k ≥ 2`; con `k = 1` el cuadro de golpe se muestra desde 0 hasta `t_golpe`, y los cuadros 2 a `n` ocupan [`t_golpe`, `t_golpe + t_pulso`], cada uno `dur_post`
 `dur_post = t_pulso / max(1, n − k)`
 
 | Variable | Type | Range | Source | Description |
@@ -370,6 +373,7 @@ La fórmula `escala_pantalla` se define así:
 `casilla_px = 68 × escala_pantalla`
 `origen_x = (W − 1920 × escala_pantalla) / 2 + 144 × escala_pantalla`, `origen_y = (H − 1080 × escala_pantalla) / 2 + 60 × escala_pantalla`
 `casillaEnPantalla(c, f) = (origen_x + c × casilla_px, origen_y + f × casilla_px, casilla_px, casilla_px)`
+`casillaEnPunto(x, y) = (c, f)` con `c = floor((x − origen_x) / casilla_px)` y `f = floor((y − origen_y) / casilla_px)`; si `c` cae fuera de 0–23 o `f` fuera de 0–14, es «ninguna». Con la escala en 0 (ventana minimizada) devuelve «ninguna» sin dividir. **Example:** a 2560 × 1440, (1000, 500) da (8, 4), y (191, 500) da «ninguna».
 
 **Variables:**
 
@@ -423,11 +427,13 @@ La fórmula `memoria_skin` se define así:
 
 **Output Range:** la skin más chica (7 tipos × 2 cuadros, sin castillo) ocupa 1,04 MB. La skin básica del MVP (7 × (4 + 6) + 10) ocupa **5,92 MB**. La más grande que admite el formato (7 × (4 + 8) + 10) ocupa **6,95 MB**. Con dos skins al máximo son 13,9 MB, **dentro de los 40 MB por partida** (art bible §8) sin contar compresión, que no está verificada en web (NO VERIFICADO, art bible §8). Los topes de cuadros del formato son los que garantizan el presupuesto: subirlos exige rehacer este cálculo. **Example:** la skin básica del MVP más el terreno (6 variantes y 2 marcas, 0,59 MB) da 6,5 MB; con dos jugadores usando la básica se carga **una sola vez**.
 
+**Nota de atlas (F6 cuenta cuadros, no atlas).** Empacados a 136 px en un atlas de potencia de 2, los 80 cuadros de la básica piden 2048 × 1024 RGBA, unos **8,4 MB**, contra los 5,92 MB de F6. Con mipmaps, que hacen falta porque a 1080p el arte se ve a la mitad, se suma ~33% (~11,2 MB). La skin al tope (94 cuadros) entra en el mismo atlas. F6 subestima alrededor de un 40%, y no cuenta efectos, fuentes ni marcas del sistema. Dos skins al tope con mipmaps (~22,4 MB) más el terreno siguen entrando en 40 MB, pero el presupuesto real lo mide el ADR de render con el atlas. Los 40 MB y las 150 llamadas de dibujo son **provisionales**: `project.yaml` no tiene `performance.*` (art bible, l.608-613).
+
 ### Límites y lazos
 
 - **Ningún lazo de retroalimentación:** la presentación no cambia el estado, así que nada de lo que dibuja Render puede volver al juego.
 - **La única variable que sale del núcleo con cota abierta** es `a` (0 a 61), y F2 la satura en 3.
-- **El único divisor** es `k − 1` en F1b, con rama aparte para `k = 1`. F3 divide por constantes.
+- **Los divisores** son `k − 1` en F1b, con rama aparte para `k = 1`, y `casilla_px` en `casillaEnPunto` (F3), con rama aparte para la escala 0. El resto de F3 divide por constantes.
 
 ## Edge Cases
 
@@ -438,27 +444,28 @@ La fórmula `memoria_skin` se define así:
 - **If un demoledor que explota también recibe golpes** (#9, regla 9: igual tiene `DanoRecibido`): su figura desaparece en `t_impacto` dentro de la explosión y **no se muestra su número**. Una pieza que deja de existir en ese cuadro no tiene dónde mostrarlo, y su salida no depende de su vida. Las Métricas sí reciben el evento.
 - **If dos demoledores pegados explotan juntos:** desaparecen los dos en `t_impacto`, con dos explosiones en el mismo cuadro y dos quemados. No hay cascada visual: una pieza fuera de sus vecinas no muestra nada (#9, AC-40).
 - **If una pieza ataca y muere en la misma resolución:** hace su gesto completo y su proyectil llega en `t_impacto`, y después del pulso cae con las demás (#9, regla 3; States, figura).
-- **If una casilla tiene un arquero sobre su tramo y recibe un golpe:** hay **dos números** en la misma casilla, con la disposición de las dos placas de la vista previa (#16, regla 11). El de la pieza (neto) va **abajo**, en el ancla de la ficha, y el del tramo (bruto) va **arriba de la casilla**, con el ícono de muro a su izquierda. Hay un solo pulso, con la escala mayor de los dos receptores.
+- **If una casilla tiene un arquero sobre su tramo y recibe un golpe:** hay **dos números** en la misma casilla, con la disposición de las dos placas de la vista previa (#16, regla 11). El de la pieza (vida perdida) va **abajo**, en el ancla de la ficha, y el del tramo (vida perdida del tramo) va **arriba de la casilla**, con el ícono de muro a su izquierda. Si el arquero muere o el tramo se rompe, en ese lugar va la placa MUERE o ROTO y no el número. Hay un solo pulso, con la escala mayor de los dos receptores.
 - **If el tramo bajo un arquero se rompe y el arquero sobrevive:** en `t_caida` el tramo pasa a hueco, el parapeto se va en ese cuadro y la figura queda en la casilla, ahora sobre el hueco (#9, AC-21).
 - **If el arquero muere y su tramo también se rompe:** la figura cae y el tramo pasa a hueco en el mismo `t_caida`. La casilla queda libre y sin tramo.
 - **If el escudo absorbe todo (`neto` 0), aunque sea combinado:** no hay pulso. Se ven el ícono de escudo y «0», y la vida de la ficha no cambia. El combinado no se dibuja más grande cuando no pasó nada: la escala solo agranda un daño que existe.
 - **If un área o una explosión caen solo sobre casillas vacías o huecos sin pieza:** se ven el gesto, la caída de la piedra o la explosión y la marca de tierra removida o de quemado. No hay pulso ni número (sin `DanoRecibido`).
 - **If el centro del área está en un borde o una esquina:** el anillo doble y la piedra solo marcan las casillas dentro del tablero (6 o 4 casillas). La tierra removida queda en el centro.
-- **If el escudero recibe golpes desviados y golpes propios a la vez:** un solo número (el neto total), con el ícono de escudo. Su escala es la de sus `atacantesRivales`, que ya cuenta a los desviados (#9, regla 12).
+- **If el escudero recibe golpes desviados y golpes propios a la vez:** un solo número (la vida perdida total), con el ícono de escudo, o MUERE sin número si muere. Su escala es la de sus `atacantesRivales`, que ya cuenta a los desviados (#9, regla 12).
 - **If varias piezas propias golpean una pieza propia (fuego amigo combinado):** `a` = 0 y la escala es 1 (F2). El combo es una promesa contra el rival, y el fuego amigo se marca con el contorno discontinuo, no con un impacto más grande.
 - **If la punta de la flecha prometió menos que el pulso** (por ejemplo, un soldado con flecha directa y el área de una catapulta sobre el mismo objetivo: 1 flecha en esa punta, `atacantesRivales` 2): el pulso sale ×1,5. La escala del pulso cuenta los golpes reales; la flecha del área termina en su centro, no en cada vecina. El número es el de la vista previa (#16), que es el dato que no puede diferir.
 - **If la resolución mata a los dos Reyes** (`DobleRey`): las dos figuras caen en el mismo cuadro, termina la resolución, y después viene la luz de Victoria del jugador del turno (Máquina, regla 13; States).
-- **If la resolución termina la partida y el jugador la salta:** todo va a su estado final y sigue la luz del final. No hay `Tirada` (no hay turno siguiente).
+- **If la resolución termina la partida:** la cosecha se ve entera (regla 24) y después sigue la luz del final. No hay `Tirada` (no hay turno siguiente). La pantalla de resultado (#21) y la placa de #15 entran recién al terminar la luz del final (States).
+- **If el jugador se rinde durante la cosecha** (en local, `Rendirse` vale en `EsperandoTirada`; Máquina, matriz de comandos): la cosecha **se corta** (decisión del 2026-11-26). En el cuadro siguiente al `PartidaTerminada` todo pasa al estado final de la resolución, como si hubiera terminado la salida, y empieza directo la luz del final (Resolviendo → Final). No hay `Tirada`. Es el único corte de la cosecha, y lo dispara un control de #15, no un toque sobre el tablero (regla 24).
 - **If el jugador se rinde, se agota su reloj o llega `CerrarPartida` durante `Atacar`:** no hay eventos de Resolución, así que no hay presentación ni flechas convertidas en golpes. Las flechas se borran y sigue la luz del final (Libre → Final).
-- **If la lista de asignaciones está vacía o la fase de atacar se saltó (`FaseSaltada`):** no hay presentación y, en local, la `Tirada` sale enseguida (regla 25).
+- **If la lista de asignaciones está vacía o la fase de atacar se saltó (`FaseSaltada`):** no hay presentación y, en local, la `Tirada` sale al terminar la placa y la leyenda pendientes (≤ 1,5 s), o enseguida si no hay ninguna (regla 25).
 
 ### Tiempo, entrada y cola
 
-- **If el jugador toca durante la resolución:** salta todo a su final y el toque se consume (regla 24). **Un toque que llega en el cuadro siguiente al fin** ya no se consume: va a Entrada como siempre. Mientras dura el estado `EsperandoTirada`, Entrada no tiene comandos que mandar.
+- **If el jugador toca el tablero durante la resolución:** el toque se ignora (regla 24): la cosecha sigue hasta `t_resolucion`, y el toque no elige, no inspecciona ni manda comandos. **Un toque que llega en el cuadro siguiente al fin** va a Entrada como siempre. Un toque sobre `Rendirse` es de #15 y corta la cosecha (Resolución). Mientras dura el estado `EsperandoTirada`, Entrada no tiene comandos que mandar.
 - **If el cliente pierde un tramo de cuadros** (un tirón de rendimiento) **y el reloj de presentación pasa por encima de `t_impacto` o del inicio de `t_caida`:** esos hitos se dibujan **al menos un cuadro**, aunque llegue tarde. Así el cambio de vida y la caída nunca se saltean, y las Repeticiones siguen dibujando lo mismo.
-- **If la ventana se minimiza (`W` o `H` en 0) durante la resolución:** no se dibuja (F3), el reloj de presentación sigue, y la `Tirada` sale a su hora. Perder el foco no pausa nada, igual que el Timer (decisión de la tanda 1). Al volver, se dibuja el estado final.
+- **If la ventana se minimiza (`W` o `H` en 0) durante la resolución:** no se dibuja (F3), el reloj de presentación sigue, y la `Tirada` sale a su hora. Perder el foco no pausa nada, igual que el Timer (decisión de la tanda 1). Al volver, se dibuja el instante en que va el reloj de presentación, o el estado final si la cosecha ya terminó: minimizar no la salta ni la alarga.
 - **If la ventana cambia de tamaño durante una animación:** F3 se recalcula en el cuadro siguiente y la animación sigue en las casillas nuevas, sin reiniciarse.
-- **If llega un `Deshacer` mientras la figura todavía se desplaza:** el desplazamiento salta a su final y empieza la vuelta (regla 2).
+- **If llega un `MovimientoDeshecho` mientras la figura todavía se desplaza:** el desplazamiento salta a su final y empieza la vuelta (regla 2).
 - **If llega un estado nuevo con varios grupos pendientes:** la cola los presenta en orden y ninguno se pierde. Un grupo cuya animación ya no tiene sentido (la pieza ya no existe) salta a su final.
 - **If el tramo final empieza en el mismo comando que cierra una resolución:** el atardecer de 1 s empieza con el grupo 2, nunca durante la resolución (el pulso es del estado *Resolución*).
 
@@ -472,12 +479,19 @@ La fórmula `memoria_skin` se define así:
 
 ### Carga y rendimiento
 
-- **If una resolución llega al tope** (393 eventos, 61 receptores con pulso; #9, regla 15): todos los pulsos y números se dibujan en el mismo cuadro con efectos de un **conjunto reservado** del tamaño de esa cota, sin reservar memoria en la resolución (Acceptance Criteria). Si el presupuesto de cuadro no alcanza, se mantiene la línea de tiempo y no se omite ningún número, MUERE ni ROTO. Lo que se degrada primero es el tamaño de las partículas, nunca la información.
+- **If una resolución llega al tope** (393 eventos; hasta 61 piezas y 32 tramos receptores con pulso, menos las casillas compartidas por un arquero sobre su tramo; #9, regla 15): todos los pulsos, números y placas se dibujan en el mismo cuadro con efectos de un **conjunto reservado por tipo**, sin reservar memoria en la resolución (Acceptance Criteria):
+  - pulsos ≤ receptores de pieza más tramos (93);
+  - números y placas ≤ lo mismo (93);
+  - proyectiles ≤ `AtaqueEjecutado` con proyectil (61);
+  - explosiones ≤ demoledores que explotan;
+  - polvo de rotura ≤ 32 tramos.
+
+  Las cotas salen de los sumandos de `eventos_resolucion_max` del registro; su reparto por evento lo confirma la historia del pool. Si el p95 de los últimos 10 cuadros pasa de 16,6 ms durante el grupo 1, los pulsos pasan a contorno, como con «Reducir efectos» (regla 29). Se mantiene la línea de tiempo y no se omite ningún número, MUERE ni ROTO: se degrada el efecto, nunca la información. **El tope de partículas y de overdraw es TBD** (performance-analyst, con el primer build web): al tope son 93 pulsos de hasta 120 px de diámetro superpuestos, y el riesgo está en web móvil.
 - **If hay más marcas de terreno que casillas:** una por casilla, la más reciente (F5).
 
 ### Estrategias degeneradas
 
-- *Saltar siempre la resolución:* legal y sin ventaja. El resultado ya estaba en la vista previa, y saltar solo ahorra tiempo de pared. Lo mide Métricas (#19) para saber si la animación sobra (Open Questions).
+- *Tocar sin parar durante la cosecha para apurarla:* no tiene efecto. La cosecha no se salta y el toque se ignora (regla 24) (decisión del 2026-11-26). Si se siente lenta, es una pregunta de playtest (Open Questions).
 - *Usar una skin que tapa la ficha o imita el color de bando:* imposible por formato (regla 6: no hay campos para eso, y el lienzo es una casilla). Los colores prohibidos los rechaza el Kit (#38).
 
 ## Dependencies
@@ -496,25 +510,25 @@ La fórmula `memoria_skin` se define así:
 | #7 Alcance, #8 Cobertura | Dura | Alcance, objetivos, asignaciones, coberturas | Existen; nombran a #18 |
 | #10 Reclutamiento, #17 Interfaz del Modificador | Dura (#17) / Blanda (#10) | `Reclutado`; casillas a numerar; resplandor | Existen; nombran a #18 |
 | #13 Entrada y selección | Dura | Selección, inspección, pulsación | Existe; nombra a #18 |
-| #11 Modificador | Blanda | `Tirada` (ambiente); el envío local de la `Tirada` espera a Render | Existe; **no** nombra a #18 (Cambios pedidos) |
+| #11 Modificador | Blanda | `Tirada` (ambiente); el envío local de la `Tirada` espera a Render | Existe; nombra a #18 (l.105, l.149, l.350) |
 | #12 Timer | Blanda | `TramoFinalIniciado` | Existe; nombra a #18 |
 | #14 Localización | Blanda | Ninguna clave propia | Existe; nombra a #18 (pregunta cerrada: Render no lleva texto) |
 | #15 Ficha y HUD | Dura | Orden de capas compartido; consume `casillaEnPantalla` | Existe; nombra a #18 |
-| #16 Vista previa | Blanda | Contenido de placas y números | En paralelo (tanda 4) |
+| #16 Vista previa | Blanda | Contenido de placas y números | Existe (tanda 4); nombra a #18 |
 
 **Downstream (lo que depende de Render):**
 
 | Sistema | Tipo | Qué recibe | Estado |
 |---|---|---|---|
-| #15 Ficha y HUD | Dura | `casillaEnPantalla`, política de escala; los tiempos de la presentación (impacto, caída, fin del grupo 1, salto); #15 muestra el estado presentado (#15, regla 1) | Existe |
-| #16 Vista previa | Blanda | Ancla en pantalla y la presentación en la resolución | En paralelo |
-| #19 Métricas | Blanda | Skin rechazada, fps, tiempo de carga, saltos de la resolución | En paralelo |
-| #22 Audio | Dura | El reloj de presentación (`t_impacto`, `t_caida`, salto) | Sin GDD |
+| #15 Ficha y HUD | Dura | `casillaEnPantalla`, política de escala; los tiempos de la presentación (impacto, caída, fin del grupo 1, corte por rendición, fin de la luz del final); #15 muestra el estado presentado (#15, regla 1) | Existe |
+| #16 Vista previa | Blanda | Ancla en pantalla y la presentación en la resolución | Existe (tanda 4) |
+| #19 Métricas | Blanda | Skin rechazada, fps, tiempo de carga | Existe (tanda 4); los eventos de cliente siguen en su Open Question |
+| #22 Audio | Dura | El reloj de presentación (`t_impacto`, `t_caida`, corte por rendición) | Sin GDD |
 | #23 Accesibilidad | Blanda | «Reducir efectos», «Mostrar cuadrícula» | Sin GDD |
 | #35 Repeticiones | Dura | Dibujo determinista desde eventos | Sin GDD |
 | #37 Skins, #38 Kit, #39 Tienda | Dura | Formato de skin, validación de carga, dibujo fuera de partida | Sin GDD |
 
-**Bidireccionalidad:** #11 Modificador no nombra a #18. Los demás existentes ya lo nombran. Lo que falta va en *Cambios pedidos a otros GDD* (Cross-References).
+**Bidireccionalidad:** todos los existentes nombran a #18, #11 Modificador incluido (l.105, l.149, l.350) desde el cierre de la tanda 4. Lo que falta va en *Cambios pedidos a otros GDD* (Cross-References).
 
 ## Tuning Knobs
 
@@ -564,7 +578,7 @@ La fórmula `memoria_skin` se define así:
 | Inicio de partida | El despliegue aparece completo, sin entrada (Tablero) | El de inicio (#22) |
 | Elegir pieza / inspeccionar | Contorno grueso / contorno doble fino (regla 10) | Toque corto; el mismo para piezas rivales |
 | Destinos | Puntos blancos al 60% con el costo adentro | — |
-| `PiezaMovida` / `Deshacer` | Desplazamiento por el camino, ≤ 0,25 s, frenado suave | Uno por comando, no por casilla |
+| `PiezaMovida` / `MovimientoDeshecho` | Desplazamiento por el camino, ≤ 0,25 s, frenado suave | Uno por comando, no por casilla |
 | Arquero sube al muro | Figura sobre el tramo con parapeto | Apoyo sutil |
 | `Reclutado` | La tanda aparece a la vez, ≤ 0,5 s; antes, las casillas numeradas y el resplandor del lado del frente | Un golpe de llegada por tanda |
 | `AtaqueAsignado` directo / área / explosión | Arco con punta fundida (×1 / ×1,5 / ×2) / arco con anillo doble / mecha con contorno dentado en las 8 vecinas | Trazo que sube con la cantidad / tensión de cuerda / mecha |
@@ -620,7 +634,7 @@ La fórmula `memoria_skin` se define así:
 - **La cosecha es un solo golpe (pilares 1 y 2):** todos los impactos caen en el mismo cuadro (`t_impacto` 0,35 s por defecto). El combinado es más grande que el simple (×1,5 con 2 atacantes, ×2 con 3 o más), con el mismo escalón que prometía la flecha. Tres arqueros contra un escudo se leen como una jugada, no como tres.
 - **Ritmo (pilar 4):**
   - La resolución dura 1,65 s por defecto, con techo de 2,0 s, sin importar cuántos ataques hubo.
-  - **Se puede saltar con un toque**, y en local no le cuesta reloj al siguiente (regla 25).
+  - **No se salta** (regla 24): se ve entera, y en local no le cuesta reloj al siguiente (regla 25).
   - No hay cámara lenta, sacudida ni pausa extra.
   - Mover y deshacer duran ≤ 0,25 s; reclutar, ≤ 0,5 s.
 - **Peso sin cuadros extra:** en el MVP el peso lo dan el sincronismo del cuadro de golpe, el pulso de luz y su escala, la caída simultánea y la marca en la tierra. No hace falta más animación por pieza (art bible, principio 3).
@@ -636,7 +650,7 @@ La fórmula `memoria_skin` se define así:
 Render **no tiene pantalla propia ni textos propios**: dibuja el mundo y las marcas del tablero dentro de la pantalla de partida que ordenan #15 y #21. Lo que tiene que cumplir para la interfaz:
 
 - **Orden de capas** de la regla 4: nada del mundo ni de una skin tapa la ficha, la vista previa ni el HUD.
-- **`casillaEnPantalla`** (F3) es la única conversión de coordenadas del cliente. #15 y #16 anclan con ella, y Entrada (#13) la usa para saber qué casilla se tocó.
+- **`casillaEnPantalla`** (F3) es la única conversión de coordenadas del cliente. #15 y #16 anclan con ella, y Entrada (#13) usa su inversa, `casillaEnPunto`, para saber qué casilla se tocó.
 - **Escala uniforme** desde el diseño de 1080p y aviso de #15 por debajo de 1 (F3). A 4K, activos al doble sin pérdida.
 - **Marcas legibles en grises** y números de marca ≥ 14 px, negrita, borde Tinta (costos de destino, casillas de aparición).
 - **Opciones que respeta:** «Reducir efectos» (regla 29) y «Mostrar cuadrícula» (Interactions). Las guarda el cliente hasta que exista Ajustes (#20).
@@ -677,11 +691,11 @@ Esta sesión corrió en paralelo con #16 y #19 y no editó ningún otro document
 |---|---|
 | **Resolución (#9)** | AC-43 sin *PROVISIONAL*: la cubre AC-21 de este GDD. Open Questions: cerrar «¿Render necesita un evento por golpe?»: **no**, alcanzan `AtaqueEjecutado`, la casilla objetivo y `brutoDesviado` (regla 12 y 21 de #18). «¿La resolución entra en ~2 s?» pasa a «definida en 1,65 s por defecto con techo de 2,0 (F1 de #18); validar en prototipo». Visual/Audio, `PiezaMuerta` (`Explosion`): agregar que el demoledor que explota no muestra número aunque tenga `DanoRecibido` |
 | **Castillo (#5)** | AC-31 sin *PROVISIONAL*: la cubre AC-8 de este GDD. Fila #18 de Dependencies: «Existe». La Open Question «¿el hueco y el contador se leen al instante?» sigue siendo de playtest, con dueño #18 y #15 |
-| **Modificador (#11)** | Regla 9: «en local el cliente», agregar «**cuando termina la presentación de la resolución del turno anterior** (o se salta; Render, regla 25)». Agregar #18 a Interactions y Dependencies (blanda) |
+| **Modificador (#11)** | Regla 9: «en local el cliente», agregar «**cuando termina la presentación de la resolución del turno anterior** (que no se salta; Render, reglas 24 y 25)» (decisión del 2026-11-26). Agregar #18 a Interactions y Dependencies (blanda) |
 | **Timer (#12)** | Open Question «¿La animación de resolución (≤ 1,5 s) corre sobre el reloj del jugador siguiente?»: **cerrada para el modo local**. No corre, porque la `Tirada` espera a la presentación y el reloj no corre en `EsperandoTirada`. La cifra es ≤ 2,0 s (no 1,5). Online, sigue abierta para #28. Fila #18 de Dependencies: «Existe» |
 | **Máquina (#3)** | Regla 14 (reloj de partida): la frase «sin contar las esperas de la tirada» incluye, en local, la presentación de la resolución (≤ 2 s por turno con ataques; Render, regla 25). Visual/Audio, `DobleRey`: el detalle que faltaba queda en #18 (las dos figuras caen en el mismo cuadro; después, la luz de Victoria) |
 | **Ficha y HUD (#15)** | Edge Case de la ventana menor que 1080p y AC-31: sin *PROVISIONAL*; la política de resolución es F3 de #18 (escala uniforme, centrada, terreno en el sobrante). Regla 13: el banner del turno empieza con el **grupo 2** de la cola de Render, al terminar la resolución. Definir con #17 cómo conviven en el centro el banner y la placa de la tirada, que ahora llegan juntos. Dependencies, fila #18: «Existe»; consume `casillaEnPantalla`. AC-26 sigue *PROVISIONAL* hasta #38, pero el formato de skin de #18 ya no tiene campos que lo puedan violar |
-| **Entrada (#13)** | Visual/Audio: alcance con **corchetes** (no relleno tenue); inspección con **contorno doble fino** (el discontinuo queda para lo propio en zona y el fuego amigo); destino con **punto y el costo adentro**. Agregar a Edge Cases o a estados: durante la presentación de la resolución, el toque lo consume Render como salto (regla 24) y no llega como selección. Interactions y Dependencies, fila #18: «Existe»; las coordenadas de toque salen de `casillaEnPantalla` |
+| **Entrada (#13)** | Visual/Audio: alcance con **corchetes** (no relleno tenue); inspección con **contorno doble fino** (el discontinuo queda para lo propio en zona y el fuego amigo); destino con **punto y el costo adentro**. Agregar a Edge Cases o a estados: durante la presentación de la resolución, un toque sobre el tablero se ignora (regla 24) (decisión del 2026-11-26): no elige, no inspecciona ni manda comandos. Interactions y Dependencies, fila #18: «Existe»; las coordenadas de toque salen de `casillaEnPantalla` |
 | **Interfaz del Modificador (#17)** | AC-8 y AC-9: quitar *PROVISIONAL* de Render; supuesto provisional «que Render dibuje las casillas numeradas» confirmado (regla 13 de #18). Aclarar «el pedido de animación de la placa» de Interactions y Dependencies: la placa vive en la capa 9 y la anima #17; Render solo pone el resplandor y el ambiente de Distracción y de la tirada. En local, la placa llega cuando termina la resolución del turno anterior |
 | **Alcance (#7)** | Visual/Audio: la marca de explosión y la de lo propio en zona dejan de «faltar en el art bible»: las define #18, regla 12 (y se agregan al art bible). Fila #18: «Existe» |
 | **Cobertura (#8)** | Visual/Audio, «Golpe desviado»: la flecha **llega a la casilla del aliado y se quiebra hacia el escudero**, donde se funde con su punta (así la punta original sigue siendo el blanco táctil de Entrada, regla 8). La línea visible en el turno del rival queda confirmada por #18. Fila #18: «Existe» |
@@ -689,7 +703,7 @@ Esta sesión corrió en paralelo con #16 y #19 y no editó ningún otro document
 | **Localización (#14)** | Fila #18: «Render no tiene textos propios; MUERE y ROTO son de #16». Supuestos: quitar las claves `ui` de #18 y «qué eventos de Render llevan texto» (respuesta: ninguno) |
 | **Tablero (#4)**, **Movimiento (#6)**, **Reclutamiento (#10)** | Filas #18: «Existe». Sin cambios de reglas |
 | **Vista previa (#16, en paralelo)** | Compatible con su regla 19, verificado al cierre de esta sesión: las placas de #16 se van en el cuadro en que empieza la cosecha (en #18, el cuadro 0 del gesto), y en `t_impacto` Render muestra el número flotante y MUERE o ROTO con los mismos íconos (calavera, grieta) y las mismas claves de texto de #16. La disposición de la casilla del arquero sigue la regla 11 de #16. Pedido: anclar con `casillaEnPantalla` (F3 de #18); agregar Render (#18) a su supuesto provisional como «confirmado» |
-| **Métricas (#19, en paralelo)** | Eventos del cliente que Render puede entregar: `SkinRechazada(jugador, motivo)`, `ResolucionSaltada(turno, ms_transcurridos)`, fps y tiempo de carga. Si #19 los quiere, entran a su esquema |
+| **Métricas (#19, en paralelo)** | Eventos del cliente que Render puede entregar: `SkinRechazada(jugador, motivo)`, fps y tiempo de carga. `ResolucionSaltada` ya no existe: la cosecha no se salta (regla 24) (decisión del 2026-11-26). Si #19 los quiere, entran a su esquema |
 | **Art bible** | Los agregados de Visual/Audio (*Lo que este GDD agrega al art bible*), y en §8 *Cuadros por pieza*, MVP: «1 orientación dibujada, espejada» |
 | **Índice de sistemas** | Fila 18: *Designed*, enlace a este GDD, dependencias: sumar Cobertura, Interfaz del Modificador y Entrada (duras) y Ficha y HUD y Modificador (blandas). Contadores de progreso |
 
@@ -705,40 +719,41 @@ Valores del Catálogo v5 y `vida_tramo` 30; perillas de tiempo por defecto (F1).
 
 ### Reglas (Sección C)
 
-- **AC-1 (regla 1, solo lectura)** *(Integration)* — **GIVEN** una partida con ataques, coberturas y un área asignados, **WHEN** Render presenta la resolución completa y, en otra copia, la salta, **THEN** la huella del estado es idéntica antes y después de dibujar, en las dos copias, y Render no envió ningún comando salvo la `Tirada` local de la regla 25.
-- **AC-2 (regla 2, el final no depende de la animación)** *(Logic)* — **GIVEN** la misma resolución, **WHEN** el modelo de presentación (a) corre hasta `t_resolucion` y (b) se salta en 0,10 s, 0,35 s y 1,00 s, **THEN** en los cuatro casos el modelo final es idéntico: mismas figuras, mismos estados de tramo, mismas vidas, mismas marcas de terreno, sin números ni placas a la vista.
+- **AC-1 (regla 1, solo lectura)** *(Integration)* — **GIVEN** una partida con ataques, coberturas y un área asignados, **WHEN** Render presenta la resolución completa y, en otra copia, una rendición la corta a los 0,50 s, **THEN** la huella del estado es idéntica antes y después de dibujar, en las dos copias, y Render no envió ningún comando salvo la `Tirada` local de la regla 25.
+- **AC-2 (regla 2, el final no depende de la animación)** *(Logic)* — **GIVEN** la misma resolución, **WHEN** el modelo de presentación (a) corre hasta `t_resolucion` y (b) se corta en 0,10 s, 0,35 s y 1,00 s (el corte de una rendición, Edge Cases), **THEN** en los cuatro casos el modelo final es idéntico: mismas figuras, mismos estados de tramo, mismas vidas, mismas marcas de terreno, sin números ni placas a la vista.
 - **AC-3 (regla 3, determinismo)** *(Logic)* — **GIVEN** un estado y una lista de eventos, **WHEN** se generan dos modelos de presentación en procesos distintos, **THEN** coinciden la variante de suelo de cada una de las 360 casillas, la casilla de cada marca y cada valor del modelo en los instantes 0, `t_impacto` y `t_resolucion`.
 - **AC-4 (regla 7, validación de skin; cierra Catálogo AC-31)** *(Logic)* — **GIVEN** skins de prueba con (a) el tipo 7, (b) sin el tipo 3, (c) un cuadro de 128 × 128, (d) `versionFormato` 2, (e) 5 cuadros de reposo, (f) cuadro de golpe en la posición 7 de 6, **WHEN** se cargan, **THEN** las seis se rechazan, el jugador juega con la skin básica completa y queda registrado un motivo distinto por caso. **Y GIVEN** una skin válida sin castillo, **THEN** se acepta, con sus figuras y el castillo de la básica.
 - **AC-5 (regla 9, orientación)** *(Logic)* — **GIVEN** una skin con `miraHacia` derecha, **THEN** las figuras del azul no se espejan y las del rojo sí. **Y GIVEN** `miraHacia` izquierda, **THEN** al revés. En los dos casos, toda figura apunta al lado de `ladoDelRival` de su dueño.
-- **AC-6 (reglas 4 y 5, la skin no toca la capa del sistema)** *(UI)* — **GIVEN** un pack de prueba cuyos cuadros son rectángulos opacos que llenan el lienzo, y la misma partida con la skin básica, **WHEN** se captura el tablero a 1080p, **THEN** la zona de cada ficha, banderín, flecha, línea de cobertura y marca es idéntica píxel a píxel en las dos capturas (completa el AC-26 de #15). Evidencia: `render-capas-skin-*.png`.
-- **AC-7 (reglas 10 a 12, marcas en grises)** *(Visual)* — **GIVEN** una captura a 1080p con, a la vez, una pieza elegida, una en inspección, destinos con costo, alcance con zona ciega, dos flechas fundidas, un área, una explosión con un tramo propio en la zona y una cobertura, **WHEN** se pasa a escala de grises y por los filtros protan, deutan y tritan, **THEN** cada marca se identifica por su forma en las cuatro versiones (art bible §4, *Prueba de validación*).
+- **AC-6 (reglas 4 y 5, la skin no toca la capa del sistema)** *(UI)* — **GIVEN** un pack de prueba cuyos cuadros son rectángulos opacos que llenan el lienzo, y la misma partida con la skin básica, **WHEN** se captura el tablero a 1080p, **THEN** la zona de cada ficha, banderín, flecha, línea de cobertura, contorno, marca de objetivo (corchete grueso, anillo doble, contorno dentado) y marco de bando es idéntica píxel a píxel en las dos capturas (completa el AC-26 de #15). Las marcas de la capa 4 (puntos de destino, corchetes finos, casillas de aparición, casilla pulsada) se comparan solo sobre casillas sin pieza. Evidencia: `render-capas-skin-*.png`.
+- **AC-7 (reglas 10 a 12, marcas en grises)** *(Visual)* — **GIVEN** una captura a 1080p con, a la vez, una pieza elegida, una en inspección, destinos con costo, alcance con zona ciega, dos flechas fundidas, un área, una explosión con un tramo propio en la zona y una cobertura, **WHEN** se pasa a escala de grises y por los filtros protan, deutan y tritan, **THEN** un evaluador que no participó del diseño, con la leyenda de formas de Visual/Audio (*Restricciones*), nombra sin error cada marca de la captura en cada una de las 4 versiones (art bible §4, *Prueba de validación*). Evidencia: `render-marcas-*.png` y firma del lead.
 - **AC-8 (estados del tramo; cierra Castillo AC-31)** *(Visual)* — **GIVEN** tres tramos con vida 30, 14 y 0 y un arquero sobre un cuarto tramo, **WHEN** se dibuja el castillo, **THEN** se ven el borde recto, las melladuras en el borde superior, el hueco con escombro bajo y borde quebrado, y el arquero con parapeto y la silueta entera. Evidencia: `render-tramo-entero.png`, `-mellado.png`, `-roto.png`, `-arquero.png`.
 - **AC-9 (regla 13, casillas de aparición; cierra #17 AC-8)** *(Integration + UI)* — **GIVEN** Llamada con `K` = 4 y el anillo libre, **WHEN** se abre `Reclutar`, **THEN** Render numera 1 a 4 exactamente las casillas que da `orden_aparicion` y dibuja el resplandor del lado del frente. **WHEN** el estado deja `Reclutar`, **THEN** las dos marcas ya no están en el cuadro siguiente. Evidencia: `render-casillas-aparicion.png`.
 - **AC-10 (regla 15, mover no bloquea)** *(Integration)* — **GIVEN** un soldado con movimiento de 2 pasos, **WHEN** se envía `Mover` y, 0,05 s después (reloj de presentación), un segundo `Mover` de otra pieza, **THEN** los dos se aceptan, cada desplazamiento termina en ≤ 0,25 s desde su comando, y el primero sigue el camino del evento casilla por casilla.
 - **AC-11 (regla 16, reclutar a la vez)** *(Logic)* — **GIVEN** `Reclutado` con 4 piezas, **THEN** las 4 figuras empiezan a aparecer en el mismo instante y las 4 están completas a ≤ 0,5 s.
 - **AC-12 (reglas 18 a 20, simultaneidad)** *(Logic)* — **GIVEN** una resolución con 5 `DanoRecibido`, 2 `DanoATramo`, 2 `PiezaMuerta` (`Dano`) y 1 `TramoRoto`, **WHEN** corre el modelo, **THEN**:
-  - los 7 pulsos y los 7 números empiezan en el mismo instante, `t_impacto` = 0,35 s;
+  - los 7 pulsos, los 4 números de los receptores que sobreviven y las 3 placas (2 MUERE, 1 ROTO) empiezan en el mismo instante, `t_impacto` = 0,35 s;
   - las vidas de las fichas cambian en ese mismo instante;
   - las 2 caídas y la rotura empiezan juntas en 0,65 s;
   - todo termina en 1,65 s.
 
   **Y GIVEN** la misma resolución con un solo `DanoRecibido`, **THEN** también termina en 1,65 s. **Y GIVEN** una lista sin eventos de Resolución, **THEN** no hay presentación (duración 0).
 - **AC-13 (reglas 21 y 22, lo que se ve por evento)** *(Logic)* — **GIVEN** cada fixture, **THEN**:
-  - un soldado con neto 5 muestra «5», con un pulso de radio 30 px;
-  - 4 atacantes sobre un objetivo dan **un** pulso de 60 px y **un** número;
+  - un soldado que sobrevive con `vidaPerdida` 5 muestra «5», con un pulso de radio 30 px;
+  - 4 atacantes sobre un objetivo que sobrevive dan **un** pulso de 60 px y **un** número;
   - un neto 0 con 2 atacantes muestra escudo y «0», **sin pulso**;
-  - un escudero con `brutoDesviado` 16 muestra su neto con el ícono de escudo, y el cubierto no muestra nada;
+  - un escudero con `brutoDesviado` 16 que sobrevive muestra su `vidaPerdida` con el ícono de escudo, y el cubierto no muestra nada;
   - un fuego amigo de 2 piezas propias da un pulso de 30 px y el contorno discontinuo;
-  - un tramo con bruto 8 muestra «8» (sin escudo).
+  - un tramo que sobrevive con `vidaPerdida` 8 muestra «8» (sin escudo);
+  - un soldado que muere con neto 27 muestra MUERE y ningún número; un tramo que se rompe muestra ROTO y ningún número.
 
-  Ningún número difiere del `neto` o del `bruto` del evento.
+  Ningún número difiere de la `vidaPerdida` del evento.
 - **AC-14 (regla 21, demoledor que explota)** *(Logic)* — **GIVEN** un demoledor azul que explota pegado a otro demoledor azul que también explota (#9, AC-40), **THEN** las dos figuras desaparecen en `t_impacto`, sin número sobre ninguna aunque cada una tiene `DanoRecibido`, y quedan dos quemados.
 - **AC-15 (arquero en el muro, dos números)** *(UI)* — **GIVEN** un arquero azul sobre su tramo con 1 soldado rojo atacando (#9, AC-13: neto 4, tramo bruto 8), **WHEN** se captura en `t_impacto + 0,1 s`, **THEN** «4» está abajo, en el ancla de la ficha, y «8» arriba de la casilla con el ícono de muro, en la misma disposición que las dos placas de la vista previa (#16, regla 11). Evidencia: `render-arquero-muro-numeros.png`.
 - **AC-16 (regla 23, marcas de batalla)** *(Logic)* — **GIVEN** un área sobre una casilla vacía en el turno 8 y un tramo roto en el mismo turno, **THEN** la tierra removida está en los turnos 8, 9 y 10 y ya no está al iniciar el turno 11, mientras el hueco y sus escombros siguen en el turno 30. **Y GIVEN** un quemado y después una piedra en la misma casilla, **THEN** queda solo la tierra removida, con la cuenta en 0.
-- **AC-17 (regla 24, saltar)** *(Integration)* — **GIVEN** una resolución en curso, **WHEN** hay un toque en 0,50 s, **THEN** en el cuadro siguiente todo está en su estado final, Entrada no recibe ese toque como selección, y en local se envía `Tirada` en ese mismo cuadro. **Y WHEN** el toque llega un cuadro después de `t_resolucion`, **THEN** no se consume.
-- **AC-18 (regla 25, la Tirada espera; cierra la pregunta del Timer en local)** *(Integration con #3, #11 y #12)* — **GIVEN** partida local con timer, **WHEN** el azul resuelve un turno con ataques, **THEN** la `Tirada` del rojo se envía en `t_resolucion` (1,65 s), no antes, y el reloj de partida del rojo marca lo mismo al enviar `Resolver` que al recibir la `Tirada`. **Y GIVEN** que el azul resuelve sin asignaciones, **THEN** la `Tirada` sale en el mismo cuadro.
-- **AC-19 (regla 19, cola)** *(Logic)* — **GIVEN** la respuesta de `Resolver` con eventos de Resolución, `TurnoTerminado`, dos `CoberturaQuitada(Caducada)` y `TurnoIniciado`, **THEN** las líneas caducadas empiezan a desvanecerse y el grupo 2 empieza en `t_resolucion`, nunca antes. **Y GIVEN** que la resolución trae `PartidaTerminada(DobleRey)`, **THEN** los dos Reyes caen en el mismo instante y la luz de Victoria del jugador del turno empieza después de `t_resolucion`.
-- **AC-20 (regla 26, ambiente)** *(Visual)* — **GIVEN** capturas de Planificar, Asignar ataques, Resolución en `t_impacto`, Tirada, Distracción, Tramo final en Planificar, Tramo final en Asignar, Victoria y Derrota, **THEN** cada una tiene la luz de su fila. En las de tramo final el atardecer sigue presente, y en todas la figura, la ficha y el suelo de bando tienen los mismos valores de píxel que en Planificar. Evidencia: `render-ambiente-*.png`.
+- **AC-17 (regla 24, no se salta)** *(Integration)* — **GIVEN** una resolución local en curso, **WHEN** hay un toque sobre una pieza propia en 0,50 s, **THEN** la presentación sigue y termina en `t_resolucion` (1,65 s), Entrada no elige, no inspecciona ni manda comandos, y la `Tirada` se envía en 1,65 s, no antes. **Y WHEN** el toque llega un cuadro después de `t_resolucion`, **THEN** Entrada lo atiende como siempre. **Y WHEN** el jugador toca `Rendirse` en 0,50 s, **THEN** en el cuadro siguiente al `PartidaTerminada` el tablero está en el estado final de la resolución, empieza la luz del final y no se envía `Tirada`.
+- **AC-18 (regla 25, la Tirada espera; cierra la pregunta del Timer en local)** *(Integration con #3, #11 y #12)* — **GIVEN** partida local con timer, **WHEN** el azul resuelve un turno con ataques, **THEN** la `Tirada` del rojo se envía en `t_resolucion` (1,65 s), no antes, y el reloj de partida del rojo marca lo mismo al enviar `Resolver` que al recibir la `Tirada`. **Y GIVEN** que el azul resuelve sin asignaciones y con la leyenda «Sin objetivos» de #15 en pantalla, **THEN** la `Tirada` sale a los `leyenda_ms` (1000 ms); sin leyenda ni placa pendiente, en el mismo cuadro.
+- **AC-19 (regla 19, cola)** *(Logic)* — **GIVEN** la respuesta de `Resolver` con eventos de Resolución, `TurnoTerminado`, dos `CoberturaQuitada(Caducada)` y `TurnoIniciado`, **THEN** las líneas caducadas empiezan a desvanecerse y el grupo 2 empieza en `t_resolucion`, nunca antes. **Y GIVEN** que la resolución trae `PartidaTerminada(DobleRey)`, **THEN** los dos Reyes caen en el mismo instante y la luz de Victoria del jugador del turno empieza después de `t_resolucion`, y la placa de resultado (#15, #21) no aparece antes de `t_resolucion` + 0,25 s.
+- **AC-20 (regla 26, ambiente)** *(Visual)* — **GIVEN** capturas de Planificar, Asignar ataques, Resolución en `t_impacto`, Tirada, Distracción, Tramo final en Planificar, Tramo final en Asignar, Victoria y Derrota, **THEN** el brillo medio de la capa 1 en una región sin marcas difiere del de Planificar en −20% ±2 (Asignar), −15% ±2 (Tirada) y −10% ±2 (Tramo final en Planificar); en Distracción la saturación de esa región baja 40% ±2. En las de tramo final el atardecer sigue presente, y en todas la figura, la ficha y el suelo de bando tienen los mismos valores de píxel que en Planificar. La temperatura de color y las luces de Victoria y Derrota las firma el director de arte. Evidencia: `render-ambiente-*.png`.
 - **AC-21 (capturas de la cosecha; cierra Resolución AC-43)** *(Visual)* — **GIVEN** Render, **WHEN** se resuelven:
   - (a) un combo de 4 atacantes;
   - (b) un golpe absorbido por el escudo (neto 0);
@@ -747,7 +762,7 @@ Valores del Catálogo v5 y `vida_tramo` 30; perillas de tiempo por defecto (F1).
   - (e) un tramo roto con el arquero sobreviviente;
   - (f) un fuego amigo,
 
-  **THEN** se guarda una captura de cada una en `t_impacto + 0,1 s` donde se ven todos los impactos del caso en el mismo cuadro, el número igual al de la vista previa, MUERE o ROTO donde corresponde, la flecha quebrada del desvío y el contorno discontinuo del fuego amigo. Evidencia: `render-cosecha-a.png` a `-f.png`.
+  **THEN** se guarda una captura de cada una en `t_impacto + 0,1 s` donde se ven todos los impactos del caso en el mismo cuadro, el número igual al de la vista previa, MUERE o ROTO donde corresponde, la flecha quebrada del desvío y el contorno discontinuo del fuego amigo. Evidencia: `render-cosecha-a.png` a `-f.png`. **Par Logic:** para cada fixture (a) a (f), el modelo de presentación en `t_impacto` tiene a todos los receptores del caso, con su número o su placa, en el mismo cuadro.
 - **AC-22 (regla 27, pantalla y anclas)** *(Integration + UI)* — **GIVEN** ventanas de 1920 × 1080, 3840 × 2160, 2560 × 1080 y 1280 × 720, **WHEN** se dibuja la partida, **THEN** `casillaEnPantalla(0, 0)` es respectivamente (144, 60, 68), (288, 120, 136), (464, 60, 68) y (96, 40, 45,3). La ficha de #15 queda dentro de esos rectángulos. A 2560 × 1080 el sobrante muestra terreno oscurecido, y a 1280 × 720 aparece el aviso de #15. Evidencia: `render-escala-*.png`.
 - **AC-23 (regla 29, Reducir efectos)** *(Visual)* — **GIVEN** la opción encendida, **WHEN** se resuelve el caso (a) de AC-21, **THEN** no hay pulso de luz ni estallido; están el contorno breve, el número, MUERE y la caída; los instantes de F1 son los mismos; y ningún elemento cambia de brillo más de 3 veces en un segundo.
 
@@ -762,7 +777,7 @@ Valores del Catálogo v5 y `vida_tramo` 30; perillas de tiempo por defecto (F1).
   - el mínimo de los rangos con `t_lectura` 0,45 da 0,95 s y se acepta.
 - **AC-25 (F1b, cuadro de golpe)** *(Logic)* — **GIVEN** un arquero con `n` 6 y `k` 4, **THEN** `t_golpe` es 0,20 s, cada cuadro previo dura 0,067 s y cada posterior 0,15 s. **Y GIVEN** `k` = 1, **THEN** el cuadro de golpe se muestra desde 0, sin error. **Y GIVEN** `n` = `k` = 6, **THEN** el sexto cuadro se sostiene durante `t_pulso`. **Y GIVEN** un soldado sobre una vecina, **THEN** `proyectil` es falso y su golpe cae en 0,35 s.
 - **AC-26 (F2, escala del combo)** *(Logic)* — **GIVEN** `a` = 0, 1, 2, 3 y 61, **THEN** `escala_combo` es 1, 1, 1,5, 2 y 2, y el radio a 1080p es 30, 30, 45, 60 y 60 px. **Y GIVEN** una flecha a la que llegan 2 asignaciones, **THEN** su punta es ×1,5. Con un desvío, la asignación cuenta en la punta del escudero y no en la del cubierto.
-- **AC-27 (F3, escala de pantalla)** *(Logic)* — los cuatro tamaños de AC-22 dan escalas 1, 2, 1 y 0,667. **Y GIVEN** una ventana de 0 × 0, **THEN** la escala es 0, el cuadro no se dibuja y no hay error.
+- **AC-27 (F3, escala de pantalla)** *(Logic)* — los cuatro tamaños de AC-22 dan escalas 1, 2, 1 y 0,667. **Y GIVEN** una ventana de 0 × 0, **THEN** la escala es 0, el cuadro no se dibuja y no hay error. **Y GIVEN** 2560 × 1440, **THEN** `casillaEnPunto(1000, 500)` es (8, 4) y `casillaEnPunto(191, 500)` es «ninguna»; y en las 360 casillas, `casillaEnPunto` del centro de `casillaEnPantalla(c, f)` devuelve (c, f). Con 0 × 0, `casillaEnPunto` devuelve «ninguna» sin error.
 - **AC-28 (F4, estado del tramo)** *(Logic)* — **GIVEN** `vida_tramo` 30, **THEN** la vida 30 y 15 dan Entero, 14 y 1 Mellado, y 0 Roto. **Y GIVEN** `vida_tramo` 1, **THEN** 1 es Entero y 0 Roto.
 - **AC-29 (F5, marcas)** *(Logic)* — los casos de AC-16, más: con `marcas_turnos` 0 no se dibuja ninguna marca, y con 10 una marca del turno 1 se va al iniciar el turno 11.
 - **AC-30 (F6, memoria)** *(Logic)* — **GIVEN** la skin básica del MVP, **THEN** sus cuadros suman 80 y `memoria_skin` es 5.918.720 bytes. **Y GIVEN** una skin con los topes del formato, **THEN** 94 cuadros y 6.954.496 bytes. Un test del repositorio verifica que dos skins al tope más el terreno quedan por debajo de 40 MB.
@@ -772,7 +787,7 @@ Valores del Catálogo v5 y `vida_tramo` 30; perillas de tiempo por defecto (F1).
 - **AC-31 (corte de cuadros)** *(Logic)* — **GIVEN** el reloj de presentación salta de 0,30 s a 0,80 s en un cuadro, **THEN** el modelo igual produce un cuadro con el estado de `t_impacto` (vidas cambiadas, números y placas a la vista) y uno con el inicio de la caída, antes de seguir.
 - **AC-32 (desvío dibujado)** *(Visual)* — **GIVEN** un arquero rojo cubierto por un escudero rojo y 2 soldados azules sobre el arquero, **WHEN** se captura en `Atacar` y en `t_impacto + 0,1 s`, **THEN** las dos flechas llegan a la casilla del arquero, se quiebran hacia el escudero y entran en una punta ×1,5 sobre él. La línea eslabonada está resaltada, el número va sobre el escudero con el ícono de escudo, y no hay número sobre el arquero. Evidencia: `render-desvio-*.png`.
 - **AC-33 (Repeticiones)** *(Integration)* — **GIVEN** una partida local de 10 turnos guardada como lista de eventos, **WHEN** se le dan los eventos a un modelo de presentación nuevo, **THEN** en el instante final de cada turno el modelo es idéntico al de la partida original.
-- **AC-34 (rendimiento de la resolución)** *(Rendimiento, `/perf-profile`)* — **GIVEN** el build web y el de escritorio en el hardware de referencia, una partida con 26 piezas y una resolución con 12 ataques, un área y una explosión, **WHEN** se mide, **THEN** el escritorio mantiene 60 fps (p95 ≤ 16,6 ms) durante la resolución, con < 150 llamadas de dibujo, y no hay asignaciones de memoria administrada entre el primer y el último cuadro de la resolución. **Y GIVEN** un fixture al tope de eventos (393), **THEN** se dibujan todos los números y placas, sin omitir ninguno.
+- **AC-34 (rendimiento de la resolución)** *(Rendimiento, `/perf-profile`)* — **GIVEN** el hardware de referencia de escritorio y de web (TBD, lo fija performance-analyst), una partida con 26 piezas y una resolución con 12 ataques, un área y una explosión, **WHEN** se mide durante el grupo 1, **THEN** el escritorio tiene p95 ≤ 16,6 ms y la web p95 ≤ [umbral TBD, Open Questions], con < 150 llamadas de dibujo (provisional, F6) y 0 B de memoria administrada asignada entre el primer y el último cuadro de la resolución. **Y GIVEN** el fixture al tope de eventos (393), **THEN** se cumplen los mismos umbrales de tiempo de cuadro y de memoria, y los 93 números o placas están presentes en el cuadro `t_impacto`.
 
 ### Revisión de QA
 
@@ -785,7 +800,7 @@ Valores del Catálogo v5 y `vida_tramo` 30; perillas de tiempo por defecto (F1).
 - **Cruces:** con Resolución (AC-12 a AC-15, AC-19, AC-21, AC-32), Castillo (AC-8), Catálogo (AC-4), Interfaz del Modificador (AC-9), Máquina, Modificador y Timer (AC-18, AC-19), Ficha y HUD (AC-6, AC-22), Movimiento (AC-10) y Reclutamiento (AC-11).
 - **No automatizable (a Open Questions):** que el combinado «se sienta» más grande, que la animación no haga esperar y que el castillo que pierde se lea de lejos son preguntas de playtest (Game Feel).
 - **Tipos:**
-  - **Logic:** AC-2 a 5, 11 a 14, 16, 19, 24 a 31.
+  - **Logic:** AC-2 a 5, 11 a 14, 16, 19, 21 (par Logic), 24 a 31.
   - **Integration:** AC-1, 10, 17, 18, 33; AC-9 y AC-22 son además UI.
   - **Visual o UI con captura retenida:** AC-6 a 9, 15, 20 a 23, 32.
   - **Rendimiento:** AC-34.
@@ -795,12 +810,12 @@ Valores del Catálogo v5 y `vida_tramo` 30; perillas de tiempo por defecto (F1).
 | Pregunta | Dueño | Cuándo |
 |---|---|---|
 | ¿El golpe combinado (×1,5 / ×2, pulso de 0,3 s) se siente distinto de varios sueltos con el MVP reducido (una orientación, tweens)? Pregunta de playtest de Game Feel; si no alcanza, ¿se sube la escala o se suma un cuadro de golpe propio del sistema, antes de pedir más cuadros por pack? | Render (#18), director de arte; playtest | MVP, primer prototipo con arte |
-| ¿1,65 s de cosecha es lo justo? Medir con Métricas (#19) cuántas resoluciones se saltan y en qué instante. Si se salta la mayoría antes de `t_impacto`, la animación sobra | Render (#18), Métricas (#19) | MVP |
+| ¿1,65 s de cosecha es lo justo? La cosecha no se salta (regla 24) (decisión del 2026-11-26), así que se mide con playtest: la pregunta de Game Feel «¿la animación de la resolución te hizo esperar?». Si se siente lenta, bajar `t_lectura` dentro de su rango (con 0,30 s y el resto por defecto da 1,45 s) antes que tocar el impacto | Render (#18); playtest | MVP |
 | Online: el servidor (#28) es la autoridad de la `Tirada`. ¿Espera a la presentación del cliente (con un tope fijo de `resolucion_max_s`) o la envía enseguida y la animación corre sobre el reloj del jugador siguiente? | Servidor (#28), Timer (#12) | Alpha (2a) |
 | ~~¿Cómo conviven en el centro el banner del turno y la placa de la tirada?~~ **Resuelta 2026-11-26:** la placa de la tirada (#17) absorbe el renglón del turno; el banner solo, en el turno 1 (#15, regla 13) | — | — |
 | ¿La gradación del estado de ambiente toca también el castillo? El art bible dice que el terreno es «la única capa» que la recibe, y un castillo sin atardecer en el tramo final puede verse pegado encima | Director de arte | Antes de `/asset-spec` |
-| ¿Unity 6.3 cubre lo que necesita este render 2D en web: renderer 2D de URP o sprites en el renderer universal, atlas de sprites, tweens por código sin paquete externo, compresión de texturas en WebGPU y WebGL 2? Nada de eso está en `docs/engine-reference/unity/` (NO VERIFICADO, riesgo MEDIO) | ADR de render (`/architecture-decision`), technical-artist | Antes de la primera historia de Render |
-| ¿El conjunto reservado de efectos con la cota de 393 eventos entra en memoria y en presupuesto de cuadro en web móvil (30–60 fps, concepto)? | performance-analyst | Con el primer build web |
+| ¿Unity 6.3 cubre lo que necesita este render 2D en web: renderer 2D de URP o sprites en el renderer universal, atlas de sprites, tweens por código sin paquete externo, compresión de texturas en WebGPU y WebGL 2? Nada de eso está en `docs/engine-reference/unity/` (NO VERIFICADO, riesgo MEDIO). `modules/rendering.md` solo cubre el GPU Resident Drawer y el SRP Batcher, y ninguno de los dos es batching de sprites 2D. `breaking-changes.md` dice que WebGPU es el default desde 6.0, y `VERSION.md` lo da como opción de producción recién en 6.6: el ADR lo resuelve antes de contar con WebGPU en 6.3 | ADR de render (`/architecture-decision`), technical-artist | Antes de la primera historia de Render |
+| ¿El conjunto reservado por tipo (Edge Cases, *Carga y rendimiento*) entra en memoria y en presupuesto de cuadro en web móvil (30–60 fps, concepto)? ¿Cuál es el umbral de p95 en web para AC-34, el hardware de referencia y el tope de partículas y overdraw? TBD de playtest y de perfilado (decisión del 2026-11-26) | performance-analyst | Con el primer build web |
 | ¿Un terreno por pack o por facción (bosque, río, desierto; art bible §4) entra al formato de skin? Hoy el formato 1 no tiene terreno | Skins (#37), Kit (#38) | Full Vision |
 | (CD-GDD-ALIGN, pilar 4) ¿Cuánto tiempo de pared suma la presentación por partida, fuera de los relojes? Medir el tiempo total de presentación de las resoluciones contra la duración de la partida; si pasa de ~1 min, bajar `t_lectura` o volver a la Tirada inmediata | Métricas (#19), Máquina (#3) | MVP |
 | (CD-GDD-ALIGN, pilares 1 y 2) ¿Se nota que el pulso sale más grande que la punta cuando un área salpica, y que un combo de 6 se ve igual que uno de 3? Pregunta de playtest. Si molesta, contar los golpes de área en la punta o sumar un escalón ×2,5 | Render (#18), director de arte; playtest | MVP |
