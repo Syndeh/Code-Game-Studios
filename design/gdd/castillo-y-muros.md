@@ -331,7 +331,7 @@ Estos cambios los provocó este GDD y **se aplicaron el 2026-11-25** (ver Depend
 - **Catálogo:** hecho el 2026-11-25: las dos filas de #5 dicen `escudo`, `alcanceMax` e ID del tipo, y I1 recoge la excepción del demoledor contra el tramo.
 - **Tablero:** hecho el 2026-11-25: cerrada su Open Question del esquema de config y levantado su PROVISIONAL de la vida inicial del tramo.
 - **systems-index:** hecho el 2026-11-25: fila 5 con la Librería y la Máquina de turno, y las aristas de #7, #8, #15, #16, #18 y #25 hacia #5.
-- **art-bible:** pendiente (no se tocó): las dos discrepancias de §6 de Visual/Audio.
+- **art-bible:** hecho al cerrar la tanda 4 (2026-11-26): las dos discrepancias de §6 de Visual/Audio (interior de 3 × 3; escombros y huecos que no se desvanecen).
 
 **Suposiciones provisionales:** #9 no tiene GDD; el tipo de cada arista de esas filas es el que este sistema necesita de ellos y se confirma cuando los diseñen.
 

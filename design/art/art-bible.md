@@ -145,7 +145,7 @@ lee antes que el detalle" (Sección 1, principio 1; pilar 1). Definiciones del j
 |---|---|
 | **Soldado** | Porta un arma de corto alcance (espada, maza, palo…) |
 | **Arquero** | Usa un arma a distancia |
-| **Escudero** | Lleva un escudo de gran tamaño, de hasta el 60% de la figura |
+| **Escudero** | Lleva un escudo de gran tamaño, de hasta el 60% de la figura y un arma de largo alcance (pueden ser objetos largos como una lanza) |
 | **Catapulta** | Ocupa toda la casilla. Es un dispositivo capaz de lanzar objetos contundentes |
 | **Jinete** | Va montado en algo que puede transportarlo |
 | **Demoledor** | Lleva un explosivo. Es una persona descuidada, capaz de sacrificarse |
@@ -290,7 +290,9 @@ escudo, contra el ancla).
   en las esquinas. La flecha va al 100% y es un arco con punta, así que siempre gana en
   contraste.
 - **Contra la cobertura del escudero:** la flecha es un arco continuo con punta; la cobertura
-  es una línea recta eslabonada, acero, sin punta, y une dos piezas del mismo bando.
+  es una línea recta eslabonada, acero, sin punta, y une dos piezas del mismo bando. A
+  diferencia de las flechas, **la línea de cobertura queda visible para los dos jugadores**,
+  también durante el turno del rival, hasta que se borra (Cobertura, #8; Render, #18).
 
 ### Temperatura de color
 
@@ -496,6 +498,34 @@ tapa en parte.
   (Ficha y HUD, #15, regla 5 y F5).
 - **En la fase de ataque**, la vista previa del daño reemplaza a la ficha del objetivo
   mientras dura la fase, en lugar de ponerse al lado: es lo que más importa en ese momento.
+- **Estados en texto de la pieza elegida** (agregado 2026-11-26): la tarjeta de la pieza
+  elegida suma hasta tres renglones de estado, de una o dos líneas cada uno: `En el muro`
+  (con la vida del tramo, `n/30`), `Cubre a [tipo]`, `Cubierta por [tipo]` y `Ya movida`
+  (Ficha y HUD, #15, regla 8). La cobertura se lee así sin depender de la línea eslabonada
+  (Cobertura, #8).
+
+### Timer y relojes de partida (agregado 2026-11-26, de las tandas 1 a 3)
+
+Definidos por el Timer (#12) y la Ficha y HUD (#15, reglas 12, 13 y 18); la forma final la
+decide el director de arte.
+
+- **Dos relojes de partida**, en m:ss, siempre visibles a los costados del anillo de la etapa
+  (orden en la tabla de *Pantalla y HUD*). El del jugador activo va **subrayado**.
+- **El ámbar solo lo lleva lo que de verdad limita:** el anillo de la etapa o el reloj del
+  jugador, el que vence antes. Nunca hay dos ámbar a la vez, y la regla de la Sección 4
+  (el ámbar solo en el timer, en posición fija) sigue valiendo. Aviso del reloj: nivel 1,
+  ámbar con borde grueso; nivel 2, además pulsa una vez por segundo.
+- **Marca «Tiempo»:** al agotarse una etapa, una marca breve «Tiempo» junto al anillo, de 1 s
+  o menos, sin sonido de error. El recluta elegido por el tiempo lleva su aviso de texto
+  («Elegido por el tiempo») en la zona de avisos, sin marca sobre la pieza.
+- **Quieto (pausa, espera de la tirada, espera del servidor):** el anillo queda vacío, con
+  **ícono y texto** del motivo (ícono de pausa: dos barras verticales; de espera: reloj de
+  arena, forma a definir). Los relojes se quedan quietos con su número, sin subrayado ni
+  pulso. Si había aviso, se mantiene el borde grueso, sin ámbar ni pulso. Durante la cosecha
+  de la resolución no hay texto: anillo y relojes quietos con el estado del turno que se
+  resuelve.
+- **Fin por reloj agotado:** la pantalla de Victoria o Derrota muestra los dos relojes en el
+  resumen; el texto lo define la Máquina de turno (#3).
 
 ### Tipografía
 
@@ -523,6 +553,8 @@ y muro (Ficha y HUD, #15, regla 17); subió, bajó, candado, dado, reloj y pieza
 marco del panel «?» y del recuadro de reclutar (Interfaz del Modificador, #17, Visual/Audio).
 **Agregados en la tanda 4 (2026-11-26):** el ícono de **impacto** (Vista previa, #16), en el
 bermellón del ataque.
+**Agregados de las tandas 1 y 2 (2026-11-26):** **pausa** (dos barras verticales) y
+**espera** (reloj de arena) para el anillo quieto (Timer, #12; Ficha y HUD, #15).
 
 ### Marcas del tablero y de la vista previa (tanda 4)
 
@@ -540,6 +572,10 @@ de arte. Todas se leen por forma, no solo por color:
 - **Placa de la vista previa:** de un renglón sobre un tramo (`vidaAntes→vidaDespues`); con
   **marco de fin** si el Rey propio muere.
 - **Casilla del arquero en el muro:** dos números, la pieza abajo y el tramo arriba.
+- **Aliados cubribles:** al elegir un escudero en la fase de atacar, los aliados que puede
+  cubrir llevan una marca de **forma** propia, distinta de los corchetes de alcance (por
+  ejemplo, un eslabón de la línea de cobertura sobre la casilla); no depende del color
+  (Cobertura, #8; Entrada, #13, regla 2).
 
 ### Animación de la interfaz
 
