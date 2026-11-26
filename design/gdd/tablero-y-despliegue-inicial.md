@@ -252,6 +252,7 @@ The `espejo` formula is defined as:
 | #7 Alcance y asignación | Dura | `dentro`, `ocupante`, `hayTramo`, contorno de 8 y límites de la grilla |
 | #8 Cobertura, #9 Resolución | Dura | `ocupante` y contorno |
 | #10 Reclutamiento | Dura | Anillo entero del castillo, `ocupante` y `ladoDelRival` |
+| #11 Modificador | Blanda | Margen del golpe del turno 1: cada punto del bono de movimiento del Grito lo achica |
 | #15, #16, #18 Cliente | Blanda | Dimensiones, casillas y despliegue (solo lectura) |
 | #19 Métricas | Blanda | Constantes de la partida (el par de sectores es fijo) |
 | #26 Registro | Blanda | La config con los castillos fijos |

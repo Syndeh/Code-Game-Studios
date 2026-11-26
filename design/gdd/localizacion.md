@@ -243,10 +243,10 @@ Blanda significa que el sistema funciona sin esas listas, pero no puede probar q
 | #20 Ajustes, #21 Menú | Dura | Lista de idiomas, idioma actual, claves | Pendientes (Vertical Slice) |
 | #23 Accesibilidad, #24 Tutorial | Blanda | Textos; espacio para texto escalado | Pendientes |
 | #31 Emotes, #34 Chat | Dura | Frases predefinidas | Pendientes (Alpha) |
-| #6 Movimiento, #7–#11 reglas | Blanda | Textos de sus códigos visibles | #6, #7 y #10 lo listan; los demás, pendientes |
+| #6 Movimiento, #7–#11 reglas | Blanda | Textos de sus códigos visibles | #6, #7, #8, #10, #11 y #13 lo listan; #9, pendiente |
 | #12 Timer | Blanda | Nombres de los cuatro modos | Existe y lo lista |
 
-**Supuestos provisionales:** nombres de caras (#11), claves `ui` (#15–#18, #21), lugar del botón ES/EN (pantalla previa a la partida y HUD) y qué eventos llevan texto.
+**Supuestos provisionales:** claves `ui` (#15–#18, #21), lugar del botón ES/EN (pantalla previa a la partida y HUD) y qué eventos llevan texto.
 
 ## Tuning Knobs
 
@@ -339,7 +339,7 @@ Automáticos (Logic) salvo que se indique. «Tablas de prueba» son fixtures del
 | Nombres en inglés de las 7 piezas, MUERE/ROTO y glosario | localization-lead, hablante nativo | Antes de la primera build con textos |
 | ¿El voseo molesta a jugadores de otras regiones de Latinoamérica? | Playtest | Primeros playtests del MVP |
 | Nombre del juego: ¿igual en los dos idiomas? | creative-director | Cuando deje de ser provisional |
-| Textos de las 5 caras y sus recuadros | #11, #17 | En sus GDD |
+| Textos de las 5 caras (IDs en #11) y sus recuadros | #17 | En su GDD |
 | Lugar exacto del botón ES/EN y duración de los avisos | #13, #15 | En sus GDD |
 | Qué eventos llevan texto | #15, #18 | En sus GDD |
 

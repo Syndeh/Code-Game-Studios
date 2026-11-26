@@ -78,7 +78,7 @@ El Catálogo **no tiene lógica ni estado**: no calcula daño, no mueve piezas y
    - La explosión del demoledor no usa `danoArea` (queda en 0). La regla de que daña las 8 vecinas con su `ataque` (supuesto del prototipo) es de Resolución (#9), que la confirma.
    - Cambios de la v5 (2026-11-24), decididos por el jugador después de las partidas v4 del 2026-11-21: alcance máximo del arquero 6 → 4, alcance máximo del escudero 1 → 2 (su cobertura sigue siendo a un aliado vecino, regla del Escudero), ataque de la catapulta 12 → 10, su daño de área 8 → 6 y su escudo 3 → 2, escudo del soldado 2 → 3.
    - Los topes suman 60 más el Rey, igual que las 61 piezas vivas de la Librería.
-5. **Estático.** El Catálogo no cambia durante la partida. Los bonos de turno (Grito de guerra +2) viven en el estado y se combinan con `EffectiveStats(estado, pieza)`. El +2 de escudo y el +2 de alcance del arquero sobre el muro (v5, 2026-11-25: alcance 1–4 → 1–6) son del Castillo (#5), no del Catálogo.
+5. **Estático.** El Catálogo no cambia durante la partida. Los bonos de turno (Grito de guerra: +2 de movimiento a todas y +2 de ataque salvo al demoledor, nunca al `danoArea`; #11) viven en el estado y se combinan con `EffectiveStats(estado, pieza)`. El +2 de escudo y el +2 de alcance del arquero sobre el muro (v5, 2026-11-25: alcance 1–4 → 1–6) son del Castillo (#5), no del Catálogo.
 6. **Formato válido.** Cualquier violación da `ConfigInvalida` al preparar el contexto (Librería, regla 2):
    - **F1:** exactamente 7 filas, con IDs de 0 a 6 en orden, sin repetir.
    - **F2:** `movimiento`, `ataque`, `vida` y `alcanceMax` entre 1 y 1.000.
@@ -118,7 +118,9 @@ Un archivo que no se puede leer no llega a ser un Catálogo: el cliente no ofrec
 | #6 Movimiento | `movimiento`, vía `EffectiveStats` | Movimiento |
 | #7 Alcance | `alcanceMin`, `alcanceMax` (sentido geométrico: su F1), `danoArea` (modo de ataque) y los IDs 2 y 5. Los alcances del demoledor son inertes: explota sobre su casilla | Alcance |
 | #9 Resolución | `ataque`, `escudo`, `vida`, `danoArea` | Resolución |
+| #8 Cobertura | ID del escudero; `escudo` y `vida` solo en su oráculo C2 | Cobertura |
 | #10 Reclutamiento | `topeVivas` y el orden de tipos (recluta automático); las llamadas por tipo son suyas | Reclutamiento |
+| #11 Modificador | `ataque` y `movimiento` base | Modificador |
 | #15 Ficha y HUD | Cifras base y efectivas para mostrar | Ficha y HUD |
 | #18 Render, #37 Skins | Solo el ID de tipo (para elegir el arte). Las skins nunca leen ni cambian una cifra | Render |
 | #14 Localización | Solo el ID de tipo (nombre de pieza) | Localización |
@@ -127,7 +129,7 @@ Un archivo que no se puede leer no llega a ser un Catálogo: el cliente no ofrec
 
 **Provisional:** #9 y #26 todavía no tienen GDD. Estos contratos son lo que este documento espera de ellos.
 
-**Observaciones que pasan a Open Questions:** el demoledor mata solo a cualquier pieza que no sea el Rey; si el Grito de guerra (+2 de ataque) también suma al daño de área de la catapulta.
+**Observaciones que pasan a Open Questions:** el demoledor mata solo a cualquier pieza que no sea el Rey. El Grito (+2 de ataque) no suma al `danoArea` ni a la explosión; sí al impacto de la catapulta (Modificador, #11, regla 7).
 
 ## Formulas
 
@@ -182,7 +184,7 @@ con división entera hacia abajo (todos los valores son no negativos, como exige
 
 **Chequeos de balance sobre el Catálogo** (los hace un test; el pilar 2 es *"ninguna pieza gana sola"*):
 
-- **I1, excepciones aprobadas (2026-11-19).** Los únicos pares con `piezasParaMatar = 1` son: demoledor contra cualquier tipo menos el Rey (a cambio muere al explotar, hay 4 y daña a los aliados vecinos) y catapulta contra demoledor (contrajuego a distancia de 6 casillas). Con los valores v5 este último par ya no se da (catapulta 10 contra escudo + vida 11): la excepción sigue aprobada, pero hoy el demoledor es el único que mata solo. **Contra los tramos de muro** (Castillo y muros, F3), el demoledor (ataque 30) rompe un tramo de `vida_tramo` 30 de un golpe y, pegado a un tramo recto, hasta 3 a la vez: excepción aprobada el 2026-11-25, PROVISIONAL hasta Resolución (#9). Cualquier otro par en 1 hace fallar el test hasta que se apruebe.
+- **I1, excepciones aprobadas (2026-11-19).** Los únicos pares con `piezasParaMatar = 1` son: demoledor contra cualquier tipo menos el Rey (a cambio muere al explotar, hay 4 y daña a los aliados vecinos) y catapulta contra demoledor (contrajuego a distancia de 6 casillas). Con los valores v5 este último par ya no se da (catapulta 10 contra escudo + vida 11): la excepción sigue aprobada, pero hoy el demoledor es el único que mata solo. **Contra los tramos de muro** (Castillo y muros, F3), el demoledor (ataque 30) rompe un tramo de `vida_tramo` 30 de un golpe y, pegado a un tramo recto, hasta 3 a la vez: excepción aprobada el 2026-11-25, PROVISIONAL hasta Resolución (#9). **Con Grito de guerra** la catapulta pega 12 y vuelve a matar sola al demoledor (escudo + vida 11): es la excepción ya aprobada, durante un turno. Cualquier otro par en 1 hace fallar el test hasta que se apruebe.
 - **I2, el Rey (regla dura, sin excepciones).** `piezasParaMatar(a, Rey) ≥ 2` para todo atacante `a`. Con las cifras vigentes el mínimo es 2 (el demoledor): ninguna pieza gana la partida sola.
 - **I3, el área no mata sola.** Para todo tipo con `danoArea > 0` y todo objetivo `t`, `danoArea − escudo_t < vida_t`: el área ablanda y no reemplaza a los demás (*"las piezas de área habilitan combos, no los reemplazan"*, pilar 2). Con la catapulta (6) el daño neto máximo es 5, contra 10 de vida mínima del demoledor.
 
@@ -245,7 +247,8 @@ Esto evita un ciclo: la Librería depende del esquema del Catálogo, y el Catál
 | #14 Localización | Blanda | Solo el ID de tipo (nombre de pieza, singular y plural) | Existe y ya nombra al Catálogo |
 | #19 Métricas, #28 Servidor | Blanda | `versionBalance` y huella; el Servidor carga el mismo archivo | Pendiente |
 | #26 Registro | Blanda | Guarda la tabla en la config de cada partida | Pendiente |
-| #8 Cobertura | Referencia | Nombra al Escudero por su ID (2); no lee el archivo | Pendiente |
+| #8 Cobertura | Referencia | ID del Escudero (2); `escudo` y `vida` solo en su oráculo C2 | Existe y ya nombra al Catálogo |
+| #11 Modificador | Blanda | `ataque` y `movimiento` base; el bono se suma en `EffectiveStats` | Existe y ya nombra al Catálogo |
 
 **Bidireccionalidad.** La Librería (#1), la Máquina de turno (#3) y el Tablero (#4) tienen GDD y ya nombran al Catálogo. Cada uno de los otros, al escribirse, tiene que nombrar al Catálogo en su sección Dependencies. Queda marcado para `/design-review` y `/review-all-gdds`.
 
@@ -361,7 +364,6 @@ Sin pantalla propia. Las cifras de cada tipo se muestran en la ficha de pieza y 
 | Pregunta | Dueño | Para cuándo |
 |---|---|---|
 | El demoledor mata solo a cualquier pieza que no sea el Rey, y con una pieza de ataque 5 o más mata al Rey con 2 piezas: ¿es el ritmo deseado? | Resolución (#9), Castillo (#5), playtest | En sus GDD y en el MVP |
-| ¿El bono de ataque del Grito de guerra (+2) suma también al `danoArea` de la catapulta? | Modificador (#11) y Resolución (#9) | En sus GDD |
 | Pisos de `ataque`, `vida`, `escudo` y `danoArea` sin fundamentar | Métricas (#19), partidas humanas | Compuerta de duración |
 | Techo de `alcanceMax` (costo de la vista previa). El de `movimiento` quedó en 12 (Tablero, #4) | Librería | Al medir la vista previa |
 | `PrepararContexto` sin presupuesto de tiempo propio | Librería (ADR) | Antes de escribir código |

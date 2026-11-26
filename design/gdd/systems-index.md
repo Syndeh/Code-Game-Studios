@@ -122,7 +122,7 @@ Ya pasadas al concepto (`design/gdd/game-concept.md`).
   lista de asignaciones.
 - **8 Cobertura del escudero.** En la fase de ataque, en lugar de atacar, el escudero cubre a
   un aliado vecino: todos los ataques enemigos a ese aliado los recibe él hasta su siguiente
-  turno.
+  turno. Se quita con `QuitarCobertura`; sin cadenas.
 - **9 Resolución simultánea del daño.** La fórmula central del pilar 2: daño sumado por
   objetivo, escudo restado una vez, área de catapulta (12/8) y explosión del demoledor,
   redirección por cobertura, daño a muros, muertes, en orden determinista.
@@ -131,7 +131,7 @@ Ya pasadas al concepto (`design/gdd/game-concept.md`).
   catapultas 4, demoledores 4) y de piezas vivas. Expone la consulta "¿cara disponible? ¿llamadas restantes?"
   que lee el Modificador.
 - **11 Modificador (dado adaptativo).** Cinco caras con probabilidades que dependen del
-  estado (piezas vivas, muros rotos, caras agotadas). Se engancha a la fase de la Máquina de
+  estado (piezas vivas, muros rotos, caras agotadas o sin lugar). Se engancha a la fase de la Máquina de
   turno; escribe bonos en el estado. Online, la tirada la decide solo el servidor. Su GDD
   mide el impacto de la Distracción en la duración y en el umbral 2 de 3.
 
@@ -253,12 +253,12 @@ servidor.
 | 5 | Castillo y muros | Gameplay | MVP | Designed | design/gdd/castillo-y-muros.md | Librería de reglas, Tablero, Catálogo de piezas, Máquina de turno (blanda: momento del corte) |
 | 6 | Movimiento | Gameplay | MVP | Designed | design/gdd/movimiento.md | Librería de reglas, Tablero, Catálogo de piezas, Máquina de turno, Castillo y muros |
 | 7 | Alcance y asignación de ataques | Gameplay | MVP | Designed | design/gdd/alcance-y-asignacion-de-ataques.md | Librería de reglas, Tablero, Catálogo de piezas, Máquina de turno, Castillo y muros (tramo como objetivo; alcance del arquero en el muro), Cobertura del escudero y Reclutamiento (blandas: contratos) |
-| 8 | Cobertura del escudero | Gameplay | MVP | Not Started | — | Alcance y asignación, Tablero, Máquina de turno, Catálogo de piezas (solo ID del Escudero), Castillo y muros (blanda: la parte del tramo no se redirige) |
+| 8 | Cobertura del escudero | Gameplay | MVP | Designed | design/gdd/cobertura-del-escudero.md | Librería de reglas, Alcance y asignación, Tablero, Máquina de turno, Catálogo de piezas (solo ID del Escudero), Castillo y muros (blanda: la parte del tramo no se redirige), Reclutamiento (blanda) |
 | 9 | Resolución simultánea del daño | Gameplay | MVP | Not Started | — | Alcance y asignación, Cobertura del escudero, Castillo y muros, Máquina de turno, Catálogo de piezas |
 | 10 | Reclutamiento y límites | Gameplay | MVP | Designed | design/gdd/reclutamiento-y-limites.md | Librería de reglas, Castillo y muros, Tablero, Máquina de turno, Catálogo de piezas |
-| 11 | Modificador (dado adaptativo) | Gameplay | MVP | Not Started | — | Máquina de turno, Reclutamiento, Castillo y muros |
+| 11 | Modificador (dado adaptativo) | Gameplay | MVP | Designed | design/gdd/modificador.md | Librería de reglas, Máquina de turno, Reclutamiento, Castillo y muros, Alcance y asignación (modo de ataque) |
 | 12 | Timer de turno | Core | MVP | Designed | design/gdd/timer-de-turno.md | Máquina de turno, Librería de reglas |
-| 13 | Entrada y selección (inferred) | Core | MVP | In Progress | design/gdd/entrada-y-seleccion.md | Librería de reglas, Movimiento, Alcance y asignación, Cobertura del escudero, Reclutamiento, Localización |
+| 13 | Entrada y selección (inferred) | Core | MVP | Designed | design/gdd/entrada-y-seleccion.md | Librería de reglas, Máquina de turno, Tablero, Movimiento, Alcance y asignación, Cobertura del escudero, Reclutamiento, Localización, Timer (blanda) |
 | 14 | Localización (inferred) | Meta | MVP | Designed | design/gdd/localizacion.md | Catálogo de piezas (solo ID de tipo), Librería de reglas (blanda: lista de códigos) |
 | 15 | Ficha de pieza y HUD | UI | MVP | Not Started | — | Catálogo de piezas, Máquina de turno, Timer, Modificador, Localización, Castillo y muros (blanda: contador de tramos rotos), Movimiento, Alcance y asignación, Reclutamiento (blandas) |
 | 16 | Vista previa de ataques | UI | MVP | Not Started | — | Alcance y asignación, Resolución, Cobertura del escudero, Localización, Castillo y muros (blanda: daño y ROTO del tramo) |
@@ -355,10 +355,10 @@ Reglas del duelo (núcleo):
 1. Castillo y muros — depends on: Librería, Tablero, Catálogo, Máquina de turno (blanda)
 2. Movimiento — depends on: Librería, Tablero, Catálogo, Máquina de turno, Castillo
 3. Alcance y asignación de ataques — depends on: Librería, Tablero, Catálogo, Máquina de turno, Castillo
-4. Cobertura del escudero — depends on: Alcance y asignación, Tablero, Máquina de turno
+4. Cobertura del escudero — depends on: Librería, Alcance y asignación, Tablero, Máquina de turno, Reclutamiento (blanda)
 5. Resolución simultánea del daño — depends on: Alcance y asignación, Cobertura, Castillo, Máquina de turno, Catálogo
 6. Reclutamiento y límites — depends on: Librería, Castillo, Tablero, Máquina de turno, Catálogo
-7. Modificador — depends on: Máquina de turno, Reclutamiento, Castillo
+7. Modificador — depends on: Librería, Máquina de turno, Reclutamiento, Castillo, Alcance
 
 Medición:
 
@@ -490,7 +490,7 @@ Los cuatro ciclos encontrados se cortaron con contratos; ninguno queda abierto.
 | Render y skins (18, 37, 38, 39) | Scope | 105–168 animaciones por pack en 8 direcciones; el arte no estaba contado en la primera estimación | Render del MVP reducido; formato de skin como datos desde el MVP; Kit con validador para que la comunidad aporte packs |
 | Rival IA básico | Scope | Suma alcance a la Fase 1, no contado en la estimación del productor | IA simple solo para la partida tutorial; recalibrar plazos después de 2–3 sprints |
 | Analítica online y tablero | Legal / Scope | Datos de jugadores desde 16 años: consentimiento, política de privacidad, retención de datos; un tablero propio es trabajo continuo | Fase 1 sin envío (archivo local); en la 2a, consentimiento explícito y un servicio de analítica existente en lugar de un tablero hecho a mano, a decidir en su GDD y un ADR |
-| Entrada y selección | Design | Mover 12 o 13 piezas en 60–90 s en pantalla táctil puede ser pesado | Probar en un teléfono real antes de cerrar las reglas |
+| Entrada y selección | Design | Mover 12 o 13 piezas en 60–90 s en pantalla táctil puede ser pesado: 2,3 s por toque con 60 s y 12 piezas, 1,5 s en el tramo final (Entrada, E1); con casillas de ≈ 26 pt se ven 14 de 24 columnas a 44 pt (E3) | Probar en un teléfono real antes de cerrar las reglas |
 | Servidor de partida y backend (27, 28) | Technical / Scope | Timer autoritativo, reconexión, dos integraciones de Firebase; un corte a mitad de la Fase 2 dejaría un online impublicable | Fase 2 partida en 2a y 2b, cada una publicable |
 | Tienda | Technical | Stripe solo sirve en web; Google Play, App Store y Steam exigen su propio cobro | Abstracción del proveedor de pago y compras validadas en el servidor desde el primer GDD |
 | Chat global | Scope / Legal | Moderación con público desde 16 años | Emotes en la 2a; chat con filtro en el servidor recién en la 2b |
@@ -523,10 +523,10 @@ Los cuatro ciclos encontrados se cortaron con contratos; ninguno queda abierto.
 | Metric | Count |
 |--------|-------|
 | Total systems identified | 41 |
-| Design docs started | 11 |
+| Design docs started | 14 |
 | Design docs reviewed | 1 |
 | Design docs approved | 0 |
-| MVP systems designed | 10/19 |
+| MVP systems designed | 13/19 |
 | Vertical Slice systems designed | 0/6 |
 
 ---

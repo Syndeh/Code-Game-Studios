@@ -58,8 +58,8 @@ Hay tres maneras de atacar: el **ataque directo** de casi todas las piezas, el *
 6. **Área: decisión del 2026-11-25.** La catapulta puede apuntar también a un tramo **propio** en pie y a un hueco. Es una excepción al ataque directo, que nunca puede tomar lo propio. La regla 4 de Castillo aclara que su prohibición vale solo para el modo directo (2026-11-25).
 7. **Explosión: decisión del 2026-11-25.** Asignar la explosión es la orden de estallar al resolver. Su zona (las 8 vecinas) y su daño son de Resolución (#9). Como el objetivo es su casilla, **`alcanceMin` y `alcanceMax` del demoledor no se leen**. Con enemigos, aliados o nada alrededor, vale igual; puede sacrificarse solo.
 8. **Ataque directo sobre hueco.** Un tramo roto no es objetivo. Si hay una pieza enemiga parada en ese hueco, la pieza sí lo es.
-9. **Una acción por pieza.** Cada pieza tiene como mucho **un** ataque asignado. `AsignarAtaque` sobre una pieza que ya tenía uno **lo reemplaza**, en un solo comando (decisión del 2026-11-25). Un escudero ataca **o** cubre: asignarle un ataque **borra la cobertura** que tenía, y `Cubrir` borra su ataque *(la mitad de `Cubrir` es de Cobertura, #8: PROVISIONAL)*. Un comando rechazado no cambia nada: si el ataque nuevo no vale, queda el anterior.
-10. **Quitar.** `QuitarAtaque(pieza)` borra el ataque asignado. Sin ataque, se rechaza con `SinAtaqueAsignado`. No toca coberturas. No usa la pila de deshacer.
+9. **Una acción por pieza.** Cada pieza tiene como mucho **un** ataque asignado. `AsignarAtaque` sobre una pieza que ya tenía uno **lo reemplaza**, en un solo comando (decisión del 2026-11-25). Un escudero ataca **o** cubre: asignarle un ataque **borra la cobertura** que tenía, y `Cubrir` borra su ataque (Cobertura, #8, regla 5). Un comando rechazado no cambia nada: si el ataque nuevo no vale, queda el anterior.
+10. **Quitar.** `QuitarAtaque(pieza)` borra el ataque asignado. Sin ataque, se rechaza con `SinAtaqueAsignado`. No toca coberturas: una cobertura se quita con `QuitarCobertura` (#8, regla 8). No usa la pila de deshacer.
 11. **Sin efecto hasta resolver.** Asignar, reemplazar y quitar no cambian piezas, tramos ni estadísticas. Durante `Atacar` nada de lo que define la validez cambia, así que una asignación aceptada **sigue siendo válida** hasta resolver y Resolución no la revalida.
 12. **Códigos de rechazo (fila 14 de la Librería), en este orden.** Se devuelve el primero que falla:
 
@@ -76,8 +76,8 @@ Hay tres maneras de atacar: el **ataque directo** de casi todas las piezas, el *
 13. **Consultas puras.** Valen para cualquier pieza viva, de los dos bandos y en cualquier fase (todo es público). Devuelven casillas **ordenadas por fila y después columna**, sin repetir. Con un ID inexistente devuelven vacío.
     - `CasillasEnAlcance(pieza)`: las del tablero que cumplen F1, tengan o no objetivo. Para el demoledor, vacía.
     - `ObjetivosValidos(pieza)`: las que `AsignarAtaque` aceptaría si el dueño estuviera en `Atacar`. Coinciden exactamente: no hay dos reglas.
-14. **Acción posible.** Para el salto de fase (Máquina, regla 10), una pieza tiene acción si `ObjetivosValidos` no está vacía. Con una catapulta o un demoledor propios vivos, `Atacar` **nunca se salta** (decisión del 2026-11-25).
-15. **Eventos.** `AtaqueAsignado(pieza, objetivo, modo, objetivoAnterior)` (anterior vacío si no había) y `AtaqueQuitado(pieza, objetivo)`. Al desplazar una cobertura, primero va el evento de #8 *(nombre PROVISIONAL: `CoberturaQuitada`)* y después `AtaqueAsignado`.
+14. **Acción posible.** Para el salto de fase (Máquina, regla 10), una pieza tiene acción si `ObjetivosValidos` no está vacía, y un escudero también si `AliadosCubribles` (#8) no lo está. Con una catapulta o un demoledor propios vivos, `Atacar` **nunca se salta** (decisión del 2026-11-25).
+15. **Eventos.** `AtaqueAsignado(pieza, objetivo, modo, objetivoAnterior)` (anterior vacío si no había) y `AtaqueQuitado(pieza, objetivo)`. Al desplazar una cobertura, primero va el evento de #8 (`CoberturaQuitada`, motivo `Desplazada`) y después `AtaqueAsignado`.
 16. **Entrega a Resolución.** Una lista `(pieza, objetivo, modo)` por ID de pieza ascendente. El orden fija eventos, nunca resultados (Librería, regla 15). Al cerrar el turno la lista se vacía (Máquina, regla 11).
 17. **Lo que el jugador no puede hacer.** Atacar dos veces con una pieza, atacar directo lo propio, apuntar directo al suelo, elegir el modo, o asignar ataques en el turno rival.
 
@@ -111,7 +111,7 @@ No hay ataques asignados fuera de `Atacar`. Si la partida termina por `Rendirse`
 | #3 Máquina | Abre y cierra `Atacar` | `ObjetivosValidos` para el salto | Máquina (fase); este GDD (consulta) |
 | #4 Tablero | `dentro`, `ocupante`, `hayTramo`, dimensiones | — | Tablero |
 | #5 Castillo | Dueño y vida del tramo; bono del arquero vía `EffectiveStats` | — | Castillo |
-| #8 Cobertura | Cobertura actual del escudero | Exclusión ataque/cobertura | Compartida; *PROVISIONAL* |
+| #8 Cobertura | Cobertura actual del escudero | Exclusión ataque/cobertura | Compartida |
 | #9 Resolución | — | Lista `(pieza, objetivo, modo)` | Este GDD; *PROVISIONAL* |
 | #10 Reclutamiento | Un recluta puede atacar ese turno | — | #10 |
 | #13 Entrada, #15 HUD, #16 Vista previa, #18 Render, #23 Accesibilidad, #24 Tutorial | — | Consultas, códigos, eventos | Cliente, solo lectura |
@@ -207,7 +207,7 @@ The `asignaciones_max` formula is defined as:
 
 - **If se reasigna el mismo objetivo:** se acepta y emite `AtaqueAsignado` con `objetivoAnterior` igual al nuevo. Para quitar, el cliente usa `QuitarAtaque` (#13).
 - **If el reemplazo es inválido:** se rechaza y queda el ataque anterior (y la cobertura, si la había).
-- **If `QuitarAtaque` llega a un escudero que cubre:** `SinAtaqueAsignado`. Cómo se quita una cobertura sin atacar es de #8.
+- **If `QuitarAtaque` llega a un escudero que cubre:** `SinAtaqueAsignado`. La cobertura se quita con `QuitarCobertura` (#8).
 - **If varias piezas apuntan a la misma casilla:** se aceptan todas; sumar es de Resolución.
 - **If un ataque propio (área o explosión) mata a otra pieza propia con ataque asignado:** esa pieza golpea igual (Librería, regla 15).
 - **If el ataque puede matar al propio Rey** (área o explosión): se acepta. La vista previa lo muestra; no hay confirmación extra en el núcleo. Si muere solo él, gana el rival (Máquina, regla 13).
@@ -238,7 +238,8 @@ The `asignaciones_max` formula is defined as:
 | #3 Máquina de turno | Dura | Fase `Atacar`, cierre, salto | Sí |
 | #4 Tablero | Dura | `dentro`, `ocupante`, `hayTramo`, dimensiones | Sí |
 | #5 Castillo y muros | Dura | Tramo enemigo en pie, dueño del tramo, bono del arquero (F5) | Sí |
-| #8 Cobertura | Blanda | Exclusión ataque/cobertura del escudero | Sin GDD |
+| #8 Cobertura | Blanda | Exclusión ataque/cobertura del escudero | Sí |
+| #11 Modificador | Blanda | Grito: +2 de ataque salvo en el modo Explosión | Sí |
 | #10 Reclutamiento | Blanda | Un recluta puede atacar ese turno | Sí |
 
 **Dependen de este sistema:**
@@ -254,7 +255,7 @@ The `asignaciones_max` formula is defined as:
 | #24 Tutorial | Dura | El paso de atacar |
 | #25 Rival IA | Dura | `ObjetivosValidos` |
 
-**Supuestos provisionales:** la mitad de `Cubrir` y el nombre de su evento (#8), el formato de la lista y la zona de explosión (#9).
+**Supuestos provisionales:** el formato de la lista y la zona de explosión (#9).
 
 ## Tuning Knobs
 
@@ -339,7 +340,7 @@ Salvo indicación: fase `Atacar` del jugador 0 (azul), tablero con solo las piez
 - **AC-8 (regla 7, explosión)** — **GIVEN** un demoledor azul en `(10, 7)` sin nadie cerca, **WHEN** apunta a `(10, 7)`, **THEN** se acepta con modo explosión y `ObjetivosValidos` es exactamente `[(10, 7)]`; a un rojo en `(11, 7)`, `ObjetivoInvalido`. **Y** con `alcanceMax` 5 o `danoArea` 8 en su fila, el resultado es igual. *(Logic)*
 - **AC-9 (regla 8)** — **GIVEN** el tramo azul `(4, 7)` roto y un soldado azul en `(5, 7)`, **WHEN** apunta a `(4, 7)` vacía, **THEN** `SinObjetivo`; con un soldado rojo en el hueco, se acepta. **Y** con el tramo en pie, `ObjetivoPropio`. *(Integration #5)*
 - **AC-10 (regla 9, reemplazo)** — **GIVEN** un soldado con ataque a A, **WHEN** asigna B (válido), **THEN** queda un solo ataque, a B, y el evento trae `objetivoAnterior` A. **Y WHEN** después apunta fuera de alcance, **THEN** se rechaza, sigue B y la huella no cambia. *(Logic)*
-- **AC-11 (regla 9, escudero)** — **GIVEN** un escudero que cubre a un aliado, **WHEN** asigna un ataque válido, **THEN** la cobertura ya no está y el ataque sí; con un ataque inválido, la cobertura sigue. **Y WHEN** un escudero con ataque cubre, **THEN** el ataque ya no está. *(Integration #8, PROVISIONAL)*
+- **AC-11 (regla 9, escudero)** — **GIVEN** un escudero que cubre a un aliado, **WHEN** asigna un ataque válido, **THEN** la cobertura ya no está y el ataque sí; con un ataque inválido, la cobertura sigue. **Y WHEN** un escudero con ataque cubre, **THEN** el ataque ya no está. *(Integration #8)*
 - **AC-12 (regla 10)** — **GIVEN** un soldado con ataque, **WHEN** llega `QuitarAtaque`, **THEN** queda sin ataque y emite `AtaqueQuitado`; otra vez, `SinAtaqueAsignado`. **Y** con un escudero que cubre y no ataca, `SinAtaqueAsignado` y su cobertura sigue. *(Logic)*
 - **AC-13 (regla 11)** — **GIVEN** 5 ataques asignados a piezas que no cubren, **WHEN** se compara el estado con el de antes, **THEN** solo difieren la lista de ataques y `contadorComandos`. *(Logic)*
 - **AC-14 (regla 11, vigencia)** — **GIVEN** un fixture con una secuencia fija de 200 comandos de `Atacar` sin `Resolver`, **WHEN** se revisa cada ataque guardado tras cada comando, **THEN** su objetivo está en `ObjetivosValidos` de su pieza. *(Logic)*
@@ -348,7 +349,7 @@ Salvo indicación: fase `Atacar` del jugador 0 (azul), tablero con solo las piez
 - **AC-17 (regla 13, consultas)** — **GIVEN** la fase `Mover`, **WHEN** se consultan una pieza propia y una rival, **THEN** devuelven listas ordenadas por fila y columna, sin repetir; un ID inexistente, vacío; `CasillasEnAlcance` de un demoledor, vacía; la huella no cambia. *(Logic)*
 - **AC-18 (regla 14)** — **GIVEN** azul con solo el Rey y una catapulta y ningún enemigo al alcance, **WHEN** se abre `Atacar`, **THEN** no hay `FaseSaltada`; igual con un demoledor; con un soldado en su lugar, `FaseSaltada(Atacar)`. *(Integration #3)*
 - **AC-19 (regla 16)** — **GIVEN** ataques asignados en el orden de piezas 9, 2 y 5, **WHEN** llega `Resolver`, **THEN** Resolución recibe 2, 5 y 9, y en el turno siguiente no queda ninguno. *(Integration #9, PROVISIONAL)*
-- **AC-20 (regla 15)** — **GIVEN** una pieza sin ataque, **WHEN** se acepta su asignación, **THEN** el evento trae pieza, objetivo, modo y `objetivoAnterior` vacío; al desplazar una cobertura, el evento de #8 sale antes (segunda parte PROVISIONAL). *(Logic / Integration #8)*
+- **AC-20 (regla 15)** — **GIVEN** una pieza sin ataque, **WHEN** se acepta su asignación, **THEN** el evento trae pieza, objetivo, modo y `objetivoAnterior` vacío; al desplazar una cobertura, el evento de #8 sale antes. *(Logic / Integration #8)*
 - **AC-21 (regla 17)** — **GIVEN** el turno azul, **WHEN** rojo envía `AsignarAtaque` con una pieza suya, **THEN** `NoEsTuTurno`; azul en `Mover`, `FaseIncorrecta`. *(Logic)*
 
 **Fórmulas**
@@ -371,7 +372,6 @@ Salvo indicación: fase `Atacar` del jugador 0 (azul), tablero con solo las piez
 | Pregunta | Dueño | Cuándo |
 |---|---|---|
 | ¿Se juega algún fuego amigo por sorpresa, sobre todo contra el Rey propio? (CD-GDD-ALIGN, aceptado) | Vista previa (#16), playtest | En su GDD y en el MVP |
-| ¿Cómo se quita una cobertura sin atacar, y cómo se llama su evento? | Cobertura (#8) | En su GDD |
 | Zona y daño de la explosión, ¿alcanza a tramos propios como dice el concepto?, y muerte del demoledor | Resolución (#9) | En su GDD |
 | ¿Resulta rentable el fuego amigo deliberado (explotar demoledores para mejorar el Modificador, disparar al muro propio)? | Modificador (#11), playtest | MVP |
 | ¿Cuántos turnos abren `Atacar` sin ataques útiles por la regla 14, y cuánto tiempo cuestan? | Métricas (#19), playtest | MVP |

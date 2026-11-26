@@ -89,7 +89,7 @@ de mover se pierde; se mide en playtest (Open Questions).
    reclutar. Quién empieza lo decide el Tablero (#4, regla 10): el jugador 0, sin compensación.
 4. **Abrir un turno T del jugador J** (el cierre del turno anterior y esta apertura salen
    en un solo comando):
-   1. Se borran las coberturas de J (Cobertura, #8).
+   1. Se borran las coberturas de J, con un `CoberturaQuitada(…, Caducada)` por escudero en orden de ID, entre `TurnoTerminado` y `TurnoIniciado` (Cobertura, #8, regla 9).
    2. El estado pasa a `EsperandoTirada` con la tabla efectiva (Librería, regla 6).
    3. Al llegar `Tirada(n)`, la Librería convierte `n` en una cara y el **Modificador
       (#11)** devuelve un **resultado tipado**.
@@ -119,7 +119,7 @@ de mover se pierde; se mide en playtest (Open Questions).
    compromete al elegir y los ataques ya se corrigen con `QuitarAtaque` y `Cubrir`. Tope de
    256 entradas (el dueño ahora es la Máquina; se justifica en Formulas, D4, que además
    exige que el Catálogo no lo supere).
-9. **Fase `Atacar`.** Valen `AsignarAtaque`, `QuitarAtaque`, `Cubrir` y `Resolver`. Las
+9. **Fase `Atacar`.** Valen `AsignarAtaque`, `QuitarAtaque`, `Cubrir`, `QuitarCobertura` y `Resolver`. Las
    asignaciones se editan libremente hasta resolver. `Resolver` cierra la fase y llama a
    Resolución (#9).
 10. **Fases que se saltan.** Una fase que **empieza** sin acción posible se salta con
@@ -175,7 +175,7 @@ de mover se pierde; se mide en playtest (Open Questions).
     | `Tirada` (autoridad) | ✓ | `TiradaNoEsperada` | `TiradaNoEsperada` | `TiradaNoEsperada` |
     | `Reclutar` | `EsperandoTirada` | ✓ | `FaseIncorrecta` | `FaseIncorrecta` |
     | `Mover`, `Deshacer`, `TerminarMovimiento` | `EsperandoTirada` | `FaseIncorrecta` | ✓ | `FaseIncorrecta` |
-    | `AsignarAtaque`, `QuitarAtaque`, `Cubrir`, `Resolver` | `EsperandoTirada` | `FaseIncorrecta` | `FaseIncorrecta` | ✓ |
+    | `AsignarAtaque`, `QuitarAtaque`, `Cubrir`, `QuitarCobertura`, `Resolver` | `EsperandoTirada` | `FaseIncorrecta` | `FaseIncorrecta` | ✓ |
     | `TurnTimeout` (autoridad) | `EsperandoTirada` | ✓ etapa mover | ✓ etapa mover | ✓ etapa atacar |
     | `Rendirse`, `CerrarPartida` | ✓ | ✓ | ✓ | ✓ |
 
@@ -211,8 +211,7 @@ de mover se pierde; se mide en playtest (Open Questions).
 | 28 Servidor | Mismo pipeline | Es la autoridad de los comandos de autoridad | Servidor |
 | 15 HUD, 19 Métricas, 25 Rival IA | Eventos de fase, etapa y pila | Nada (IA: mismos comandos que un jugador) | Cada GDD |
 
-**Supuestos PROVISIONALES sobre GDD sin escribir:** el resultado `ReclutarObligatorio`
-(#11) y el contador `vidaQuitada` (#9). Las piezas reclutadas se mueven ese turno, salvo las
+**Supuestos PROVISIONALES sobre GDD sin escribir:** el contador `vidaQuitada` (#9). Las piezas reclutadas se mueven ese turno, salvo las
 del recluta automático (#6, regla 11; #10, reglas 9 y 10). Con una catapulta o un demoledor
 propios vivos, `Atacar` nunca se salta (#7, regla 14).
 
@@ -398,12 +397,13 @@ Dependencies*). Por eso esos sistemas dependen de ella y no al revés.
 |---|---|---|---|
 | #6 Movimiento | Dura | Fase `Mover`, pila de deshacer, límite del turno | Existe |
 | #7 Alcance y asignación | Dura | Fase `Atacar` y el criterio "acción posible" | Existe |
-| #8 Cobertura | Blanda | Momento de borrar las coberturas (al abrir el turno de su dueño) | Pendiente |
+| #8 Cobertura | Blanda | Momento de borrar las coberturas (al abrir el turno de su dueño) y `AliadosCubribles` para el salto de fase | Existe |
 | #5 Castillo y muros | Blanda | Momento del corte de reclutamiento (reclutar es de la fase de mover; la tabla se calcula al abrir el turno), `Deshacer` sobre los `Mover` de subir y bajar del muro y `vidaQuitada` | Existe |
 | #9 Resolución | Dura | Transición `Resolver`; escribe `vidaQuitada`; declara `Δturnos` | Pendiente |
 | #10 Reclutamiento | Dura | Fase `Reclutar`, recluta automático; declara `Δturnos` (su F6, sin valor medido) | Existe |
-| #11 Modificador | Dura | Resultados tipados y fase de tirada; declara `Δturnos` | Pendiente |
+| #11 Modificador | Dura | Resultados tipados, fase de tirada y bonos que se borran al cerrar; declara `Δturnos` de Distracción (F4, sin medir) | Existe |
 | #12 Timer | Dura | `numeroTurno`, etapa y `reloj_jugador_s`; emite `TurnTimeout` y `CerrarPartida(RelojAgotado)` | Existe |
+| #13 Entrada | Blanda | Fase, jugador del turno y pila: los botones de avanzar y Deshacer | Existe |
 | #14 Localización | Blanda | Nombres de fases y motivos de fin | Existe |
 | #15 Ficha y HUD | Blanda | Fase, etapa y cuántos movimientos se pueden deshacer | Pendiente |
 | #19 Métricas | Blanda | Eventos de fase, `TurnoTerminado`, `PartidaTerminada` | Pendiente |
@@ -552,7 +552,7 @@ integración con otro sistema. **Config/Data** = chequeo de humo. Los criterios 
   turno sin ganador, **THEN** el estado queda en `EsperandoTirada` del jugador 1,
   `numeroTurno` 2, sin coberturas del jugador 1, y los eventos traen `TurnoTerminado` y
   `TurnoIniciado(2, 1)` en ese orden.
-- **AC-5 (Logic, regla 5; cruce con #11, PROVISIONAL)** — **GIVEN** un Modificador de prueba
+- **AC-5 (Logic, regla 5; cruce con #11)** — **GIVEN** un Modificador de prueba
   que devuelve cada resultado tipado, **WHEN** llega la `Tirada` correspondiente, **THEN**
   `Seguir` abre `Mover`; `ReclutarObligatorio` abre `Reclutar`; `SaltearMovimiento` abre
   `Atacar`; y con `LimiteMovimientos(sin límite)` se abre `Mover` y se acepta el `Mover` de
@@ -574,7 +574,7 @@ integración con otro sistema. **Config/Data** = chequeo de humo. Los criterios 
   movimiento y la segunda da `NadaQueDeshacer` (el recluta sigue). **Y WHEN** en `Atacar` se
   envía `Deshacer`, **THEN** `FaseIncorrecta`.
 - **AC-10 (Logic, regla 9)** — **GIVEN** la fase `Atacar`, **WHEN** se hacen
-  `AsignarAtaque`, `QuitarAtaque` y `Cubrir` en cualquier orden, **THEN** todos se aceptan;
+  `AsignarAtaque`, `QuitarAtaque`, `Cubrir` y `QuitarCobertura` en cualquier orden, **THEN** todos se aceptan;
   **WHEN** llega `Resolver`, **THEN** el turno cierra y el estado queda en `EsperandoTirada`
   del rival.
 - **AC-11 (Logic, regla 10: `Atacar`)** — **GIVEN** una tirada de Distracción, ni catapultas ni demoledores propios y ninguna

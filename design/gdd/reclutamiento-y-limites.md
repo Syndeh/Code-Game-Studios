@@ -79,8 +79,8 @@ Este sistema es dueño de cuatro cosas: los límites de llamadas por jugador y p
    | 5 | `SinLugarParaReclutar` | Casillas libres del anillo < piezas de la llamada | Sí |
 
 8. **Dónde aparecen.** En las primeras casillas libres del anillo propio según `orden_aparicion` (F4): frente primero (columna que mira al rival, desde la fila del Rey hacia afuera) y después los costados, del frente hacia atrás. Una casilla ocupada por cualquier pieza se salta. Nunca aparecen en un tramo, un hueco ni el interior. Los IDs se asignan por (fila, columna) (Librería, regla 7).
-9. **Cómo aparecen.** Con la vida completa del Catálogo y `usados = 0`. Se mueven ese turno como cualquier otra y gastan cupo del límite (Movimiento, regla 11). Pueden atacar.
-10. **Recluta automático.** Si llega el timeout de mover en `Reclutar`, se recluta el primer tipo disponible de la cara en el orden del Catálogo (Llamada: soldado, arquero, escudero; Cuerno: catapulta, jinete, demoledor), con marca `automatico`. Se pasa directo a `Atacar`: esas piezas no se mueven ese turno, pero pueden atacar.
+9. **Cómo aparecen.** Con la vida completa del Catálogo y `usados = 0`. Se mueven ese turno como cualquier otra y gastan cupo del límite (Movimiento, regla 11). Pueden atacar o cubrir (#7, #8).
+10. **Recluta automático.** Si llega el timeout de mover en `Reclutar`, se recluta el primer tipo disponible de la cara en el orden del Catálogo (Llamada: soldado, arquero, escudero; Cuerno: catapulta, jinete, demoledor), con marca `automatico`. Se pasa directo a `Atacar`: esas piezas no se mueven ese turno, pero pueden atacar o cubrir.
 11. **No se deshace.** El reclutamiento se compromete al elegir.
 12. **Evento.** `Reclutado(jugador, cara, tipo, ids, casillas, llamadasRestantes, automatico)`.
 
@@ -285,6 +285,7 @@ The `delta_reclutamiento` formula is defined as:
 | #6 Movimiento | Blanda | Piezas nuevas con `usados = 0` |
 | #11 Modificador | Dura | `estado_cara`, `llamadas_restantes` |
 | #7 Alcance | Blanda | Un recluta puede atacar ese turno |
+| #8 Cobertura | Blanda | Un recluta puede cubrir o ser cubierto ese turno |
 | #13 Entrada y selección | Blanda | Códigos y comando |
 | #14 Localización | Blanda | Textos de los códigos visibles |
 | #15 HUD, #18 Render | Blanda | Evento y contadores |
@@ -328,13 +329,13 @@ La animación no bloquea la entrada. El significado nunca depende solo del color
 
 - **Respuesta:** la pieza queda seleccionable a más tardar 0,5 s después de elegir; la entrada no espera la animación.
 - **Peso:** la tanda entera llega como un solo golpe, acorde con "Llegan los refuerzos".
-- **Clics:** con mouse, uno para elegir el tipo; en táctil, uno para ver y otro para confirmar. Cero para colocar.
+- **Clics:** uno para elegir el tipo, con mouse y en táctil (Entrada, #13, regla 12). Cero para colocar.
 - **Sin penalidad sensorial** por opción bloqueada: se explica, no se reprende.
 
 ## UI Requirements
 
 - Recuadro central: hasta 3 opciones con cantidad, vivas / tope y llamadas restantes; las bloqueadas, con el motivo traducido desde su código (#14).
-- Vista previa de las casillas de aparición al pasar sobre una opción (mouse) o al primer toque (táctil): el sistema decide, pero se ve antes de confirmar (pilar 1).
+- Las casillas de aparición se marcan numeradas en el tablero mientras el recuadro está abierto, sin hover ni toque extra (Entrada, #13, regla 12; decisión del jugador, 2026-11-25): como salen en `orden_aparicion` (F4), las de 1 o 2 piezas son las primeras de las de 4. El sistema decide y se ve antes de elegir (pilar 1).
 - Panel "?" (#17): llamadas restantes de los dos jugadores y, si una cara está en 0, por qué (muros, llamadas, tope o lugar).
 
 📌 **UX Flag — Reclutamiento**: correr `/ux-design` para el recuadro de reclutar antes de escribir épicas.
@@ -386,7 +387,7 @@ Todos automatizados (EditMode) salvo donde se indica.
 |---|---|---|
 | ¿Llenar el propio anillo para subir Grito o Arremetida es una estrategia dominante? | Métricas (#19) | Playtests del MVP |
 | Valor de `bajas_por_turno` para cerrar Δturnos (F6) | Métricas (#19) | Primeras 3 partidas del MVP |
-| ¿El tope de 6 Llamadas sirve si casi nunca se alcanza (4–11%)? | Modificador (#11) | Su GDD y playtest |
+| ¿El tope de 6 Llamadas sirve si casi nunca se alcanza (4–11%)? Se mantiene en 6 como seguro (Modificador, Tuning Knobs) | Métricas (#19) | Playtest |
 | Con todo o nada, ¿los jinetes bloqueados con 5 a 8 vivos se sienten injustos? El prototipo v5 reclutaba parcial: esta regla está sin jugar | Playtest | MVP |
 | Dos repartos según la causa (F5 y `reparto_liberado`): ¿se entienden en el panel "?"? | Interfaz del Modificador (#17) | Su GDD |
-| Con 12 piezas o menos, Grito absorbe todo (la Librería ya lo señala): ¿choca con el pilar 3a? | Modificador (#11) | Su GDD |
+| Con 12 piezas o menos, Grito absorbe hasta 85%; el pilar 3a se enmendó para admitirlo (Modificador, regla 12): ¿se siente injusto? | Métricas (#19) | Playtest |

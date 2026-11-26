@@ -108,7 +108,7 @@ Estado de una pieza durante la fase `Mover` de su dueño (se deriva de `usados`,
 | #11 Modificador | Grito (+2 de movimiento) por `EffectiveStats`; Arremetida (sin límite); Distracción (no hay fase) | — | Modificador |
 | #13, #15, #18, #25 | — | `MovimientosLegales`, `piezasMovidas`, evento `PiezaMovida` con camino | Cada GDD; la IA usa los mismos comandos que un jugador |
 
-**Provisional:** #11 no tiene GDD. Este documento supone que la tirada da una sola cara por turno, así que una recluta nunca coincide con el Grito de guerra, y que el Grito (+2) vale para todas las piezas, Rey incluido (concepto: "a todas tus piezas").
+**Modificador (#11):** confirma una sola cara por turno y el Grito de +2 de movimiento para todas las piezas, el Rey incluido (su regla 7).
 
 **Factibilidad:** `docs/engine-reference/unity/modules/core.md` (C# 9, .NET Standard 2.1, núcleo sin referencias al motor) no trae obstáculos: enteros y una búsqueda acotada a 360 casillas. El rendimiento en WebGL no se midió; lo cubre AC-25.
 
@@ -201,7 +201,7 @@ Cada `Mover` aceptado cuesta 1 o más, así que una pieza nunca deja más entrad
 **Output Range:** 0 a 254 con los valores vigentes (`pila_tope` = 256).
 **Example:** Arremetida, ejército lleno y sin bono: 254. Grito (+2) con límite 12: 8 jinetes y 4 demoledores × 8 = 96, más Rey 8 = **104**. Turno de reclutar, límite 12: 12 × 6 + 6 = 78.
 
-**Dónde se rompe:** F8 del Catálogo no cuenta el bono. Con Grito (+2) y `limite_normal` 37 da 96 + 25 × 6 + 8 = 254; con **38 da 260 y pasa de 256**. **Decisión del jugador (2026-11-25):** `limite_normal` válido de 1 a **37**. PROVISIONAL hasta que #11 fije el bono; se revisa si cambia el Catálogo.
+**Dónde se rompe:** F8 del Catálogo no cuenta el bono. Con Grito (+2) y `limite_normal` 37 da 96 + 25 × 6 + 8 = 254; con **38 da 260 y pasa de 256**. **Decisión del jugador (2026-11-25):** `limite_normal` válido de 1 a **37**. Además, `CrearPartida` rechaza la config cuya cota con el bono de movimiento del Grito pase de 256 (Librería, regla 2; Modificador, F3).
 
 ### F6. Tiempo por pieza
 
@@ -315,6 +315,8 @@ The `ms_por_pieza` formula is defined as:
 
 Con 12, el límite coincide con las 12 piezas iniciales sin Rey: recién frena cuando hay reclutas.
 
+**Aviso de diseño (Entrada, #13, E1):** con más de `dur_mover_s / 2 − 1` piezas (29 con 60 s, 19 con 40 s, 14 con 30 s) cada toque baja de 1.000 ms. Ese objetivo no está medido, así que no es un rechazo de la config.
+
 **Perillas de otros GDD que lo afectan:** `movimiento` por tipo (Catálogo; techo 12 y F8), bono del Grito (#11), `dur_mover_normal_s` y `dur_mover_final_s` (#12), topes de piezas (Catálogo).
 
 **No son perillas** (constantes del contrato): paso en cruz, costo 1 por paso, tabla de la regla 5 y orden de vecinos. Cambiarlas sube la versión de reglas.
@@ -404,7 +406,7 @@ Casillas como (columna, fila). Salvo que se diga otra cosa: turno de azul en fas
 
 **Entre sistemas**
 
-- **AC-21 (Integration, #11)** — **GIVEN** Grito de guerra, **THEN** un soldado llega a 6 casillas y al turno siguiente a 4. *Provisional hasta #11.*
+- **AC-21 (Integration, #11)** — **GIVEN** Grito de guerra, **THEN** un soldado llega a 6 casillas y al turno siguiente a 4.
 - **AC-22 (Integration, #5)** — **GIVEN** un arquero que sube a un tramo, **WHEN** se deshace, **THEN** vuelve a su casilla y `enMuro` es falso. **GIVEN** solo `(0, 5)` roto y un soldado en `(0, 4)`, **THEN** pisa `(0, 5)` y no llega a `(1, 6)`; con `(0, 6)` también roto llega con costo 3.
 - **AC-23 (Integration, #4)** — **GIVEN** el despliegue inicial, **THEN** el Rey azul llega a `(8, 7)` con costo 6 y a `(9, 7)` da `FueraDeAlcance`.
 - **AC-24 (Integration, #3)** — **GIVEN** Distracción, **THEN** `Mover` da `FaseIncorrecta`. **GIVEN** timeout de mover, **THEN** lo movido queda y `Deshacer` da `FaseIncorrecta`.

@@ -98,13 +98,13 @@ El jugador lo vive de dos maneras. Como **defensor** decide si sube un arquero a
 | #4 Tablero | Casillas de muro, interior y anillo; tramos colocados | `vida_tramo` para colocar la vida inicial | Tablero (geometría); este GDD (vida) |
 | #6 Movimiento | Mover hacia o desde un tramo | Quién bloquea (regla 3), huecos transitables | Este GDD; Movimiento lo aplica |
 | #7 Alcance | — | Tramo enemigo en pie como objetivo válido; alcance efectivo del arquero | #7 |
-| #8 Cobertura | — | Parte del tramo no redirigible | #8 *(PROVISIONAL)* |
+| #8 Cobertura | — | Parte del tramo no redirigible | #8 |
 | #9 Resolución | Daño por casilla | Daño a pieza y tramo a la vez; vida nueva, tramos rotos, muertes | #9 *(PROVISIONAL)* |
 | #10 Reclutamiento | — | `puedeReclutar` (también define la cara *Agotada*, #10, F3) | Este GDD |
-| #11 Modificador | — | `tramosRotos` / `puedeReclutar` para poner en 0 las caras de reclutar | #11 *(PROVISIONAL)* |
+| #11 Modificador | — | `tramosRotos` / `puedeReclutar` para poner en 0 las caras de reclutar | #11 |
 | #15, #16, #18, #25 | — | Vida de cada tramo, contador, `enMuro`; vista previa del daño y de ROTO | Cliente y IA, solo lectura |
 
-**Suposiciones provisionales:** #8, #9 y #11 todavía no tienen GDD. Las reglas 7, 8 y 10 fijan el contrato que ellos deberán respetar o reabrir.
+**Suposiciones provisionales:** #9 todavía no tiene GDD. Las reglas 7 y 8 fijan el contrato que deberá respetar o reabrir.
 
 ## Formulas
 
@@ -332,7 +332,7 @@ Estos cambios los provocó este GDD y **se aplicaron el 2026-11-25** (ver Depend
 - **systems-index:** hecho el 2026-11-25: fila 5 con la Librería y la Máquina de turno, y las aristas de #7, #8, #15, #16, #18 y #25 hacia #5.
 - **art-bible:** pendiente (no se tocó): las dos discrepancias de §6 de Visual/Audio.
 
-**Suposiciones provisionales:** #8, #9 y #11 no tienen GDD; el tipo de cada arista de esas filas es el que este sistema necesita de ellos y se confirma cuando los diseñen.
+**Suposiciones provisionales:** #9 no tiene GDD; el tipo de cada arista de esas filas es el que este sistema necesita de ellos y se confirma cuando los diseñen.
 
 ## Tuning Knobs
 
@@ -432,7 +432,7 @@ Sin pantalla propia: vive en el tablero y en el HUD (#15).
 
 ## Acceptance Criteria
 
-Los criterios usan las coordenadas del despliegue: el azul tiene el tramo `(4, 7)` con el anillo en `(5, 7)` y el interior en `(3, 7)`, y la esquina es `(4, 5)`. Tipos: **Logic** (prueba unitaria en Edit Mode), **Integration** (con otro sistema) y **Visual** (captura retenida). Los *Integration* que dependen de #8, #9 u #11 quedan **PROVISIONAL** hasta que esos GDD existan.
+Los criterios usan las coordenadas del despliegue: el azul tiene el tramo `(4, 7)` con el anillo en `(5, 7)` y el interior en `(3, 7)`, y la esquina es `(4, 5)`. Tipos: **Logic** (prueba unitaria en Edit Mode), **Integration** (con otro sistema) y **Visual** (captura retenida). Los *Integration* que dependen de #9 quedan **PROVISIONAL** hasta que esos GDD existan.
 
 **Reglas (Core Rules)**
 
@@ -448,8 +448,8 @@ Los criterios usan las coordenadas del despliegue: el azul tiene el tramo `(4, 7
 - **AC-10 (regla 7, el bono rige al empezar la resolución)**: **GIVEN** un arquero azul con 15 de vida sobre el tramo `(4, 5)` con vida 18, **WHEN** se resuelve un bruto de 18 sobre esa casilla, **THEN** el tramo queda en 0 y el arquero sobrevive con 1 de vida (neto 14 con escudo 4; con escudo 2 habría muerto). *(Integration con #9, PROVISIONAL)*
 - **AC-11 (regla 8, daño compartido y cobertura)**: **GIVEN** un arquero azul (15 de vida) sobre el tramo `(4, 5)` (30 de vida), **WHEN** recibe bruto 8, **THEN** el arquero queda en 11 y el tramo en 22. **Y GIVEN** el arquero cubierto por un escudero (escudo 5, vida 20), **THEN** el arquero queda en 15, el escudero en 17 y el tramo en 22. *(Integration con #8 y #9, PROVISIONAL)*
 - **AC-12 (regla 9, tramo roto bajo un arquero)**: **GIVEN** un arquero azul con 15 de vida sobre un tramo con vida 10, **WHEN** el bruto es 11, **THEN** el tramo queda en 0, el arquero en 8 sobre la casilla del hueco y `enMuro` es falso. **Y WHEN** el bruto es 20, **THEN** el arquero muere (neto 16 ≥ 15), la casilla queda sin ocupante y `hayTramo` es falso. *(Integration con #9, PROVISIONAL)*
-- **AC-13 (regla 10, corte de reclutamiento)**: **GIVEN** el castillo azul con 1 tramo roto, **THEN** `tramosRotos(azul)` es 1 y `puedeReclutar(azul)` es verdadero. **Y WHEN** se rompe un segundo, **THEN** `tramosRotos` es 2, `puedeReclutar` es falso y la tabla efectiva del azul al abrir su siguiente turno pasa de 15/20/25/25/15 a 15/45/0/0/40 con más de 12 piezas sin el Rey, y a 15/85/0/0/0 con 12 o menos. **Y WHEN** pasan 5 turnos sin daño o los 16 tramos están rotos, **THEN** `puedeReclutar` sigue falso. *(Integration con #10 y #11, PROVISIONAL)*
-- **AC-14 (regla 10, momento del corte)**: **GIVEN** un turno del rojo cuyos ataques rompen el segundo tramo azul, **WHEN** empieza el turno del azul, **THEN** su tabla efectiva ya tiene las caras de reclutar en 0 y la tirada no puede dar reclutar. *(Integration con #3 y #11, PROVISIONAL)*
+- **AC-13 (regla 10, corte de reclutamiento)**: **GIVEN** el castillo azul con 1 tramo roto, **THEN** `tramosRotos(azul)` es 1 y `puedeReclutar(azul)` es verdadero. **Y WHEN** se rompe un segundo, **THEN** `tramosRotos` es 2, `puedeReclutar` es falso y la tabla efectiva del azul al abrir su siguiente turno pasa de 15/20/25/25/15 a 15/45/0/0/40 con más de 12 piezas sin el Rey, y a 15/85/0/0/0 con 12 o menos. **Y WHEN** pasan 5 turnos sin daño o los 16 tramos están rotos, **THEN** `puedeReclutar` sigue falso. *(Integration con #10 y #11)*
+- **AC-14 (regla 10, momento del corte)**: **GIVEN** un turno del rojo cuyos ataques rompen el segundo tramo azul, **WHEN** empieza el turno del azul, **THEN** su tabla efectiva ya tiene las caras de reclutar en 0 y la tirada no puede dar reclutar. *(Integration con #3 y #11)*
 - **AC-15 (regla 12, fin de partida)**: **GIVEN** los 16 tramos azules rotos y el Rey azul vivo, **WHEN** se llama `EvaluateMatchEnd`, **THEN** la partida sigue En curso. *(Integration con #3)*
 - **AC-16 (regla 13, orden y consultas puras)**: **GIVEN** dos tramos azules con vida 8 que reciben bruto 10 cada uno en la misma resolución, **WHEN** se lee el resultado, **THEN** ambos quedan en 0, `tramosRotos` suma 2 y los eventos de rotura salen por casilla (fila, columna). **Y WHEN** se repite el fixture 100 veces, **THEN** la huella es idéntica, y consultar vida, `tramosRotos` y `enMuro` no la cambia. *(Logic)*
 - **AC-17 (regla 14, config y huella)**: **GIVEN** una config con `vida_tramo` 30, **WHEN** se llama `CrearPartida`, **THEN** nace En curso con los 32 tramos en 30. **Y GIVEN** `vida_tramo` 0, −1 o 1.001, **THEN** `ConfigInvalida` y sin partida. **Y GIVEN** 1 o 1.000, **THEN** se acepta. **Y GIVEN** dos configs que difieren solo en `vida_tramo`, **THEN** sus huellas difieren. *(Integration con #1)*
@@ -482,7 +482,7 @@ Los criterios usan las coordenadas del despliegue: el azul tiene el tramo `(4, 7
 - **Cobertura:** cada regla (1–14), cada fórmula (F1–F7) y los casos borde que podían salir rotos tienen criterio. No quedó ninguna regla ni fórmula sin criterio.
 - **Rendimiento:** no se fija un presupuesto en milisegundos: las pruebas del proyecto no pueden depender del tiempo, y estas consultas son O(16) sin asignaciones. Queda como pregunta para la Librería (#1).
 - **No automatizable:** que el hueco y el contador de tramos rotos *se lean al instante* (Player Fantasy) es una pregunta de playtest, no un criterio. Va a Open Questions.
-- **Tipos:** AC-1, 2, 9, 16 y 18 a 24 son Logic puros; AC-3 a 8, 10 a 15, 17 y 25 a 30 son Integration, PROVISIONAL los que dependen de #8, #9 u #11; AC-31 es Visual con captura retenida.
+- **Tipos:** AC-1, 2, 9, 16 y 18 a 24 son Logic puros; AC-3 a 8, 10 a 15, 17 y 25 a 30 son Integration, PROVISIONAL los que dependen de #9; AC-31 es Visual con captura retenida.
 
 ## Open Questions
 
@@ -497,5 +497,5 @@ Los criterios usan las coordenadas del despliegue: el azul tiene el tramo `(4, 7
 | ¿El hueco y el contador "se leen al instante"? No automatizable | Render (#18), HUD (#15), playtest | MVP |
 | Presupuesto de rendimiento de `enMuro` y `tramosRotos` (sin aserción de tiempo en tests) | Librería (#1) | En su ADR |
 | Qué hace la Librería con un registro cuya `vida_tramo` difiere de la config actual | Librería (#1) | En su ADR |
-| Confirmar el contrato PROVISIONAL de #8, #9 y #11 (reglas 7, 8 y 10) y la explosión del demoledor sobre muros | #8, #9 y #11 | En sus GDD |
+| Confirmar el contrato PROVISIONAL de #9 (reglas 7 y 8) y la explosión del demoledor sobre muros | #9 | En sus GDD |
 | ¿Cuánto suma el muro a la duración de la partida (pilar 4)? Medir turnos hasta el primer tramo roto y turnos extra por brechas; declarar su `Δturnos` contra el presupuesto de la Máquina de turno | Métricas (#19), Máquina de turno (#3) | MVP: compuerta de duración |

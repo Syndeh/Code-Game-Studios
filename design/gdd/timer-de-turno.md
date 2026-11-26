@@ -277,6 +277,7 @@ En los tres, `consumido_total_ms` ≤ 1.500.000. Este es el límite superior de 
 |---|---|---|
 | #3 Máquina de turno | Dura | `numeroTurno`, jugador del turno, etapa del timer, partida en curso; `reloj_jugador_s` y `tope_partida_s`; qué hacen `TurnTimeout` y `CerrarPartida(RelojAgotado)` |
 | #1 Librería de reglas | Dura | El contrato de los comandos de autoridad y sus códigos de rechazo; el dato informativo del modo de timer |
+| #11 Modificador | Blanda | Con Distracción no hay etapa de mover; el Timer lo sabe por la etapa de la Máquina, no lee la cara |
 
 El índice solo nombra la Máquina; la Librería es una dependencia dura real porque define a quién se le envían los comandos y qué se responde.
 
@@ -293,6 +294,7 @@ El índice solo nombra la Máquina; la Librería es una dependencia dura real po
 | #28 Servidor | Dura | La política de vencimientos como biblioteca y el formato online | Pendiente |
 | #25 Rival IA | Blanda | Si sus turnos descuentan reloj | Pendiente |
 | #14 Localización | Blanda | Nombres de los cuatro modos | Existe |
+| #13 Entrada | Blanda | El cambio de fase por `TurnTimeout` suelta la selección | Existe |
 
 **Bidireccionalidad.** La Máquina de turno ya nombra al Timer (Dependencies, Interactions y Cross-References) y la Librería también (Interactions). Los demás GDD pendientes tienen que nombrar al Timer en su Dependencies al escribirse (marcado para `/design-review` y `/review-all-gdds`).
 
