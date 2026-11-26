@@ -2,7 +2,7 @@
 
 > **Status**: Draft — 9 secciones escritas
 > **Owned By**: art-director
-> **Last Updated**: 2026-11-17
+> **Last Updated**: 2026-11-26 (datos de juego según el prototipo v5: escudero con arma larga, alcance 1–2)
 > **Art Director Sign-Off (AD-ART-BIBLE)**: REVISED 2026-11-17 — las 9 secciones. Corregidas las frases que dejó el HUD a pantalla completa (Secciones 4 y 6) y la pose de reposo (Sección 5). Pendiente de medir: peso de la primera descarga web (Sección 8)
 
 `/art-bible` writes these nine sections in this order and replaces each
@@ -145,7 +145,7 @@ lee antes que el detalle" (Sección 1, principio 1; pilar 1). Definiciones del j
 |---|---|
 | **Soldado** | Porta un arma de corto alcance (espada, maza, palo…) |
 | **Arquero** | Usa un arma a distancia |
-| **Escudero** | Lleva un escudo de gran tamaño, de hasta el 60% de la figura y un arma de largo alcance (pueden ser objetos largos como una lanza) |
+| **Escudero** | Lleva un escudo de gran tamaño, de hasta el 60% de la figura, y un arma larga (pueden ser objetos largos como una lanza): medio escondido detrás del escudo con un arma larga. El arma larga se lee con su alcance de 1–2 (prototipo v5) |
 | **Catapulta** | Ocupa toda la casilla. Es un dispositivo capaz de lanzar objetos contundentes |
 | **Jinete** | Va montado en algo que puede transportarlo |
 | **Demoledor** | Lleva un explosivo. Es una persona descuidada, capaz de sacrificarse |
@@ -198,7 +198,7 @@ hace un eco leve del mundo.
 - **Ficha:** rectángulo de esquinas redondeadas, plano, sin textura.
 - **Íconos:** el puño es redondeado (nudillos); el escudo es heráldico, con la punta abajo.
   Los íconos de tipo son planos y no copian ninguna skin: representan el rasgo del tipo (arma
-  corta, arma a distancia, escudo grande, lanzador, montura, explosivo, Rey).
+  corta, arma a distancia, escudo grande con arma larga, lanzador, montura, explosivo, Rey).
 - **Flechas de ataque:** arcos curvos. Cuando varios atacantes van al mismo objetivo, sus
   flechas **se funden en una sola punta**, más gruesa según la cantidad de atacantes (Sección
   1, principio 2; pilar 2).
@@ -705,7 +705,7 @@ interfaz, las placas y el Rey quedan serios):
 
 | Lugar | Cómo | Límite |
 |---|---|---|
-| **Pose de reposo** | En la pose congelada, no en el movimiento: el demoledor con la mecha encendida mirando para otro lado; el escudero medio escondido detrás del escudo; el Rey con el pecho inflado | Respiración de 1-2 px y ≤ 4 cuadros (Sección 5); pasa la prueba de silueta (Sección 3) |
+| **Pose de reposo** | En la pose congelada, no en el movimiento: el demoledor con la mecha encendida mirando para otro lado; el escudero medio escondido detrás del escudo con un arma larga; el Rey con el pecho inflado | Respiración de 1-2 px y ≤ 4 cuadros (Sección 5); pasa la prueba de silueta (Sección 3) |
 | **Gesto de ataque** | Anticipación exagerada y golpe con estiramiento y aplastamiento: el soldado revolea el arma de más; la catapulta se sacude; el arquero se echa para atrás al soltar | ~6 cuadros, todos los ataques a la vez (Sección 1, principio 3). La deformación no tapa el rasgo del tipo |
 | **Caída al morir** | Caída con carácter propio de cada tipo (un tropezón, un giro, el casco que sale volando), con la desaturación de la Sección 5 | Todas las caídas duran lo mismo y terminan en el mismo cuadro (Secciones 2 y 6). **El Rey no tiene caída cómica**: la derrota es digna (Sección 2) |
 | **Rasgos del pack** | Armas, escudos o monturas desproporcionados o improvisados dentro del rasgo del tipo (el palo del soldado, una montura absurda para el jinete) | Escudo ≤ 60% de la figura, figura al 70-80% de la casilla (Sección 3); sin colores de bando ni del sistema (Sección 5) |
