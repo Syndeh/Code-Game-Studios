@@ -479,7 +479,7 @@ La resolución es el estado «Resolución / cosecha» del art bible (Sección 2,
 
 - **Todo en el mismo cuadro.** Los impactos de todos los eventos de una resolución se muestran simultáneos; las muertes caen juntas. La resolución completa entra en ~2 s (art bible, principio 3, *propuesta a validar en prototipo*). La presentación puede acelerarse u omitirse sin cambiar el resultado: el estado ya es el final cuando salen los eventos.
 - **Nada por color solo.** MUERE, ROTO, el escudo que absorbe y el fuego amigo se distinguen por forma, ícono o texto (art bible, Sección 4, *Daltonismo*).
-- **El número flotante es el neto** para una pieza y el **bruto** para un tramo (sin escudo): coincide con lo que mostró la vista previa. Un número no puede ser mayor que lo que el jugador pudo calcular.
+- **El número flotante es `vidaPerdida`** del evento (pieza o tramo), y no hay número cuando el receptor muere o se rompe: ahí se ve solo MUERE o ROTO (decisión del 2026-11-26). Coincide con `vidaAntes → vidaDespues` de la vista previa. Un número no puede ser mayor que lo que el jugador pudo calcular.
 - **Una pieza con `bruto_pieza` 0** (el cubierto cuyo daño se desvió) no muestra nada.
 - **Audio:** los golpes simultáneos no se apilan hasta saturar: el combinado suena como **un** golpe que crece con `atacantesRivales`, y los cues de MUERE y ROTO tienen prioridad de mezcla sobre los golpes sueltos (pilar 2: *un golpe combinado se siente distinto de varios golpes sueltos*).
 
@@ -599,7 +599,7 @@ Las piezas se nombran por tipo y casilla `(columna, fila)`. Valores del Catálog
 
 ### Visual
 
-- **AC-43 (capturas de la cosecha)** *(Visual, dueño #18; la cubre AC-21 de Render)* — **GIVEN** Render, **WHEN** se resuelven (a) un combo de 4 atacantes, (b) un golpe absorbido por el escudo (neto 0), (c) una cobertura que desvía, (d) una explosión de demoledor sobre un muro de 3 tramos, (e) un tramo roto con el arquero sobreviviente, (f) un fuego amigo, **THEN** se guarda una captura de cada una en `production/qa/evidence/` donde se ven todos los impactos en el mismo cuadro, el número flotante igual al de la vista previa, las placas MUERE y ROTO, la línea de desvío y la marca de fuego amigo por forma.
+- **AC-43 (capturas de la cosecha)** *(Visual, dueño #18; la cubre AC-21 de Render)* — **GIVEN** Render, **WHEN** se resuelven (a) un combo de 4 atacantes, (b) un golpe absorbido por el escudo (neto 0), (c) una cobertura que desvía, (d) una explosión de demoledor sobre un muro de 3 tramos, (e) un tramo roto con el arquero sobreviviente, (f) un fuego amigo, **THEN** se guarda una captura de cada una en `production/qa/evidence/` donde se ven todos los impactos en el mismo cuadro, el número flotante igual al de la vista previa y ningún número sobre MUERE o ROTO, las placas MUERE y ROTO, la línea de desvío y la marca de fuego amigo por forma.
 
 ### Revisión de QA
 

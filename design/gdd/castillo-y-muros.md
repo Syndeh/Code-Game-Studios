@@ -368,7 +368,7 @@ Fuente: `design/art/art-bible.md` (§3 *Castillo y muros*, §4 *ROTO* y daltonis
 
 | Evento | Feedback visual | Feedback sonoro (dirección; la especificación es de #22) |
 |---|---|---|
-| **Vista previa del daño al tramo** (asignar) | El daño previsto sobre el tramo como número. Si alcanza su vida, la placa **ROTO**: Tinta con texto `#F5F1E8`, grieta en zigzag, la palabra ROTO y el tramo dibujado como hueco | Señal distinta de ROTO al confirmar la vista previa (pedido del art bible al director de audio) |
+| **Vista previa del daño al tramo** (asignar) | La placa de un renglón `vidaAntes→vidaDespues` (#16, regla 9). Si alcanza su vida, la placa **ROTO**: Tinta con texto `#F5F1E8`, grieta en zigzag, la palabra ROTO y el tramo dibujado como hueco | Señal distinta de ROTO al confirmar la vista previa (pedido del art bible al director de audio) |
 | **Golpe combinado sobre un tramo** | Los trazos de los atacantes convergen en el tramo; la punta fundida crece con la cantidad (1 atacante, ×1,5 con 2, ×2 con 3 o más); el efecto sobre el tramo crece igual | Golpe a piedra, distinto del golpe a una pieza; el acento crece con los atacantes (#22) |
 | **Cambio de estado del tramo** | **Entero:** borde recto. **Mellado** (`vida × 2 < vida_tramo`): melladuras en el borde superior. **Roto:** hueco con escombro bajo y borde quebrado. Transición de ≤ 0,25 s | Derrumbe corto al romperse |
 | **Escombros alrededor del muro** | Cuantos más tramos dañados, más escombros; se lee de lejos qué castillo viene perdiendo. **Persisten**: son estado | — |

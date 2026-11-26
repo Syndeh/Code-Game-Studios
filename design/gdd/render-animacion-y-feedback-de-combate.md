@@ -171,7 +171,7 @@ Todas las marcas son de la capa del sistema (art bible §3, *Gramática de forma
 
     **La duración no depende de cuántos eventos hay**, y la resolución completa dura `t_resolucion` ≤ `resolucion_max_s` (2,0 s).
 21. **Qué se ve por evento.**
-    - **Número flotante:** el **neto** para una pieza y el **bruto** para un tramo. Es el mismo que mostró la vista previa (#9, Visual/Audio, *Restricciones*), y ningún número puede ser mayor que lo que el jugador pudo calcular.
+    - **Número flotante:** `vidaPerdida` del evento, solo si el receptor sobrevive. Una pieza que muere muestra solo MUERE y un tramo que se rompe solo ROTO, sin número (decisión del 2026-11-26). Es el mismo que mostró la vista previa (#16, regla 19; #9, Visual/Audio, *Restricciones*), y ningún número puede ser mayor que lo que el jugador pudo calcular.
     - **`neto` 0:** ícono de escudo y «0», **sin pulso de daño**.
     - **Escudero con `brutoDesviado` > 0:** su número lleva el ícono de escudo, y el tramo quebrado de la flecha y la línea eslabonada se resaltan durante el pulso. Un aliado cubierto con `bruto_pieza` 0 no tiene evento y no muestra nada.
     - **Fuego amigo** (receptor del jugador del turno): el mismo pulso, con el contorno discontinuo sobre la figura o el tramo.
@@ -571,7 +571,7 @@ La fórmula `memoria_skin` se define así:
 | Lo propio en zona | Contorno discontinuo sobre la figura o el tramo propio | Aviso discreto, una vez por asignación |
 | `CoberturaAsignada` | Línea eslabonada acero, sin punta; la ven los dos jugadores | Golpe metálico sordo |
 | Resolución: gesto | Todos los atacantes a la vez; las flechas del plan se apagan; vuelan los proyectiles | Ataques de cada tipo, sin apilarse |
-| Resolución: impacto (`t_impacto`) | Pulso cálido ~4000 K desde cada receptor, con el tamaño de F2; número flotante (neto o bruto); MUERE y ROTO; la vida de la ficha cambia de una vez | **Un** golpe por receptor, más pleno con `atacantesRivales`; MUERE y ROTO con prioridad de mezcla |
+| Resolución: impacto (`t_impacto`) | Pulso cálido ~4000 K desde cada receptor, con el tamaño de F2; número flotante (vida perdida; ninguno con MUERE o ROTO); MUERE y ROTO; la vida de la ficha cambia de una vez | **Un** golpe por receptor, más pleno con `atacantesRivales`; MUERE y ROTO con prioridad de mezcla |
 | Neto 0 | Ícono de escudo y «0», sin pulso | Golpe amortiguado |
 | Desvío | La flecha quebrada y la línea eslabonada se resaltan; número con ícono de escudo sobre el escudero | Golpe de escudo sobre el combinado |
 | Fuego amigo | El mismo pulso, con contorno discontinuo | Sin cue extra (la sorpresa ya se evitó en la vista previa) |
