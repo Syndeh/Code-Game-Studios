@@ -499,14 +499,14 @@ La fórmula `memoria_skin` se define así:
 | #11 Modificador | Blanda | `Tirada` (ambiente); el envío local de la `Tirada` espera a Render | Existe; **no** nombra a #18 (Cambios pedidos) |
 | #12 Timer | Blanda | `TramoFinalIniciado` | Existe; nombra a #18 |
 | #14 Localización | Blanda | Ninguna clave propia | Existe; nombra a #18 (pregunta cerrada: Render no lleva texto) |
-| #15 Ficha y HUD | Blanda | Orden de capas compartido; consume `casillaEnPantalla` | Existe; nombra a #18 |
+| #15 Ficha y HUD | Dura | Orden de capas compartido; consume `casillaEnPantalla` | Existe; nombra a #18 |
 | #16 Vista previa | Blanda | Contenido de placas y números | En paralelo (tanda 4) |
 
 **Downstream (lo que depende de Render):**
 
 | Sistema | Tipo | Qué recibe | Estado |
 |---|---|---|---|
-| #15 Ficha y HUD | Blanda | `casillaEnPantalla`, política de escala, cuadro de impacto | Existe |
+| #15 Ficha y HUD | Dura | `casillaEnPantalla`, política de escala; los tiempos de la presentación (impacto, caída, fin del grupo 1, salto); #15 muestra el estado presentado (#15, regla 1) | Existe |
 | #16 Vista previa | Blanda | Ancla en pantalla y la presentación en la resolución | En paralelo |
 | #19 Métricas | Blanda | Skin rechazada, fps, tiempo de carga, saltos de la resolución | En paralelo |
 | #22 Audio | Dura | El reloj de presentación (`t_impacto`, `t_caida`, salto) | Sin GDD |

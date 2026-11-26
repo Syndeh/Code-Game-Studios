@@ -67,6 +67,8 @@ El jugador interactúa con la ficha de forma pasiva (la lee) y con el HUD de for
 #### A. Lecturas y capa del sistema
 
 1. **Qué es y qué lee.** El HUD y la ficha son una capa de cliente de **solo lectura**. Lee, y solo lee, estas fuentes: las consultas puras de la Librería (`EffectiveStats`, vida, tipo, casilla, dueño, `enMuro`, `tramosRotos`, `Cubre`, `CubiertoPor`; Librería regla 10); la fase, el jugador del turno, el número de turno y la pila de la Máquina (#3); `piezasMovidas`, el límite del turno y `usados` de Movimiento (#6); la vista y los eventos del Timer (#12, regla 13 y regla 12); la cara del turno y los bonos activos del Modificador (#11); los textos de Localización (#14); la pieza elegida o en inspección de Entrada (#13); y las opciones guardadas (Ficha simple, Reducir efectos). **El HUD no recalcula ninguna cifra del juego**: lo que muestra es lo que devuelve la consulta. Su estado propio (atenuación, bloqueo del botón, cola de leyendas, selección) es del cliente: no entra en la forma canónica del estado ni en la huella (igual que la selección de Entrada).
+
+   **Durante la presentación de una respuesta** (la cosecha y el cambio de turno; Render, regla 19), el HUD muestra el **estado presentado**, es decir, lo que Render ya dibujó, y no el estado final del núcleo. La vida de cada ficha cambia en `t_impacto`; la ficha de una pieza muerta se va con su figura; el contorno, el emblema y el banner del turno nuevo cambian al empezar el grupo 2. Si el jugador salta la resolución (Render, regla 24), el estado presentado pasa al final en el cuadro siguiente. Fuera de la presentación, el estado presentado y el del núcleo son el mismo. Cómo se arma ese estado (por ejemplo, con una cola de presentación a la que se suscriben Render y el HUD) lo decide la arquitectura. El HUD sigue sin recalcular cifras: el estado presentado sale de los eventos, que traen `vidaAntes` y `vidaDespues` (decisión del 2026-11-26).
 2. **Capa del sistema, fuera del alcance de las skins.** La ficha, los íconos del HUD, los números, los marcadores y los avisos se dibujan con los activos del sistema (art bible §3 *Gramática de formas de la interfaz*, §4 colores semánticos, §7). Una skin dibuja la figura y nada más: no lee ni cambia una cifra, un color ni la posición de la ficha (anti-pilar «NOT pagar para ganar»; Catálogo, regla 9). Los colores de la ficha son solo los semánticos: vida `#8EDB6A`, ataque `#E55A40`, escudo `#7F9BB8`; fondo Tinta `#1E1A17`; texto `#F5F1E8`. Hueso y Ciruela son exclusivos del bando (contorno del tablero y emblema).
 
 #### B. La ficha
@@ -188,7 +190,7 @@ Transiciones: toda variación visual dura **≤ 0,25 s con frenado suave** (art 
 | #14 Localización | Textos por clave `ui.hud_*`; aviso de cambio de idioma | Claves y parámetros | Localización (texto); #15 (claves `ui`) |
 | #16 Vista previa | Reemplaza la ficha de cada receptor de golpe en `Atacar`; agrega su bloque a la tarjeta | El ancla de la ficha, cedida; el final de la tarjeta | #16 (contenido); #15 (ancla y tarjeta) |
 | #17 Interfaz del Modificador | Etiqueta de la cara y «?» en la banda superior | El lugar de cada uno | #17 (contenido); #15 (lugar) |
-| #18 Render | Posición en pantalla de cada casilla y de las figuras | La posición de la ficha, anclada a la casilla | Render (dibujo de las figuras); #15 (la ficha, capa del sistema) |
+| #18 Render | Posición en pantalla de cada casilla y de las figuras; los tiempos de la presentación (impacto, caída, fin del grupo 1) | La posición de la ficha, anclada a la casilla | Render (dibujo de las figuras); #15 (la ficha, capa del sistema) |
 | #19 Métricas | — | Nada nuevo: el deshacer sale del evento de la Máquina y `rendirseDisponible` de la Librería; lee `FichaSimple` y `ReducirEfectos` al empezar la partida; el botón `Exportar métricas` de la placa de fin | Métricas |
 | #20 Ajustes, #21 Menú, #23 Accesibilidad, #24 Tutorial | — | Opción Ficha simple, datos del resumen, la ficha como material de la vista de estadísticas | Cada GDD (todos PROVISIONALES: aún sin GDD) |
 
@@ -389,7 +391,7 @@ La fórmula `alto_tarjeta` se define así:
 **Cifras y ficha**
 
 - **If una cifra mostrada tiene 3 cifras o más** (el Catálogo o un bono pasó de 99, contra AC-4): la ficha muestra el valor real, **nunca lo trunca ni lo abrevia**; la placa crece lo necesario y queda centrada (F1: 71 px con un número de tres cifras, 85 px con los tres), invadiendo la casilla vecina y el cliente registra un error visible en el build de desarrollo. El test AC-4 impide publicar con esa tabla.
-- **If una pieza sobrevive a la resolución con menos vida:** el número de vida cambia de una vez, en el cuadro del destello de resolución, sin contar hacia abajo (art bible §7).
+- **If una pieza sobrevive a la resolución con menos vida:** el número de vida cambia de una vez, en `t_impacto` de Render (#18, regla 20), sin contar hacia abajo (art bible §7).
 - **If una pieza muere en la resolución:** su ficha desaparece en el mismo cuadro que su figura, también si estaba elegida o en inspección (la tarjeta se va con la selección; Entrada, Edge Cases). Si era objetivo de una asignación, la vista previa deja su lugar a la placa MUERE (#16).
 - **If `Deshacer` devuelve una pieza a `usados = 0`:** la ficha recupera sus colores y pierde el marco en el mismo cuadro. **If la pieza se había movido dos veces y se deshace solo la última:** sigue atenuada (`usados > 0`; Movimiento, regla 10).
 - **If la pieza es el Rey y `usados > 0`:** su ficha se atenúa como la de cualquiera, pero **no suma** al contador de piezas movidas (Movimiento, regla 8).
@@ -462,7 +464,7 @@ La fórmula `alto_tarjeta` se define así:
 |---|---|---|---|
 | #16 Vista previa de ataques | **Dura** | El ancla de la ficha (regla 10): reemplaza la ficha de cada receptor en `Atacar`; el bloque de la tarjeta; el lugar de la zona de avisos | Existe (tanda 4) |
 | #17 Interfaz del Modificador | **Dura** | Los lugares fijos de la etiqueta de la cara (izquierda del timer) y del «?» (extremo derecho) en la banda superior, y la reserva del centro del tablero | Existe (escrito en paralelo el 2026-11-25); se leyeron solo los pasajes que nombran a #15 y este GDD adopta el lugar que propone |
-| #18 Render, animación y feedback | Blanda | La ficha como capa del sistema que Render debe dejar intacta; posición de cada casilla en pantalla (`casillaEnPantalla`, F3 de #18) | Existe (tanda 4) |
+| #18 Render, animación y feedback | Dura | La ficha como capa del sistema que Render debe dejar intacta; posición de cada casilla en pantalla (`casillaEnPantalla`, F3 de #18); los tiempos de la presentación: `t_impacto`, la caída y el fin del grupo 1 (#18, reglas 19, 20 y 24) | Existe (tanda 4) |
 | #23 Accesibilidad | Blanda | Escala de texto, daltonismo, tamaños táctiles de los controles, lector de pantalla de la tarjeta | Pendiente |
 | #24 Tutorial básico de 3 pasos | **Dura** | La ficha y la tarjeta como la «vista de estadísticas de todas las piezas» | Pendiente |
 | #38 Kit de skins con validador | Blanda | «Ficha del sistema intocable»: el validador comprueba que ningún pack toque la zona o los colores de la ficha | Pendiente |
@@ -627,6 +629,7 @@ Este sistema **es** la capa de interfaz de la partida; su especificación comple
 
 - **AC-33 (UI; cruza el AC-31 del Modificador)** — **GIVEN** el Grito activo y un arquero asignando un ataque, **THEN** su ficha muestra 8 subrayado y la tarjeta `8 (6)`, la vista previa usa 8, la catapulta muestra 12 de impacto y 6 de área, y el demoledor no muestra cambio de ataque. Evidencia: `production/qa/evidence/modificador-grito-ficha-vista-previa.png`.
 - **AC-34 (Integration; cruza el Castillo)** — **GIVEN** un arquero propio al lado de un tramo libre, **WHEN** se acepta el `Mover` al tramo, **THEN** en ese mismo cuadro su ficha muestra escudo 4 y alcance 1–6 con subrayado, y la tarjeta agrega `En el muro`.
+- **AC-37 (Integration; regla 1, estado presentado; cruza #18)** — **GIVEN** un ataque de J que mata a una pieza de K y otro que hiere a una segunda, **WHEN** empieza la cosecha, **THEN** en el cuadro 0 las dos fichas muestran `vidaAntes` y el contorno sigue siendo el de J; en `t_impacto` la herida muestra `vidaDespues`; la ficha de la muerta se va con su figura; y el contorno y el emblema cambian recién al empezar el grupo 2. **WHEN** se salta la resolución, **THEN** todo eso pasa en el cuadro siguiente.
 
 **Playtest (MVP)**
 
