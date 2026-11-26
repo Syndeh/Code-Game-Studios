@@ -353,7 +353,7 @@ Sin pantalla propia.
 - **Destinos:** se marcan al elegir la pieza, también los tramos a los que puede subir un arquero.
 - **Contador de piezas movidas** (abajo a la derecha, por ejemplo 5/12): no cuenta al Rey; con Arremetida dice "sin límite". Debe quedar claro que el Rey va aparte.
 - **Restante de la pieza elegida**, visible sin pasar el mouse (regla del proyecto).
-- **Pieza ya movida:** marca por forma, para saber cuáles gastaron cupo. *Propuesta: no está en el art bible.*
+- **Pieza ya movida:** ficha atenuada (gris apagado con marco interior de 1 px), para saber cuáles gastaron cupo. Definida por Ficha y HUD (#15, regla 5) y sumada al art bible §7 al cerrar la tanda 3.
 - **Rechazos visibles:** todos los de la regla 13 salvo `DestinoFueraDelTablero`, que es interno.
 - **Deshacer:** abajo a la izquierda (art bible §7).
 
@@ -428,5 +428,5 @@ La regla 1 es de alcance del documento y la 9 la cubren AC-4, AC-5 y AC-6. La fa
 | ¿El Rey sin cupo se vuelve la mejor pieza de ataque? | Métricas (#19), playtest | MVP |
 | ¿Frustra que ir y volver gaste cupo? Evitarlo exige guardar la casilla inicial | Playtest | MVP |
 | ¿El rango 8–16 de `limite_normal` es correcto? | Métricas (#19) | Tras las primeras 20 partidas online |
-| La marca de pieza ya movida | `/art-bible`, HUD (#15) | En el GDD de #15 |
+| ~~La marca de pieza ya movida~~ **Resuelta por #15 (regla 5)**, confirmada por el jugador el 2026-11-25 | — | — |
 | Cómo se busca el camino sin reservar memoria | ADR de la Librería | `/create-architecture` |

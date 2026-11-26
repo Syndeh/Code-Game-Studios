@@ -210,8 +210,9 @@ de mover se pierde; se mide en playtest (Open Questions).
 | 12 Timer | `numeroTurno` y etapa actual | `TurnTimeout` y `CerrarPartida(RelojAgotado)` | Timer |
 | 28 Servidor | Mismo pipeline | Es la autoridad de los comandos de autoridad | Servidor |
 | 15 HUD, 19 Métricas, 25 Rival IA | Eventos de fase, etapa y pila | Nada (IA: mismos comandos que un jugador) | Cada GDD |
+| 17 Interfaz del Modificador | Fase `EsperandoTirada`, `FaseIniciada`, `ReclutaPerdido` | Nada (el `Reclutar` lo manda Entrada); la etiqueta dice «Tirando el dado…» en `EsperandoTirada` | Interfaz del Modificador |
 
-**Supuestos PROVISIONALES sobre GDD sin escribir:** el contador `vidaQuitada` (#9). Las piezas reclutadas se mueven ese turno, salvo las
+**Supuestos PROVISIONALES sobre GDD sin escribir:** ninguno sobre #9 (el contador `vidaQuitada` y su cota los confirmó Resolución al cerrar la tanda 3, 2026-11-25). Las piezas reclutadas se mueven ese turno, salvo las
 del recluta automático (#6, regla 11; #10, reglas 9 y 10). Con una catapulta o un demoledor
 propios vivos, `Atacar` nunca se salta (#7, regla 14).
 
@@ -399,13 +400,13 @@ Dependencies*). Por eso esos sistemas dependen de ella y no al revés.
 | #7 Alcance y asignación | Dura | Fase `Atacar` y el criterio "acción posible" | Existe |
 | #8 Cobertura | Blanda | Momento de borrar las coberturas (al abrir el turno de su dueño) y `AliadosCubribles` para el salto de fase | Existe |
 | #5 Castillo y muros | Blanda | Momento del corte de reclutamiento (reclutar es de la fase de mover; la tabla se calcula al abrir el turno), `Deshacer` sobre los `Mover` de subir y bajar del muro y `vidaQuitada` | Existe |
-| #9 Resolución | Dura | Transición `Resolver`; escribe `vidaQuitada`; declara `Δturnos` | Pendiente |
+| #9 Resolución | Dura | Transición `Resolver`; escribe `vidaQuitada`; declara `Δturnos` | Existe (escribe `vidaQuitada` con su cota; `Δturnos` todavía no lo declara: queda para Métricas, #19) |
 | #10 Reclutamiento | Dura | Fase `Reclutar`, recluta automático; declara `Δturnos` (su F6, sin valor medido) | Existe |
 | #11 Modificador | Dura | Resultados tipados, fase de tirada y bonos que se borran al cerrar; declara `Δturnos` de Distracción (F4, sin medir) | Existe |
 | #12 Timer | Dura | `numeroTurno`, etapa y `reloj_jugador_s`; emite `TurnTimeout` y `CerrarPartida(RelojAgotado)` | Existe |
 | #13 Entrada | Blanda | Fase, jugador del turno y pila: los botones de avanzar y Deshacer | Existe |
 | #14 Localización | Blanda | Nombres de fases y motivos de fin | Existe |
-| #15 Ficha y HUD | Blanda | Fase, etapa y cuántos movimientos se pueden deshacer | Pendiente |
+| #15 Ficha y HUD | Blanda | Fase, etapa y cuántos movimientos se pueden deshacer | Existe (tanda 3) |
 | #19 Métricas | Blanda | Eventos de fase, `TurnoTerminado`, `PartidaTerminada` | Pendiente |
 | #21 Menú principal | Blanda | Inicia la partida y recibe `PartidaTerminada` | Pendiente |
 | #25 Rival IA | Dura | Mismas fases y comandos que un jugador | Pendiente |
@@ -453,8 +454,8 @@ define no se repiten acá; solo se listan los eventos que **ya tienen** tratamie
 | `FaseIniciada` (Reclutar, Mover, Atacar) | El botón de avanzar cambia de texto y el ambiente pasa a *Planificar* o *Asignar ataques* | Definido (§2 *Estados*, §7) |
 | Distracción (`SaltearMovimiento`) | Placa gris "Distracción", ≤ 1,5 s, y pasa a atacar | Definido (§2 *Estados*) |
 | `FaseSaltada` (Mover o Atacar) | **Leyenda breve al centro** ("Sin movimientos" o "Sin objetivos"), ≤ 1 s, sin ambiente propio y sin sonido de error: no es una falla, es un turno que se cierra solo | **Falta**: hay que agregarlo a §2 |
-| `ReclutaPerdido` | Leyenda breve "Sin reclutas disponibles", ≤ 1 s | **Falta** |
-| Recluta automático (`automatico`) | La pieza aparece con una marca breve "Elegido por el tiempo", para que el jugador sepa que decidió el timer | **Falta** |
+| `ReclutaPerdido` | Leyenda breve "Sin reclutas disponibles", ≤ 1 s, en la placa central de leyendas (HUD, #15, regla 19) | **Falta** en el art bible; lugar cerrado por #15 |
+| Recluta automático (`automatico`) | La pieza aparece con una marca breve "Elegido por el tiempo", para que el jugador sepa que decidió el timer; la marca va sobre su ficha, ≤ 1 s (HUD, #15) | **Falta** en el art bible; lugar cerrado por #15 |
 | `PartidaTerminada` con `ReyMuerto`, Rendición o Abandono | Pantallas espejo de Victoria y Derrota | Definido (§2 *Estados*) |
 | `PartidaTerminada` con `DobleRey` | Victoria para el jugador del turno, con los dos Reyes cayendo | **Falta** el detalle de los dos Reyes |
 | `PartidaTerminada` con `RelojAgotado` | Victoria o Derrota; el resumen dice a quién se le acabó el reloj | **Falta** el texto en el resumen |
@@ -672,7 +673,7 @@ minutos (lo mide la compuerta de 3 partidas seguidas ≤ 25 min con las Métrica
 **Huecos conocidos:** "la Máquina no conoce a ningún sistema por nombre" se prueba con un
 Modificador de prueba (AC-5); la política de la regla 14 se prueba en #12 y #28 (AC-20);
 `N_base` no se puede fijar (D1); la parte de `vidaQuitada` de AC-21 usa estados armados con el constructor de pruebas
-hasta que Resolución (#9) escriba `vidaQuitada`; el estancamiento (nadie puede actuar) no
+hasta que se implemente Resolución (#9, que ya la escribe en su GDD); el estancamiento (nadie puede actuar) no
 tiene criterio porque quedó como pregunta abierta.
 
 ## Open Questions

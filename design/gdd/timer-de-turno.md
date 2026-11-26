@@ -71,7 +71,7 @@ Se eligió B porque es la única que le da al jugador una decisión sobre el tie
    
    Un comando de un jugador que llega **en o después** del instante de vencimiento llega tarde: el vencimiento se envía primero y el comando se rechaza (`ComandoViejo`, `TimeoutObsoleto`, `PartidaTerminada`, según el caso) sin ruido. Nada se aplica de forma retroactiva.
 9. **Respuesta de la Librería a lo que envía el Timer.** Aceptado: el estado cambió y la regla 5 arma lo que sigue. `TimeoutObsoleto` o `ComandoViejo`: se descarta sin aviso, ya cambió el turno o la etapa. `PartidaTerminada`: se detiene el Timer. `LimitePartida` (el recluta automático o el contador llegaron al tope): la Librería obliga a la autoridad a cerrar la partida (Librería, Edge Cases) y el Timer envía `CerrarPartida(Tablas, vacío)`. *PROVISIONAL: la Librería no fija el motivo; Tablas es el único que no da ganador, se confirma con la Librería y el Servidor.* `CierreInvalido` no puede pasar si se cumple la regla 8; si pasa es un error del Timer, se registra y se reevalúa con el estado nuevo.
-10. **Pausa.** `Pausar(motivo)` y `Reanudar(motivo)`, con motivos de lista cerrada. Pausado no se acumula tiempo, no hay vencimientos y la vista lo dice. Motivos: `SuspensionLocal` (el sistema suspende la aplicación, solo en local; **perder el foco no pausa**, decisión del jugador 2026-11-25, para que cambiar de ventana no dé tiempo gratis) y `Desconexion` (reservado para online; **PROVISIONAL**, el Servidor decide si lo usa; en el MVP no se usa). **No hay botón de pausa manual en el MVP.** En local, además, si entre dos marcas de tiempo pasan más de `salto_reloj_max_ms` (5.000 ms) la diferencia **no se cuenta** (equipo dormido, congelamiento largo): el Timer lo trata como una suspensión que no avisó. Online esto no aplica: el tiempo lo mide el servidor.
+10. **Pausa.** `Pausar(motivo)` y `Reanudar(motivo)`, con motivos de lista cerrada. Pausado no se acumula tiempo, no hay vencimientos y la vista lo dice. Motivos: `SuspensionLocal` (el sistema suspende la aplicación, solo en local; **perder el foco no pausa**, decisión del jugador 2026-11-25, para que cambiar de ventana no dé tiempo gratis) y `Desconexion` (reservado para online; **PROVISIONAL**, el Servidor decide si lo usa; en el MVP no se usa). **No hay botón de pausa manual en el MVP.** Abrir el panel «?» del Modificador (#17) **no** es un motivo de pausa: consultar las probabilidades cuesta tiempo real (cierre de la tanda 3). En local, además, si entre dos marcas de tiempo pasan más de `salto_reloj_max_ms` (5.000 ms) la diferencia **no se cuenta** (equipo dormido, congelamiento largo): el Timer lo trata como una suspensión que no avisó. Online esto no aplica: el tiempo lo mide el servidor.
 11. **Qué cuenta el jugador.** El Timer es el único dueño de estas decisiones, y las toman todos igual: el tramo se evalúa por **tiempo consumido** y no por hora del reloj de pared (Fórmulas, D2); el sobrante no se acumula (regla 5); la pausa no descuenta (regla 10); y ni las animaciones de resolución ni los eventos de la Máquina frenan el reloj (Máquina, Visual/Audio: ninguno suma tiempo al turno).
 12. **Eventos del Timer (lista cerrada, de presentación, no entran al núcleo).** `EtapaIniciada(numeroTurno, jugador, etapa, duracion_s)`; `AvisoEtapa` (la etapa llega a `aviso_etapa_s`, una vez por etapa); `AvisoReloj(jugador, nivel)` (nivel 1 a `aviso_reloj_s`, nivel 2 a `aviso_reloj_critico_s`, una vez por jugador y nivel); `TramoFinalIniciado` (una sola vez por partida); `TiempoAgotado(etapa | reloj)` (se detectó el vencimiento, antes de ver la respuesta, para que la interfaz reaccione de inmediato); `RelojPausado(motivo)` y `RelojReanudado`; y, para las Métricas, `TurnoMedido(numeroTurno, jugador, ms_mover, ms_atacar, vencio_mover, vencio_atacar)` al cerrar cada turno y `RelojesAlCierre(restante_ms[2])` al terminar la partida.
 13. **Vista de relojes (solo lectura).** Una instantánea que el HUD (#15) lee en cada cuadro: `modo`, `jugadorActivo`, `etapa` (o ninguna), `restanteEtapa_s` y `restanteReloj_s[2]` (ya redondeados, Fórmulas, D4), `tramo`, `vinculante` (qué vence antes: `Reloj` o `Etapa`), `nivelAvisoReloj[2]` (0, 1 o 2), `pausado` (con el motivo) y `enEsperaDeTirada`. En Sin límite: `modo` = Sin límite y sin tiempos. El HUD **decide cómo se ve**; el Timer decide qué números y cuándo avisa.
@@ -117,7 +117,7 @@ Estados del Timer (no del núcleo):
 | 22 Audio y 18 Render | Eventos de aviso y de tramo final | Nada | Audio y Render (cómo suena y se ve) |
 | 25 Rival IA | Nada propio: se aplica lo mismo que a un jugador | Nada | Rival IA |
 
-**Supuestos PROVISIONALES sobre GDD sin escribir:** el motivo `Tablas` para `LimitePartida` (#1, #28); el formato de los restantes online y la pausa por desconexión (#28); cómo muestra el HUD los dos relojes (#15); si el Rival IA descuenta reloj (#25).
+**Supuestos PROVISIONALES sobre GDD sin escribir:** el motivo `Tablas` para `LimitePartida` (#1, #28); el formato de los restantes online y la pausa por desconexión (#28); si el Rival IA descuenta reloj (#25).
 
 ## Formulas
 
@@ -285,7 +285,7 @@ El índice solo nombra la Máquina; la Librería es una dependencia dura real po
 
 | Sistema | Tipo | Qué usa | Estado del GDD |
 |---|---|---|---|
-| #15 Ficha y HUD | Dura | La vista de relojes y los eventos de aviso | Pendiente |
+| #15 Ficha y HUD | Dura | La vista de relojes y los eventos de aviso | Existe (tanda 3) |
 | #19 Métricas | Blanda | `TurnoMedido`, `RelojesAlCierre`, `TiempoAgotado` | Pendiente |
 | #21 Menú principal | Blanda | La lista de modos para la pantalla de partida local | Pendiente |
 | #20 Ajustes | Blanda | El identificador del modo para recordar la última elección | Pendiente |
@@ -334,7 +334,7 @@ El Timer no dibuja ni suena: emite eventos y la presentación (HUD #15, Render #
 |---|---|---|
 | `EtapaIniciada` | El anillo del timer, arriba al centro con el emblema del bando, se llena completo y empieza a cerrarse | Definido (§7, *Pantalla y HUD*: timer arriba al centro, siempre visible) |
 | `AvisoEtapa` (últimos 10 s) | El anillo pasa a ámbar `#E89A2C` y pulsa una vez por segundo; el tablero no destella | Definido (§2, *Timer en los últimos 10 s*) |
-| `TramoFinalIniciado` | Banner "Tramo final" una sola vez, atardecer permanente y anillo grueso ámbar | Definido (§2, *Tramo final*) |
+| `TramoFinalIniciado` | Banner "Tramo final" una sola vez, atardecer permanente y anillo de **trazo grueso permanente de color base**; el ámbar queda solo para los avisos (HUD, #15, regla 12; decisión del jugador, 2026-11-25) | Definido (§2, *Tramo final*, corregido en la tanda 3) |
 | `AvisoReloj` nivel 1 y 2 | El reloj de partida del jugador pasa a ámbar (nivel 1) y pulsa (nivel 2), **con la misma forma de anillo y en su lugar fijo del HUD** | **Falta**: el art bible solo define un timer; hay que decidir cómo conviven el anillo de la etapa y el reloj de partida sin dos ámbar compitiendo (§2, protan/deutan: el ámbar solo aparece en el timer) |
 | `TiempoAgotado` | Marca breve "Tiempo" junto al anillo, ≤ 1 s, sin sonido de error; el recluta automático ya tiene su marca ("Elegido por el tiempo", Máquina) | **Falta** la marca "Tiempo" |
 | `RelojPausado` | Los dos relojes quedan quietos con un indicador de pausa | **Falta** |
@@ -437,7 +437,7 @@ El HUD (#15) lee de la vista de relojes (regla 13) y tiene que mostrar:
 | ¿El tramo final de 40 s para mover alcanza en pantalla táctil con 12 piezas? Choca con el pilar 1 | Playtest en táctil | MVP |
 | ¿El reloj por jugador decide partidas que el pilar 3 (siempre hay vuelta) habría salvado? | Métricas (#19) | MVP |
 | ¿Hace falta un botón de pausa manual en local (un llamado, una interrupción)? | Menú (#21) y playtest | MVP |
-| ¿Cómo conviven el anillo de la etapa y el reloj de partida sin dos ámbar compitiendo, dentro de la regla "ámbar solo en el timer"? | Ficha y HUD (#15) y director de arte | En el GDD de #15 |
+| ~~¿Cómo conviven el anillo de la etapa y el reloj de partida sin dos ámbar compitiendo?~~ **Resuelta por #15 (reglas 12 y 13, F3):** el ámbar solo lo lleva el timer que de verdad limita; el tramo final es un anillo grueso de color base | — | — |
 | ¿Se pausan los relojes online por desconexión, y hay gracia por latencia? Hoy: no se pausa y no hay gracia | Servidor (#28) | En su GDD |
 | ¿El formato del restante online y la corrección de la predicción? | Servidor (#28) | En su GDD |
 | ¿`LimitePartida` cierra con `Tablas`? Hoy es lo único sin ganador | Librería (#1) y Servidor (#28) | En el ADR de la Librería |

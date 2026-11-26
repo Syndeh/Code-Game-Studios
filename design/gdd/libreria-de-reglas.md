@@ -203,7 +203,8 @@ la pantalla del otro pasó distinto", "perdí por algo que no se veía".
      de dominios (regla 11); la matriz de clausura (regla 11) y la fila 15 garantizan que de
      un estado válido solo sale un estado válido; y PrepararContexto rechaza con
      `ConfigInvalida` un Catálogo fuera de sus topes. Con los topes de la tabla, el daño
-     bruto sobre un objetivo es como mucho 61 × (1.000 + 10) más el área, y toda una
+     bruto sobre una casilla es como mucho 61 × 1.010 = 61.610 (cada pieza golpea una casilla
+     a lo sumo una vez, área incluida; Resolución, #9, F1), y toda una
      resolución, aun con área sobre las 360 casillas, suma menos de 25.000.000, lejos de
      2.147.483.647. El producto más grande de las fórmulas es n × k ≤ 99 × 100 = 9.900.
      **Única excepción:** el escritor y el lector del flujo canónico y la huella (regla 11)
@@ -243,7 +244,8 @@ la pantalla del otro pasó distinto", "perdí por algo que no se veía".
      inalcanzable.
    - **`ProbabilidadesSiguienteTirada(estado, jugador)`**, consulta pura para cualquier
      jugador en cualquier fase (pilar 3b), devuelve la tabla efectiva que usaría su próxima
-     tirada si su turno empezara con el tablero tal como está; con esa tirada pendiente,
+     tirada si su turno empezara con el tablero tal como está, junto con el **id de la tabla
+     base** elegida (Modificador, #11, regla 4; lo muestra la Interfaz, #17); con esa tirada pendiente,
      coincide con la guardada; en una partida terminada, vacío.
    - El estado cuenta las tiradas aplicadas (`contadorTirada`); cada Tirada nombra la suya
      (regla 3).
@@ -268,7 +270,12 @@ la pantalla del otro pasó distinto", "perdí por algo que no se veía".
    objetivo** lo golpearon en esa resolución, directo o por área, aunque el escudo absorba
    todo) y la **cantidad** de atacantes rivales distintos. El fuego amigo nunca cuenta
    (decisión del 2026-11-19); el daño que recibe un escudero al cubrir cuenta como golpe al
-   escudero. Con ese dato Audio (#22) y Render (#18) acentúan el golpe combinado (pilar 2).
+   escudero; la explosión de un demoledor también cuenta como golpe de su dueño. Con ese dato Audio (#22) y Render (#18) acentúan el golpe combinado (pilar 2).
+   **Lista cerrada de eventos de `Resolver`** (Resolución, #9, regla 14), en este orden de
+   tipos: `AtaqueEjecutado` (por ID de atacante), `DanoRecibido` (por ID de pieza),
+   `DanoATramo` y `TramoRoto` (por casilla), `PiezaMuerta` (por ID) y `CoberturaQuitada`
+   (por ID de escudero); después, los de la Máquina (`TurnoTerminado` y el fin o el turno
+   siguiente).
 9. **Vista previa = la misma operación.** La vista previa aplica Resolver sobre una
    **copia** del estado y devuelve **exactamente** lo que devolvería Resolver: la misma
    lista de eventos (también `TurnoTerminado` sin ataques, y el evento de fin con ganador y
@@ -337,7 +344,7 @@ la pantalla del otro pasó distinto", "perdí por algo que no se veía".
     | Ataques asignados, coberturas | Uno por pieza como mucho | Ataque: atacante vivo del jugador del turno, objetivo = una casilla que `AsignarAtaque` aceptaría (#7), solo en la etapa atacar (una partida Terminada ahí los conserva). Un escudero del jugador del turno no ataca y cubre a la vez. Cobertura: la que `Cubrir` aceptaría (#8, regla 14; sin cadenas), como mucho `coberturas_max` por jugador; las del jugador del turno solo en su etapa atacar. Cobertura: escudero y aliado vivos del mismo jugador (siguen en el turno rival, #8) |
     | Pila de deshacer | 0 a 256 entradas (`pila_tope`, #3) | IDs de piezas vivas y casillas dentro del tablero; vacía fuera de la fase de mover |
     | Contadores de reclutas | 4 por jugador (Común, Catapulta, Jinete, Demoledor), de 0 a su tope de llamadas (`tablaReclutas`, #10) | — |
-    | `vidaQuitada` de cada jugador | 0 a `estadistica_max × (C_MAX − 1) + 16 × vida_tramo` = 1.000.015.000 con `vida_tramo` 1.000 (PROVISIONAL, #9) | Vida realmente quitada a piezas y muros del rival en toda la partida; sin fuego amigo; lo que absorbe un escudero al cubrir cuenta. Es estadística: ninguna regla la lee (jugador, 2026-11-25) |
+    | `vidaQuitada` de cada jugador | 0 a `estadistica_max × (C_MAX − 1) + 16 × vida_tramo` = 1.000.015.000 con `vida_tramo` 1.000 (confirmada por #9) | Vida realmente quitada a piezas y muros del rival en toda la partida; sin fuego amigo; lo que absorbe un escudero al cubrir cuenta. Es estadística: ninguna regla la lee (jugador, 2026-11-25) |
     | Próximo ID | 1 a C_MAX | Mayor que todo ID de pieza |
     | Tirada pendiente | Vacía o {Modificador, jugador, tabla base, tabla efectiva} | Solo En curso; Modificador: jugador = jugador del turno y tabla efectiva = la que se recalcula |
     | Motivo y ganador | Vacíos, o un motivo de la regla 16 con el ganador que pide su fila | Terminada si y solo si hay motivo; ReyMuerto ⇒ queda un solo Rey y gana su dueño; DobleRey ⇒ 0 Reyes |
@@ -650,7 +657,9 @@ nombra a la librería como consumidora de su esquema.
 | 25 Rival IA | Dura | Juega con la misma API y las consultas |
 | 26 Registro de partida | Dura | Guarda config, comandos y tiradas; reproduce con Aplicar |
 | 28 Servidor de partida | Dura | Corre la misma librería; es la autoridad; compara huellas |
-| 13, 15–19, 22, 24 Cliente | Blanda | Consultas, eventos y vista previa; funcionan con cualquier implementación que cumpla el contrato |
+| 15 Ficha de pieza y HUD | Blanda | `EffectiveStats`, consultas puras (vida, tipo, casilla, dueño, `enMuro`, `tramosRotos`, `Cubre`/`CubiertoPor`) y la condición de `Rendirse`; solo lectura |
+| 17 Interfaz del Modificador | Blanda | `ProbabilidadesSiguienteTirada` con el id de la tabla base, evento `Tirada`, `contadorTirada`; solo lectura |
+| 13, 16, 18, 19, 22, 24 Cliente | Blanda | Consultas, eventos y vista previa; funcionan con cualquier implementación que cumpla el contrato |
 
 **Bidireccionalidad:** cada uno, al escribirse, nombra a la Librería en sus Dependencies.
 
@@ -804,7 +813,7 @@ todo comando de jugador lleva el `contadorEsperado` correcto, y toda Tirada su
 - **AC-10 (eventos)** — **GIVEN** un fixture con los atacantes A (daño 3) y B (daño 2)
   contra el objetivo T (vida 10, escudo 1), **WHEN** se envía Resolver, **THEN** hay un
   evento de daño sobre T con bruto 5, escudo 1, neto 4, vida restante 6 y combinado
-  verdadero (valores PROVISIONALES hasta la Resolución, #9), y repetir la misma resolución
+  verdadero (valores confirmados por la Resolución, #9), y repetir la misma resolución
   desde el mismo estado da una lista idéntica.
 - **AC-11 (vista previa = resolución)** — **GIVEN** ataques asignados, **WHEN** se pide la
   vista previa y después se envía Resolver, **THEN** las dos listas de eventos son idénticas
@@ -1014,10 +1023,10 @@ todo comando de jugador lleva el `contadorEsperado` correcto, y toda Tirada su
   archivo dorado guardado en el repositorio (jugador 0 primero, después tipo del Catálogo,
   después fila y columna). **GIVEN** un reclutamiento de 4 piezas, **THEN** sus IDs crecen
   por casilla (fila, columna).
-- **AC-42 (resolución simultánea)** (valores PROVISIONALES hasta la Resolución, #9) —
+- **AC-42 (resolución simultánea)** (valores confirmados por la Resolución, #9) —
   **GIVEN** que el jugador del turno asignó a A (ID 7) contra el enemigo E y a su catapulta
   B (ID 3) contra una casilla cuya área mata a A, y que T, enemigo con 3 de vida, recibe 5
-  de daño neto, **WHEN** se envía Resolver, **THEN** A igual golpea a E, los eventos salen
+  de daño neto, **WHEN** se envía Resolver, **THEN** A igual golpea a E, los `AtaqueEjecutado` salen
   en orden de ID ascendente (B antes que A), la vida de T queda en 0 y su evento trae 3 de
   vida perdida y la muerte.
 - **AC-43 (límite y desbordamiento)** — **GIVEN** un estado armado con el constructor de
@@ -1070,7 +1079,8 @@ todo comando de jugador lleva el `contadorEsperado` correcto, y toda Tirada su
 - **AC-48 (combinado, fuego amigo)** — **GIVEN** un fixture de resolución del jugador del
   turno, **WHEN** el área de su catapulta y otra pieza suya golpean a una pieza suya,
   **THEN** su evento de daño no es combinado y trae 0 atacantes rivales. **WHEN** el área
-  de su catapulta golpea dos veces el mismo objetivo enemigo, **THEN** no es combinado.
+  de su catapulta golpea dos veces el mismo objetivo enemigo (solo pasa por cobertura: el
+  centro desviado y el área sobre el escudero, #9), **THEN** no es combinado.
   **WHEN** dos de sus piezas atacan a un enemigo cubierto por un escudero del rival,
   **THEN** el daño lo recibe el escudero, su evento es combinado y trae 2 atacantes
   rivales.

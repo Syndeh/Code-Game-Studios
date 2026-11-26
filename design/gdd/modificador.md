@@ -82,7 +82,7 @@ Sin el Modificador no habría remontada (pilar 3), el turno sería siempre igual
    | 4 | Gana 4 a 3 o más | `mias × 3 ≥ rival × 4` | 20 | 25 | 15 | 20 | 20 |
    | 5 | Normal | ninguna de las anteriores | 20 | 20 | 20 | 20 | 20 |
 
-   Las cinco filas suman 100. El orden importa solo dentro de cada lado (1 implica 2 y 3 implica 4); los dos lados no pueden cumplirse a la vez. Las cifras son **PROVISIONALES**: vienen de la v3 y se ajustan con partidas del MVP (Tuning Knobs).
+   Cada tabla base tiene un **id fijo en la config** (en el orden de la tabla: `pierde_medio`, `pierde_tres_cuartos`, `gana_dos_a_uno`, `gana_cuatro_a_tres`, `normal`); la Librería lo devuelve con `ProbabilidadesSiguienteTirada` y la Interfaz (#17) lo muestra con un nombre neutro. Las cinco filas suman 100. El orden importa solo dentro de cada lado (1 implica 2 y 3 implica 4); los dos lados no pueden cumplirse a la vez. Las cifras son **PROVISIONALES**: vienen de la v3 y se ajustan con partidas del MVP (Tuning Knobs).
 5. **Tabla efectiva: `estado_cara` y los dos repartos.** Sobre la tabla base elegida, la Librería consulta `estado_cara(J, c)` (Reclutamiento, F3) para cada cara de reclutar `c`, con el tablero tal como está al abrir el turno, y aplica según el resultado:
 
    | `estado_cara` | Qué le pasa a su probabilidad | Reparto que se usa |
@@ -148,7 +148,7 @@ No hay transición Resuelta → Esperando: una tirada nunca se repite ni se pide
 | #15 HUD, #16 Vista previa, #17 Interfaz del Modificador | — | Cara, bonos, tabla efectiva de los dos jugadores y motivo de cada 0% (solo lectura) | Cada GDD |
 | #19 Métricas, #22 Audio, #24 Tutorial, #25 Rival IA, #28 Servidor | — | Evento de la tirada, consulta pura, tablas | Cada GDD |
 
-**Supuestos PROVISIONALES sobre GDD sin escribir:** que Resolución (#9) lea el ataque solo por `EffectiveStats` y no sume bonos por su cuenta, que la Interfaz del Modificador (#17) muestre el motivo de cada cara en 0%.
+**Supuestos sobre GDD vecinos:** confirmados al cerrar la tanda 3 (2026-11-25): Resolución (#9) lee el ataque solo por `EffectiveStats` y no suma bonos por su cuenta; la Interfaz del Modificador (#17) muestra el motivo de cada cara en 0%.
 
 ## Formulas
 
@@ -322,7 +322,7 @@ Fijar el bono en +2 con exclusión del área y la explosión levanta provisional
 
 - **If se repite el mismo estado con la misma `n`:** sale la misma cara con los mismos bonos, sin excepción (Librería, determinismo).
 - **If el cliente online recibe la cara:** puede verificar que corresponde a la tabla pública y a `n`; el compromiso verificable de las tiradas es del Servidor (#28, Librería, Open Questions).
-- **If una pieza muere en la misma resolución en que golpea:** golpea igual y con el `ataque_ef` del turno (Librería, regla 15). *PROVISIONAL hasta Resolución (#9).*
+- **If una pieza muere en la misma resolución en que golpea:** golpea igual y con el `ataque_ef` del turno (Librería, regla 15). Confirmado por Resolución (#9).
 
 ## Dependencies
 
@@ -342,7 +342,7 @@ Fijar el bono en +2 con exclusión del área y la explosión levanta provisional
 | Sistema | Tipo | Qué usa |
 |---|---|---|
 | #6 Movimiento | Dura | `bonoMovimiento` y el límite del turno, vía `EffectiveStats` |
-| #9 Resolución simultánea | Dura | `ataque` efectivo, vía `EffectiveStats` *(sin GDD)* |
+| #9 Resolución simultánea | Dura | `ataque` efectivo, vía `EffectiveStats` (GDD desde la tanda 3) |
 | #15 Ficha de pieza y HUD | Dura | Cara del turno, bonos activos y estadística efectiva |
 | #16 Vista previa de ataques | Dura | Ataque efectivo con el bono del Grito |
 | #17 Interfaz del Modificador | Dura | Tablas de los dos jugadores, motivos de cada 0% y las elecciones |
@@ -353,7 +353,7 @@ Fijar el bono en +2 con exclusión del área y la explosión levanta provisional
 | #14 Localización | Blanda | IDs de las cinco caras y motivos de cada 0% |
 | #12 Timer | Blanda | Sin cambios si lee la etapa de la Máquina (Distracción no abre la etapa de mover) |
 
-**Bidireccionalidad.** Ya nombran al Modificador en sus tablas: la Librería, la Máquina, Reclutamiento, Castillo, Movimiento y Localización. Alcance, Catálogo, Tablero y Timer lo nombran desde el 2026-11-25. **Provisionales:** Resolución (#9), Interfaz del Modificador (#17), HUD (#15), Vista previa (#16) y Métricas (#19) no tienen GDD; sus aristas se confirman al escribirlos.
+**Bidireccionalidad.** Ya nombran al Modificador en sus tablas: la Librería, la Máquina, Reclutamiento, Castillo, Movimiento y Localización. Alcance, Catálogo, Tablero y Timer lo nombran desde el 2026-11-25. Resolución (#9), HUD (#15) e Interfaz del Modificador (#17) tienen GDD desde la tanda 3 y nombran al Modificador. **Provisionales:** Vista previa (#16) y Métricas (#19) no tienen GDD; sus aristas se confirman al escribirlos.
 
 ## Tuning Knobs
 
@@ -483,7 +483,7 @@ Tipos de evidencia (`coding-standards.md`): **Logic** e **Integration** son test
 - **AC-16 (regla 8, Distracción)** *(Integration, #3 y #7)* — **GIVEN** Distracción, **WHEN** llega `Mover` o `Deshacer`, **THEN** `FaseIncorrecta`, y la etapa del timer es la de atacar. **GIVEN** que ninguna pieza de J tiene un objetivo posible, no hay catapulta ni demoledor propio vivo y ningún escudero puede cubrir, **THEN** `FaseSaltada(Atacar)` y `TurnoTerminado`, y el rival queda en `EsperandoTirada`. **GIVEN** una catapulta propia viva, **THEN** `Atacar` se abre y no se salta.
 - **AC-17 (regla 9, tirada)** *(Logic)* — **GIVEN** la tabla 20/20/25/20/15, **THEN** `Tirada(0)` da la cara 1, `Tirada(47)` la 3 y `Tirada(99)` la 5. **GIVEN** `Tirada(100)`, **THEN** `TiradaInvalida`. **GIVEN** un contador distinto del esperado, **THEN** se rechaza sin cambiar el estado. **GIVEN** una `Tirada` fuera de `EsperandoTirada`, **THEN** `TiradaNoEsperada`. El evento trae `n`, la cara, la tabla efectiva y el nombre de la tabla base.
 - **AC-18 (regla 9, determinismo)** *(Logic)* — **GIVEN** el mismo estado y la misma `n`, **WHEN** se aplica `Tirada` dos veces en partidas independientes, **THEN** la cara, los bonos y la huella del estado son idénticos.
-- **AC-19 (regla 10, panel)** *(UI, #17, PROVISIONAL)* — **GIVEN** una partida con un castillo cortado y 12 piezas, **WHEN** se abre el «?», **THEN** la captura muestra la tabla *efectiva* de los dos jugadores (no la base), cada cara con su porcentaje y el motivo de cada 0% (sin muros, sin llamadas, sin tope, sin lugar, 12 piezas o menos). Evidencia: `production/qa/evidence/modificador-panel-probabilidades.png`.
+- **AC-19 (regla 10, panel)** *(UI, #17; la cubre AC-16 de #17, misma evidencia)* — **GIVEN** una partida con un castillo cortado y 12 piezas, **WHEN** se abre el «?», **THEN** la captura muestra la tabla *efectiva* de los dos jugadores (no la base), cada cara con su porcentaje y el motivo de cada 0% (sin muros, sin llamadas, sin tope, sin lugar, 12 piezas o menos). Evidencia: `production/qa/evidence/modificador-panel-probabilidades.png`.
 - **AC-20 (regla 11, `Rendirse`)** *(Integration, #13 y #15)* — **GIVEN** 6 contra 13 piezas, **THEN** el jugador del turno ve `Rendirse`. **GIVEN** 7 contra 13, **THEN** no. **GIVEN** el jugador que va ganando, **THEN** nunca lo ve.
 - **AC-21 (regla 12, prueba operativa del 3a)** *(Logic, test de datos)* — **GIVEN** las cinco tablas base vigentes, **THEN** Grito de «Pierde 1/2» (20) ≤ Grito de «Gana 2 a 1» (25) y Grito de «Pierde 3/4» (20) ≤ Grito de «Gana 4 a 3» (25), y ninguna tabla «Pierde» supera a «Normal» (20). **GIVEN** una tabla «Pierde» con Grito 26, **THEN** el test falla y nombra la tabla.
 - **AC-22 (regla 13, no toca el tablero)** *(Logic)* — **GIVEN** un estado `EsperandoTirada`, **WHEN** se aplica cada una de las cinco caras, **THEN** piezas, muros, contadores de llamadas y casillas quedan idénticos; solo cambian la cara, los bonos y la fase.
@@ -510,7 +510,7 @@ Tipos de evidencia (`coding-standards.md`): **Logic** e **Integration** son test
 ### Huecos que quedan (lente de QA)
 
 - **Sin criterio automático:** que el «?» esté «siempre disponible» (se verifica con la captura de AC-19) y que el dado «no se sienta decisivo» (pregunta de playtest, no criterio).
-- **PROVISIONAL:** AC-19, AC-31 y los de Resolución (#9) hasta que existan #17, #15, #16 y #9.
+- **PROVISIONAL:** AC-31 hasta que exista #16. AC-19 (cubierta por AC-16 de #17; AC-30 comparte su captura en grises) y los de Resolución (#9) dejaron de serlo al cerrar la tanda 3.
 - **El umbral 3c** (`W` ≥ 2/3) no es un criterio de aceptación sino una medición del MVP con 20 partidas o más (Open Questions).
 - **Sin presupuesto propio de rendimiento:** la consulta recorre 5 caras y hereda el de la Librería (ADR).
 
@@ -524,11 +524,11 @@ Tipos de evidencia (`coding-standards.md`): **Logic** e **Integration** son test
 | ¿Distracción sin objetivos posibles (turno vacío) se siente como el castigo que el director creativo marcó? | Playtest | MVP |
 | El Grito es el 40% de las tiradas de la apertura (tabla Normal 20/40/20/20/0) y deja el margen del golpe del turno 1 en 1: ¿acelera demasiado los primeros turnos? | Playtest y Tablero (#4) | MVP |
 | Estrategias degeneradas: cortar el propio castillo, llenar el propio anillo o sacrificar piezas para cruzar un umbral, en especial de 13 a 12 sin el Rey (15 a 40 puntos de Arremetida pasan a Grito) | Métricas (#19), Reclutamiento (#10) | Playtests del MVP |
-| ¿Los dos repartos (liberado y sin lugar) se entienden en el panel «?»? | Interfaz del Modificador (#17) | Su GDD |
+| ¿Los dos repartos (liberado y sin lugar) se entienden en el panel «?»? #17 los muestra con el cambio contra la base y el motivo de cada cara (F2, F3); queda medirlo | Playtest | MVP |
 | ¿Pasar los umbrales de F1 (1/2, 3/4, 4 a 3, 2 a 1) a la config? | Este GDD y Librería | Después de 20 partidas |
 | ¿Qué pasa si la autoridad no envía la tirada (online)? ¿Compromiso verificable de las tiradas? | Servidor (#28) | Antes de lanzar el online |
-| Confirmar que Resolución lee el ataque solo por `EffectiveStats` y no suma bonos por su cuenta | Resolución (#9) | Su GDD |
+| ~~Confirmar que Resolución lee el ataque solo por `EffectiveStats`~~ **Resuelta 2026-11-25:** #9 lo confirma | — | — |
 | Con `limite_normal` alto Arremetida casi no sale: ¿se revisa su rol? | Movimiento (#6) | Cuando se mida `limite_normal` |
-| Íconos de las cinco caras, marcador del Grito, placa de Arremetida y contador sin tope | Director de arte | Antes de `/asset-spec` |
+| Íconos de las cinco caras, marcador del Grito, placa de Arremetida y contador sin tope (la forma de los íconos de cara ya la describe #17, Visual/Audio; falta el art bible) | Director de arte | Antes de `/asset-spec` |
 
 **Resuelto en este GDD (2026-11-25):** el bono del Grito (+2 de ataque y +2 de movimiento, Rey incluido, también el impacto de la catapulta; no el área ni la explosión); el uso de `estado_cara` con los dos repartos; el choque con el pilar 3a (enmienda propuesta, regla 12); el umbral 3c (2 de cada 3); el tope de 6 Llamadas (se mantiene en 6 y se mide).

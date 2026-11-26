@@ -114,9 +114,9 @@ reiluminan.
 | **Resolución / cosecha** (≤ ~2 s) | Ver el plan cumplido; en un combo, un golpe grande | Pulso de luz blanca cálida (~4000 K) desde cada objetivo, ~0,3 s; después el terreno vuelve a la base | simultáneo, contundente, rápido, concluyente | 5 | Todos los impactos en el mismo cuadro. Un objetivo con varios atacantes recibe un impacto más grande que la suma de los chicos. Las piezas muertas caen juntas |
 | **Turno del rival** | Vigilancia: "veo lo que hace y preparo la respuesta" | Base, con el terreno un 10% más frío (~5800 K) | atento, expuesto, paciente, legible | 2 | Banner del turno con el bando del rival. Sus acciones se ven a medida que ocurren (anti-pilar: sin información oculta). Pesa sobre todo en el online; en el juego local casi no se nota |
 | **Distracción (sin movimiento)** (≤ ~1,5 s) | Fastidio corto que se cierra rápido, no castigo largo | Nublado: terreno desaturado un 40%, ~6500 K, contraste bajo | apagado, caído, breve, seco | 1 | El estandarte propio del HUD se dobla y cae. Una placa gris dice "Distracción" y el turno pasa enseguida a la fase de ataque |
-| **Tramo final** (desde los 10 min consumidos entre los dos jugadores, 40 + 20) | Urgencia sostenida: "se acaba, hay que cerrar" | Atardecer: ~3800 K, sombras de viñeta más largas, terreno un 10% más oscuro, hasta el final de la partida | apurado, dorado, decisivo, estrecho | 4 | Cambio de luz permanente, anunciado una sola vez con un banner "Tramo final". El timer pasa a anillo grueso ámbar |
+| **Tramo final** (desde los 10 min consumidos entre los dos jugadores, 40 + 20) | Urgencia sostenida: "se acaba, hay que cerrar" | Atardecer: ~3800 K, sombras de viñeta más largas, terreno un 10% más oscuro, hasta el final de la partida | apurado, dorado, decisivo, estrecho | 4 | Cambio de luz permanente, anunciado una sola vez con un banner "Tramo final". El anillo del timer pasa a trazo grueso permanente de color base; el ámbar queda solo para el aviso del timer que limita (decisión del jugador, 2026-11-25; Ficha y HUD, #15) |
 | **Timer en los últimos 10 s** | Presión puntual | Sin cambios en el tablero | pulsante, puntual | 4 | Solo pulsa el timer del HUD, una vez por segundo. El tablero **no** destella: competiría con la ficha |
-| **Victoria** | Orgullo y cierre: "el plan funcionó" | El cielo se despeja: el ámbar del tramo final se va en 0,25 s y el terreno vuelve a la luz base (~5000 K). El Rey propio gana contraste porque baja lo de alrededor: viñeta circular centrada en él y el resto del terreno un 25% más oscuro. La figura no se toca | triunfal, claro, limpio, corto | 4 | Cae el Rey rival, el estandarte del ganador se iza en el centro, resumen de la partida y revancha a un toque (pilar 4) |
+| **Victoria** | Orgullo y cierre: "el plan funcionó" | El cielo se despeja: la luz del atardecer del tramo final se va en 0,25 s y el terreno vuelve a la luz base (~5000 K). El Rey propio gana contraste porque baja lo de alrededor: viñeta circular centrada en él y el resto del terreno un 25% más oscuro. La figura no se toca | triunfal, claro, limpio, corto | 4 | Cae el Rey rival, el estandarte del ganador se iza en el centro, resumen de la partida y revancha a un toque (pilar 4) |
 | **Derrota** | Aceptación con ganas de revancha, sin humillación | Crepúsculo frío (~7000 K), terreno desaturado un 30% | sereno, frío, digno, breve | 2 | Cae el Rey propio y baja su estandarte. Revancha a un toque y la misma pantalla de resumen |
 
 ### Reglas de ritmo
@@ -311,7 +311,9 @@ escudo, contra el ancla).
 
 - **Cómo se ve:** colores planos, sin textura ni gradiente pintado, con contraste de texto
   ≥ 4,5:1 (WCAG AA).
-- **Fondo:** Tinta al 85-90% en la ficha, los recuadros del centro y los botones.
+- **Fondo:** Tinta al **96%** en la ficha (decisión del jugador, 2026-11-25: con 88% el puño y el
+  escudo no llegan a 3:1 sobre el suelo Hueso; Ficha y HUD, #15, F5) y al 85-90% en los
+  recuadros del centro y los botones.
 - **Texto:** blanco hueso `#F5F1E8`, distinto del Hueso de bando (más claro y en otro uso).
 - **Botón primario:** latón `#C9A55A`. Es el único acento de la interfaz sin significado
   propio; va siempre con texto y forma de botón.
@@ -457,8 +459,11 @@ los bordes laterales, en las filas 5 a 9; sin sorteo, decisión del 2026-11-25).
 | Lugar | Qué va |
 |---|---|
 | **Contorno del tablero** | Del color del bando de turno (Hueso o Ciruela): se sabe de quién es el turno desde cualquier parte de la pantalla |
-| **Arriba al centro** | Timer, siempre visible, con el emblema del bando de turno |
-| **Arriba a la derecha** | Ícono de signo de pregunta: abre las probabilidades del Modificador de los dos jugadores (pilar 3: se pueden consultar, no hace falta tenerlas siempre a la vista) |
+| **Arriba al centro** | Timer, siempre visible, con el emblema del bando de turno; de izquierda a derecha: reloj del jugador 0, emblema, anillo de la etapa, número de turno, reloj del jugador 1 (#15, regla 12) |
+| **Arriba, a la izquierda del timer** | Etiqueta de la cara del Modificador (emblema, ícono y nombre; #17, regla 5) |
+| **Arriba, a la derecha del timer** | Zona de avisos: un solo lugar fijo para los rechazos y avisos de texto (x 1170 a 1840; #15, regla 18) |
+| **Arriba a la izquierda** | Botón Rendirse (bandera blanca y texto), visible solo cuando se puede rendir (#15, regla 14) |
+| **Arriba a la derecha** | Ícono de signo de pregunta: abre las probabilidades del Modificador de los dos jugadores (pilar 3: se pueden consultar, no hace falta tenerlas siempre a la vista); debajo, en el margen, el botón ES/EN (#15, regla 21) |
 | **Abajo a la derecha** | Botón de avanzar ("Atacar" en la fase de mover, "Terminar turno" en la de atacar) y, arriba de él, el contador de piezas movidas (por ejemplo, 5/12) |
 | **Abajo a la izquierda** | "Deshacer último movimiento". Va en la esquina opuesta al botón de avanzar para que no se toque uno por el otro |
 | **Centro del tablero** | Recuadros del Modificador y de reclutar (Sección 2) |
@@ -484,6 +489,9 @@ tapa en parte.
   defensa; quedan el tipo y la vida. Arranca apagada. Con la opción activa, ataque y defensa
   siguen viéndose en la pieza seleccionada, y la vista previa de daño de la fase de ataque se
   ve siempre (pilar 1).
+- **Pieza ya movida** (decisión del jugador, 2026-11-25): la ficha se **apaga a gris** con un
+  marco interior de 1 px y la placa intacta; bajar solo la opacidad no se ve sobre Ciruela
+  (Ficha y HUD, #15, regla 5 y F5).
 - **En la fase de ataque**, la vista previa del daño reemplaza a la ficha del objetivo
   mientras dura la fase, en lugar de ponerse al lado: es lo que más importa en ese momento.
 
@@ -507,6 +515,10 @@ texto de reglas.
 Planos, de un solo color, con trazo grueso, en una grilla común de 24 px: puño, escudo, los 7
 íconos de tipo (representan el rasgo de cada uno, Sección 3), los 5 de las caras del
 Modificador, los emblemas de los dos bandos, el signo de pregunta, deshacer y avanzar.
+**Agregados en la tanda 3 (2026-11-25), forma a definir por el director de arte:** movimiento,
+alcance, área, cobertura, banderín del Grito, grieta (tramos rotos), bandera blanca (Rendirse)
+y muro (Ficha y HUD, #15, regla 17); subió, bajó, candado, dado, reloj y piezas vivas, con el
+marco del panel «?» y del recuadro de reclutar (Interfaz del Modificador, #17, Visual/Audio).
 
 ### Animación de la interfaz
 

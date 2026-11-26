@@ -57,7 +57,7 @@ El jugador lo usa de forma **activa y con un costo**: tocar al escudero, tocar a
    - **Solo el daño del rival.** Se redirige el daño cuyo origen es una pieza del rival del dueño de la cobertura. El fuego amigo cae donde apuntó.
    - **Lo que ya cae sobre el escudero** (por apuntarle a él o por área) lo recibe igual, **sumado** a lo desviado.
 
-   El reparto numérico es de Resolución (#9, **PROVISIONAL**): lo desviado se suma al daño bruto del escudero, su escudo se resta **una sola vez**, y si el total supera su vida el exceso **se pierde** (no pasa al aliado). Este GDD solo fija a quién va cada golpe.
+   El reparto numérico es de Resolución (#9, confirmado en su regla 7): lo desviado se suma al daño bruto del escudero, su escudo se resta **una sola vez**, y si el total supera su vida el exceso **se pierde** (no pasa al aliado). Este GDD solo fija a quién va cada golpe.
 7. **Cuándo está vigente.** Se asigna en el `Atacar` de su dueño J y **redirige solo en la resolución del rival K**, la del turno siguiente. Se borra al abrir el siguiente turno de J (Máquina, #3, regla 4.1). En la resolución de J la cobertura de J no hace nada (regla 6, fuego amigo). La tabla de **States and Transitions** lo resume.
 8. **Quitar.** `QuitarCobertura(escudero)` borra la cobertura de ese escudero (decisión del 2026-11-25; sube la versión de reglas de la Librería). Sin cobertura, se rechaza con `SinCobertura`, también si la pieza no es un escudero. Solo en `Atacar`, no toca ataques (un escudero que cubre no tiene uno) y no usa la pila de deshacer.
 9. **Cuándo se borra una cobertura.** Siempre con un evento `CoberturaQuitada` y su motivo:
@@ -94,7 +94,7 @@ El jugador lo usa de forma **activa y con un costo**: tocar al escudero, tocar a
     | — | `SinCobertura` | `QuitarCobertura` sobre una pieza que no cubre a nadie | Sí |
 
     Un `Cubrir` sobre el mismo aliado que el escudero ya cubría **no** es `AliadoYaCubierto` (regla 3): se acepta y emite `CoberturaAsignada` con `aliadoAnterior` igual al aliado.
-15. **Eventos.** `CoberturaAsignada(escudero, aliado, aliadoAnterior)` (anterior vacío si no había) y `CoberturaQuitada(escudero, aliado, motivo)`. Confirma el nombre que #7 dejó PROVISIONAL. Las caducidades y las muertes salen en orden de ID de escudero ascendente; el lugar exacto dentro del cierre de turno lo fija la Máquina y el de la resolución, #9.
+15. **Eventos.** `CoberturaAsignada(escudero, aliado, aliadoAnterior)` (anterior vacío si no había) y `CoberturaQuitada(escudero, aliado, motivo)`. Confirma el nombre que #7 dejó PROVISIONAL. Las caducidades y las muertes salen en orden de ID de escudero ascendente; el lugar exacto dentro del cierre de turno lo fija la Máquina y, en la resolución, va después de `PiezaMuerta` (#9, regla 14).
 16. **Entrega a Resolución.** La lista de `Coberturas()` y la pregunta `receptor(pieza, origen)` (F2), con el estado al empezar la resolución. El orden fija eventos, nunca resultados (Librería, regla 15).
 17. **Lo que el jugador no puede hacer.** Cubrir y atacar con el mismo escudero en un turno, cubrir a una pieza que no está pegada, cubrir a un rival, cubrir a quien ya tiene otro escudero, encadenar coberturas, desviar el fuego amigo, ni asignar ni quitar coberturas fuera de `Atacar` o en el turno rival.
 
@@ -131,7 +131,7 @@ Un jugador no tiene coberturas fuera de `Atacar` de su turno, porque las borra a
 | #4 Tablero | `ocupante`, contorno de 8 | — | Tablero |
 | #5 Castillo | Arquero sobre tramo propio | La parte del tramo no se redirige (regla 6) | Castillo |
 | #7 Alcance | Exclusión ataque/cobertura, evento `AtaqueQuitado` | Aliados cubribles, evento `CoberturaQuitada` | Compartida |
-| #9 Resolución | Muertes y fin de la resolución | `Coberturas()` y `receptor(pieza, origen)` (F2) | Este GDD (quién); #9 (cuánto) · *PROVISIONAL* |
+| #9 Resolución | Muertes y fin de la resolución | `Coberturas()` y `receptor(pieza, origen)` (F2) | Este GDD (quién); #9 (cuánto), confirmado |
 | #10 Reclutamiento | Un recluta escudero puede cubrir ese turno | — | #10 |
 | #13 Entrada, #15 HUD, #16 Vista previa, #18 Render, #23 Accesibilidad, #24 Tutorial | — | Consultas, códigos, eventos | Cliente, solo lectura |
 | #14 Localización | — | Textos de los códigos visibles | Localización |
@@ -243,7 +243,7 @@ Cota del tamaño de `Coberturas()` por jugador: cada cobertura usa un escudero c
 - **If un ataque directo, el centro o el área de una catapulta o una explosión caen sobre la pieza cubierta**: `receptor` es el escudero (F2), y los que ya apuntaban al escudero se suman a los desviados. Con 3 soldados (24 de bruto) sobre el arquero cubierto, el arquero no pierde nada y el escudero queda con 1 de vida.
 - **If la catapulta apunta al aliado cubierto**: el centro (10) cae sobre el aliado y el área (6) sobre el escudero vecino, y `receptor` manda las dos a él: 16 sumados, menos 5 de escudo, 11 de daño. Es el contra-combo que el pilar 2 pide: el área castiga las coberturas.
 - **If un demoledor rival explota junto al aliado cubierto y el escudero** (30 de ataque a cada vecina): los 30 del aliado van al escudero, que ya recibía sus propios 30: 60 menos 5 de escudo lo matan (vida 20) y el aliado no pierde nada. El demoledor solo mata al escudero, porque `piezasParaMatar` es 1 (excepción aprobada I1, Catálogo); el exceso se pierde.
-- **If lo que cae sobre el escudero supera su vida**: muere y el exceso se pierde; no pasa al aliado. El aliado sale intacto de esa resolución (C1). *PROVISIONAL hasta Resolución (#9).*
+- **If lo que cae sobre el escudero supera su vida**: muere y el exceso se pierde; no pasa al aliado. El aliado sale intacto de esa resolución (C1). Confirmado por Resolución (#9).
 - **If el cubierto es un arquero sobre su tramo y le pegan**: la parte de la pieza va al escudero y el tramo recibe el golpe completo (Castillo, regla 8). El tramo puede romperse sin que el arquero sufra daño.
 - **If el tramo bajo el arquero cubierto se rompe**: el arquero queda en esa casilla como arquero común (Castillo, regla 9). La cobertura **sigue**: ni su adyacencia ni la vida del arquero cambiaron. Solo pierde el bono de posición.
 - **If el rival pega al escudero con un golpe que no lo mata y el aliado estaba en el mismo golpe de área**: el escudero recibe una sola suma (escudo restado una vez, #9). No hay dos descuentos de escudo.
@@ -302,7 +302,7 @@ Cota del tamaño de `Coberturas()` por jugador: cada cobertura usa un escudero c
 
 **Supuestos provisionales:**
 
-- **El reparto numérico de la cobertura** (se suma al bruto del escudero, escudo una sola vez, el exceso se pierde) y el momento de borrar las coberturas de piezas muertas dentro del cierre de la resolución son de Resolución (#9), que no tiene GDD.
+- ~~El reparto numérico de la cobertura y el momento de borrar las coberturas de piezas muertas~~: confirmados por Resolución (#9, reglas 7 y 14) al cerrar la tanda 3 (2026-11-25).
 - **El evento `AtaqueQuitado` al desplazar un ataque con `Cubrir`** es un uso nuevo de un evento de #7.
 
 ## Tuning Knobs
@@ -397,7 +397,7 @@ Principios del art bible: *El plan se lee antes que el detalle* (1), *El combo s
 
 ## Acceptance Criteria
 
-Las piezas se nombran por tipo y casilla. Valores del Catálogo v5: soldado ataque 8 · arquero escudo 2, vida 15 · escudero ataque 4, escudo 5, vida 20 · catapulta ataque 10, área 6 · demoledor ataque 30 · Rey escudo 5, vida 30. Los criterios que dependen del reparto de daño de Resolución (#9) o de `QuitarCobertura` (Librería) llevan **PROVISIONAL** hasta que esos GDD los confirmen. Todos los de tipo **Logic** son tests automáticos de EditMode; los **Visual** y **UI** piden captura retenida en `production/qa/evidence/`.
+Las piezas se nombran por tipo y casilla. Valores del Catálogo v5: soldado ataque 8 · arquero escudo 2, vida 15 · escudero ataque 4, escudo 5, vida 20 · catapulta ataque 10, área 6 · demoledor ataque 30 · Rey escudo 5, vida 30. Los criterios que dependían del reparto de daño de Resolución (#9) dejaron de ser PROVISIONAL al cerrar la tanda 3 (2026-11-25). Todos los de tipo **Logic** son tests automáticos de EditMode; los **Visual** y **UI** piden captura retenida en `production/qa/evidence/`.
 
 **Comandos y validación**
 
@@ -411,13 +411,13 @@ Las piezas se nombran por tipo y casilla. Valores del Catálogo v5: soldado ataq
 
 **Efecto y vigencia**
 
-- **AC-8 (regla 6, desvío)** *(Integration #9, PROVISIONAL)* — **GIVEN** un arquero del jugador 0 (escudo 2, vida 15) cubierto por un escudero vecino (escudo 5, vida 20) y tres soldados del jugador 1 apuntándole (24 de bruto), **WHEN** el jugador 1 resuelve, **THEN** el arquero queda con 15 de vida y el escudero con 1; **y GIVEN** el mismo caso sin cobertura, **THEN** el arquero muere (24 − 2 = 22 ≥ 15).
-- **AC-9 (regla 6, suma y exceso)** *(Integration #9, PROVISIONAL)* — **GIVEN** un arquero cubierto y 2 soldados sobre el arquero (16) más 1 sobre el escudero (8), **WHEN** se resuelve, **THEN** el escudero recibe 24 − 5 = 19 y queda con 1 de vida (si se restara el escudo dos veces, quedaría con 6). **Y GIVEN** 5 soldados (40) sobre el arquero cubierto, **THEN** el escudero muere, el exceso se pierde y el arquero conserva sus 15 de vida.
-- **AC-10 (regla 6, área y explosión)** *(Integration #9, PROVISIONAL)* — **GIVEN** un arquero cubierto y una catapulta rival con el centro (10) sobre el arquero y el área (6) sobre el escudero vecino, **WHEN** se resuelve, **THEN** el escudero recibe 16 − 5 = 11 y queda con 9; el arquero no pierde nada. **GIVEN** un demoledor rival (30) pegado a los dos, **THEN** el escudero recibe 60 − 5 y muere, y el arquero no pierde nada.
-- **AC-11 (regla 6, límites)** *(Integration #5 y #9, PROVISIONAL)* — **GIVEN** un arquero cubierto parado sobre su tramo (30 de vida) y 2 soldados rivales apuntándole (16), **WHEN** se resuelve, **THEN** el tramo queda en 14 (golpe completo), el escudero en 9 y el arquero en 15. **GIVEN** el jugador 0 que dispara su propia catapulta contra su arquero cubierto, **THEN** el arquero recibe el daño y el escudero no (fuego amigo).
+- **AC-8 (regla 6, desvío)** *(Integration #9)* — **GIVEN** un arquero del jugador 0 (escudo 2, vida 15) cubierto por un escudero vecino (escudo 5, vida 20) y tres soldados del jugador 1 apuntándole (24 de bruto), **WHEN** el jugador 1 resuelve, **THEN** el arquero queda con 15 de vida y el escudero con 1; **y GIVEN** el mismo caso sin cobertura, **THEN** el arquero muere (24 − 2 = 22 ≥ 15).
+- **AC-9 (regla 6, suma y exceso)** *(Integration #9)* — **GIVEN** un arquero cubierto y 2 soldados sobre el arquero (16) más 1 sobre el escudero (8), **WHEN** se resuelve, **THEN** el escudero recibe 24 − 5 = 19 y queda con 1 de vida (si se restara el escudo dos veces, quedaría con 6). **Y GIVEN** 5 soldados (40) sobre el arquero cubierto, **THEN** el escudero muere, el exceso se pierde y el arquero conserva sus 15 de vida.
+- **AC-10 (regla 6, área y explosión)** *(Integration #9)* — **GIVEN** un arquero cubierto y una catapulta rival con el centro (10) sobre el arquero y el área (6) sobre el escudero vecino, **WHEN** se resuelve, **THEN** el escudero recibe 16 − 5 = 11 y queda con 9; el arquero no pierde nada. **GIVEN** un demoledor rival (30) pegado a los dos, **THEN** el escudero recibe 60 − 5 y muere, y el arquero no pierde nada.
+- **AC-11 (regla 6, límites)** *(Integration #5 y #9)* — **GIVEN** un arquero cubierto parado sobre su tramo (30 de vida) y 2 soldados rivales apuntándole (16), **WHEN** se resuelve, **THEN** el tramo queda en 14 (golpe completo), el escudero en 9 y el arquero en 15. **GIVEN** el jugador 0 que dispara su propia catapulta contra su arquero cubierto, **THEN** el arquero recibe el daño y el escudero no (fuego amigo).
 - **AC-12 (regla 7, vigencia)** *(Integration #3)* — **GIVEN** el jugador 0 que asigna una cobertura en el turno T, **WHEN** resuelve sus propios ataques, **THEN** la cobertura no desvía nada (AC-11, fuego amigo); **WHEN** el jugador 1 resuelve en T+1, **THEN** desvía. **WHEN** se abre el turno T+2, **THEN** el jugador 0 no tiene coberturas y salieron `CoberturaQuitada(…, Caducada)` en orden de ID de escudero, antes de `EsperandoTirada`.
-- **AC-13 (regla 9, muertes)** *(Integration #9, PROVISIONAL)* — **GIVEN** una cobertura del jugador 0 y un demoledor propio que explota junto al escudero, **WHEN** resuelve el jugador 0 y el escudero muere, **THEN** `CoberturaQuitada(…, EscuderoMuerto)` sale **después** de los eventos de muerte; **y GIVEN** que mueren el escudero y el aliado, **THEN** sale un solo evento (`EscuderoMuerto`); **y GIVEN** que muere solo el aliado, **THEN** `AliadoMuerto`.
-- **AC-14 (regla 10, estado al empezar)** *(Integration #9, PROVISIONAL)* — **GIVEN** una cobertura del jugador 0 y ataques del jugador 1 que juntos matan al escudero y también apuntan al aliado, **WHEN** se resuelve, **THEN** todos los golpes sobre el aliado van al escudero (el aliado conserva su vida) y la cobertura se borra después de la resolución, no durante.
+- **AC-13 (regla 9, muertes)** *(Integration #9)* — **GIVEN** una cobertura del jugador 0 y un demoledor propio que explota junto al escudero, **WHEN** resuelve el jugador 0 y el escudero muere, **THEN** `CoberturaQuitada(…, EscuderoMuerto)` sale **después** de los eventos de muerte; **y GIVEN** que mueren el escudero y el aliado, **THEN** sale un solo evento (`EscuderoMuerto`); **y GIVEN** que muere solo el aliado, **THEN** `AliadoMuerto`.
+- **AC-14 (regla 10, estado al empezar)** *(Integration #9)* — **GIVEN** una cobertura del jugador 0 y ataques del jugador 1 que juntos matan al escudero y también apuntan al aliado, **WHEN** se resuelve, **THEN** todos los golpes sobre el aliado van al escudero (el aliado conserva su vida) y la cobertura se borra después de la resolución, no durante.
 
 **Consultas y acción posible**
 
@@ -430,14 +430,14 @@ Las piezas se nombran por tipo y casilla. Valores del Catálogo v5: soldado ataq
 - **AC-18 (determinismo)** *(Logic)* — **GIVEN** el mismo estado inicial y la misma secuencia de `Cubrir`, `QuitarCobertura` y `Resolver`, **WHEN** se aplica dos veces, **THEN** los eventos y la huella del estado son idénticos.
 - **AC-19 (estado inválido)** *(Logic)* — **GIVEN** estados con (a) un cubridor que no es de tipo 2, (b) un aliado muerto, del rival o fuera del contorno de 8, (c) dos coberturas sobre el mismo aliado, (d) una pieza en los dos roles, (e) un escudero del turno que ataca y cubre, (f) coberturas del jugador del turno en la fase `Mover`, (g) más coberturas que `coberturas_max`, **WHEN** se cargan, **THEN** cada uno da `EstadoInvalido`; **y GIVEN** coberturas del rival en `EsperandoTirada`, **THEN** el estado es válido.
 - **AC-20 (cierres)** *(Integration #3)* — **GIVEN** una cobertura asignada, **WHEN** llega `TurnTimeout` de `Atacar`, **THEN** el turno termina y la cobertura se conserva; **WHEN** llega `Rendirse` durante `Atacar`, **THEN** el estado `Terminado` la conserva y no se resuelve nada.
-- **AC-21 (reclutas y Rey)** *(Integration #10)* — **GIVEN** un escudero reclutado ese turno y un aliado reclutado ese turno, **WHEN** el escudero envía `Cubrir`, **THEN** se acepta. **GIVEN** el Rey (escudo 5, vida 30) cubierto y 100 de bruto del rival sobre él, **WHEN** se resuelve, **THEN** el Rey conserva sus 30 de vida y el escudero muere *(PROVISIONAL #9)*.
+- **AC-21 (reclutas y Rey)** *(Integration #10)* — **GIVEN** un escudero reclutado ese turno y un aliado reclutado ese turno, **WHEN** el escudero envía `Cubrir`, **THEN** se acepta. **GIVEN** el Rey (escudo 5, vida 30) cubierto y 100 de bruto del rival sobre él, **WHEN** se resuelve, **THEN** el Rey conserva sus 30 de vida y el escudero muere *(#9)*.
 - **AC-22 (tramo roto)** *(Integration #5)* — **GIVEN** un arquero cubierto sobre su tramo, **WHEN** el tramo se rompe en la resolución y el arquero sobrevive, **THEN** la cobertura sigue y el arquero pierde solo el bono de posición.
 
 **Fórmulas**
 
 - **AC-23 (F1, `en_contorno`)** *(Logic)* — **GIVEN** un escudero en `(5, 5)`, **WHEN** se evalúa con `(6, 4)`, `(7, 5)` y `(5, 5)`, **THEN** verdadero, falso y falso. **Y GIVEN** un escudero en `(0, 0)`, **THEN** `(1, 1)` es verdadero y `(2, 0)` es falso. **Y** con el escudero en `(5, 5)` y el aliado en `(7, 5)` a pesar de `alcanceMax` 2, `Cubrir` da `AliadoLejos`: la cobertura no usa el alcance.
 - **AC-24 (F2, `receptor`)** *(Logic)* — **GIVEN** `Coberturas()` vacía, **THEN** `receptor(p, o) = p`; **GIVEN** `(e, p)` con `o` del rival, **THEN** `e`; **GIVEN** `o` del mismo jugador que `e`, **THEN** `p`. **Y** para todo estado válido generado, `receptor(receptor(p, o), o) = receptor(p, o)` (propiedad).
-- **AC-25 (F3, oráculo y C1/C2)** *(Logic)* — **GIVEN** escudo 5 y vida 20, **THEN** `bruto_para_romper_cobertura` es 25; con (0, 1) es 1; con (1.000, 1.000) es 2.000. **GIVEN** una cobertura vigente, **WHEN** el rival descarga 1.000.000 de bruto sobre el cubierto, **THEN** su vida no cambia *(C1, PROVISIONAL #9)*. **GIVEN** el Catálogo vigente, **THEN** `piezasParaMatar(a, escudero)` es 4, 5, 7, 3, 4, 4 y 1 para soldado, arquero, escudero, catapulta, jinete, Rey y demoledor, y ningún atacante que no sea el demoledor da 1 *(C2)*.
+- **AC-25 (F3, oráculo y C1/C2)** *(Logic)* — **GIVEN** escudo 5 y vida 20, **THEN** `bruto_para_romper_cobertura` es 25; con (0, 1) es 1; con (1.000, 1.000) es 2.000. **GIVEN** una cobertura vigente, **WHEN** el rival descarga 1.000.000 de bruto sobre el cubierto, **THEN** su vida no cambia *(C1, #9)*. **GIVEN** el Catálogo vigente, **THEN** `piezasParaMatar(a, escudero)` es 4, 5, 7, 3, 4, 4 y 1 para soldado, arquero, escudero, catapulta, jinete, Rey y demoledor, y ningún atacante que no sea el demoledor da 1 *(C2)*.
 - **AC-26 (F4, `coberturas_max`)** *(Logic)* — **GIVEN** `(escuderos, vivas)` = (4, 13), (1, 2), (1, 1), (12, 24) y (0, 5), **THEN** 4, 1, 0, 12 y 0.
 
 **Presentación**

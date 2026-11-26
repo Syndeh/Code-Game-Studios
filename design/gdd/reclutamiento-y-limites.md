@@ -78,6 +78,8 @@ Este sistema es dueño de cuatro cosas: los límites de llamadas por jugador y p
    | 4 | `TopeDePiezas` | Vivas + piezas de la llamada > `topeVivas` | Sí |
    | 5 | `SinLugarParaReclutar` | Casillas libres del anillo < piezas de la llamada | Sí |
 
+   **Consulta pura `motivo_bloqueo(jugador, tipo)`** (pedida por #17, F2; cierre de la tanda 3): devuelve el primer código de la tabla, en este orden, que rechazaría hoy un `Reclutar(tipo)` de ese jugador, sin contar `TipoNoReclutable`, o `Ninguno`. No depende de la cara que salió ni de la fase, así que el panel «?» y el recuadro la piden en cualquier momento. Es la misma comprobación que `Reclutar`, sin efectos.
+
 8. **Dónde aparecen.** En las primeras casillas libres del anillo propio según `orden_aparicion` (F4): frente primero (columna que mira al rival, desde la fila del Rey hacia afuera) y después los costados, del frente hacia atrás. Una casilla ocupada por cualquier pieza se salta. Nunca aparecen en un tramo, un hueco ni el interior. Los IDs se asignan por (fila, columna) (Librería, regla 7).
 9. **Cómo aparecen.** Con la vida completa del Catálogo y `usados = 0`. Se mueven ese turno como cualquier otra y gastan cupo del límite (Movimiento, regla 11). Pueden atacar o cubrir (#7, #8).
 10. **Recluta automático.** Si llega el timeout de mover en `Reclutar`, se recluta el primer tipo disponible de la cara en el orden del Catálogo (Llamada: soldado, arquero, escudero; Cuerno: catapulta, jinete, demoledor), con marca `automatico`. Se pasa directo a `Atacar`: esas piezas no se mueven ese turno, pero pueden atacar o cubrir.
@@ -108,7 +110,7 @@ Los estados son por cara y por jugador, y se derivan; solo se guardan los contad
 | #5 Castillo | `puedeReclutar` | — | Castillo |
 | #6 Movimiento | — | Piezas con `usados = 0` | Reclutamiento |
 | #11 Modificador | Cara que salió | `estado_cara(j, cara)`, `llamadas_restantes(j, tipo)` | Reclutamiento; el Modificador solo lee |
-| #15, #17, #18, #19, #25 | — | Consultas y evento (solo lectura) | Reclutamiento |
+| #15, #17, #18, #19, #25 | — | Consultas (`motivo_bloqueo` incluida) y evento (solo lectura) | Reclutamiento (reglas y contenido); #17 es dueño de la disposición y de los toques del recuadro |
 
 ## Formulas
 
@@ -294,7 +296,7 @@ The `delta_reclutamiento` formula is defined as:
 | #24 Tutorial, #25 Rival IA | Dura | Consultas y comando |
 | #26 Registro | Blanda | `tablaReclutas` en la config |
 
-**Bidireccionalidad:** los cambios en los vecinos se aplicaron el 2026-11-25 al cerrar la tanda 1 (Librería, Catálogo, Máquina, Tablero, Castillo, Movimiento y concepto). **Provisional:** #11, #17 y #19 no tenían GDD al escribir este; sus aristas se confirman al escribirlos.
+**Bidireccionalidad:** los cambios en los vecinos se aplicaron el 2026-11-25 al cerrar la tanda 1 (Librería, Catálogo, Máquina, Tablero, Castillo, Movimiento y concepto). #11 (tanda 2) y #17 (tanda 3) ya tienen GDD y nombran a Reclutamiento. **Provisional:** #19 no tiene GDD; su arista se confirma al escribirlo.
 
 ## Tuning Knobs
 
@@ -334,7 +336,7 @@ La animación no bloquea la entrada. El significado nunca depende solo del color
 
 ## UI Requirements
 
-- Recuadro central: hasta 3 opciones con cantidad, vivas / tope y llamadas restantes; las bloqueadas, con el motivo traducido desde su código (#14).
+- Recuadro central: hasta 3 opciones con cantidad, vivas / tope y llamadas restantes; las bloqueadas, con el motivo traducido desde su código (#14) y **sin** la línea de casillas. La disposición y los toques los fija la Interfaz del Modificador (#17); este GDD fija las reglas y el contenido.
 - Las casillas de aparición se marcan numeradas en el tablero mientras el recuadro está abierto, sin hover ni toque extra (Entrada, #13, regla 12; decisión del jugador, 2026-11-25): como salen en `orden_aparicion` (F4), las de 1 o 2 piezas son las primeras de las de 4. El sistema decide y se ve antes de elegir (pilar 1).
 - Panel "?" (#17): llamadas restantes de los dos jugadores y, si una cara está en 0, por qué (muros, llamadas, tope o lugar).
 
@@ -389,5 +391,5 @@ Todos automatizados (EditMode) salvo donde se indica.
 | Valor de `bajas_por_turno` para cerrar Δturnos (F6) | Métricas (#19) | Primeras 3 partidas del MVP |
 | ¿El tope de 6 Llamadas sirve si casi nunca se alcanza (4–11%)? Se mantiene en 6 como seguro (Modificador, Tuning Knobs) | Métricas (#19) | Playtest |
 | Con todo o nada, ¿los jinetes bloqueados con 5 a 8 vivos se sienten injustos? El prototipo v5 reclutaba parcial: esta regla está sin jugar | Playtest | MVP |
-| Dos repartos según la causa (F5 y `reparto_liberado`): ¿se entienden en el panel "?"? | Interfaz del Modificador (#17) | Su GDD |
+| Dos repartos según la causa (F5 y `reparto_liberado`): ¿se entienden en el panel "?"? #17 los muestra con el cambio contra la base y el motivo; queda medirlo | Playtest | MVP |
 | Con 12 piezas o menos, Grito absorbe hasta 85%; el pilar 3a se enmendó para admitirlo (Modificador, regla 12): ¿se siente injusto? | Métricas (#19) | Playtest |

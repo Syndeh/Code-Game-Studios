@@ -327,6 +327,7 @@ Sin pantalla propia: el tablero ocupa toda la pantalla (decisión del jugador, 2
 - **Las coordenadas son internas:** el jugador no ve "columna 5, fila 7" (salvo en modo de depuración).
 - **Contar distancias sin cuadrícula dibujada** (decisión del 2026-11-25): por defecto no hay cuadrícula, como pide el art bible. Al elegir una pieza se marcan las casillas alcanzables (Movimiento, #6) y el alcance (Alcance, #7). Una opción **"Mostrar cuadrícula"**, apagada por defecto, queda en Accesibilidad (#23) y Ajustes (#20).
 - **Lo que consume:** Ficha y HUD (#15) y Vista previa (#16) leen las dimensiones; Render (#18) pinta el terreno y el castillo.
+- **Castillos y anillos despejados:** ningún recuadro de la Interfaz del Modificador (#17, F5) tapa las columnas 0 a 5 ni 18 a 23 (castillos y anillos de reclutamiento); el HUD (#15) no tapa ninguna casilla salvo las leyendas centrales de ≤ 1 s.
 
 > **📌 UX Flag — Tablero y despliegue inicial**: This system has UI requirements. In Phase 4 (Pre-Production), run `/ux-design` to create a UX spec for each screen or HUD element this system contributes to **before** writing epics. Stories that reference UI should cite `design/ux/[screen].md`, not the GDD directly.
 

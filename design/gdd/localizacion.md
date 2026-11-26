@@ -63,7 +63,7 @@ Sirve al **Pilar 1** («Al mover armás la estrategia; al atacar ejecutás el pl
    - Un código puede ser visible o interno según el comando (`EsperandoTirada`). La presentación decide si se muestra; Localización solo responde por la clave.
 6. **Nombres de pieza.** Singular y plural por tipo. Español / inglés: Soldado / Soldier · Arquero / Archer · Escudero / Shieldbearer · Catapulta / Catapult · Jinete / Rider · Demoledor / Demolisher · Rey / King. Los nombres en inglés son **propuesta** hasta la revisión de un hablante nativo.
 7. **Parámetros con nombre.** Un texto puede llevar `{nombre}`. Las dos tablas usan los mismos parámetros en la misma clave (F2); el orden puede cambiar. Ningún texto se arma pegando trozos. Un parámetro admite un entero de 32 bits o **otra clave** sin parámetros (el nombre de una pieza), que se resuelve en el idioma actual; si esa clave es plural, se usa su forma `uno`. El nombre de jugador del online (fuera del MVP) será texto libre. La sustitución es de una sola pasada: un valor que contiene `{` se muestra tal cual. `{{` y `}}` son llaves literales.
-8. **Plurales.** Una clave es simple o plural. La plural tiene las formas `uno` y `otros` y declara qué parámetro entero la decide (F3). Los dos idiomas usan la misma regla.
+8. **Plurales.** Una clave es simple o plural. La plural tiene las formas `uno` y `otros` y declara qué parámetro entero la decide (F3). Los dos idiomas usan la misma regla. Una clave plural pedida como texto directo con su parámetro (por ejemplo `pieza.<tipo>` con `n`, #17) usa la forma de F3; sin el parámetro, la singular.
 9. **Números y género.** Los enteros se escriben sin separador de miles ni decimales; un negativo lleva `-`. Los textos evitan concordar en género con el nombre de una pieza: «Catapulta: sin objetivo», no «La catapulta está bloqueada».
 10. **Elección inicial.** En orden: (a) la preferencia guardada, si es un idioma soportado; (b) el primer idioma de la lista del sistema o navegador: si su subetiqueta primaria es `es` (sin distinguir mayúsculas), español; cualquier otra, inglés; (c) si no se puede leer, inglés. No se recorren los demás idiomas de la lista. El idioma automático no se guarda: solo se guarda lo que el jugador elige.
 11. **Cambio de idioma.** El botón ES/EN cambia el idioma y guarda la preferencia. En el MVP está antes de la partida y también a mano durante ella; Ajustes (#20) lo absorbe. El cambio es **instantáneo**: todo texto visible muestra el idioma nuevo en el siguiente cuadro. No pausa timers, no envía comandos ni toca el estado de la partida, la selección, las flechas o la pila de deshacer.
@@ -161,7 +161,7 @@ The largo_peor formula is defined as:
 |---|---|---|---|---|
 | fijos(k, L) | int | 0–1.000 | calculated | Caracteres sin los parámetros; en una plural, se evalúa cada forma |
 | ancho_max(p, L) | int | 1–1.000 | data file | Entero: los dígitos declarados para el parámetro (1 a 11). Clave: el texto más largo posible en L. Se suma por cada aparición |
-| presupuesto(k) | int | 1–1.000 | data file | Botón 18 · etiqueta 24 · título 32 · aviso 60 · párrafo 240 |
+| presupuesto(k) | int | 1–1.000 | data file | Botón 18 · chip 18 · etiqueta 24 · efecto 48 · título 32 · aviso 60 · nota 180 · párrafo 240 (chip, efecto y nota los pidió #17) |
 
 **Output Range:** 1 a 1.000; pasarse del presupuesto rompe el test. *Por qué 60 para un aviso:* unos 4 s de lectura a 15 caracteres por segundo, una velocidad **hipotética** a medir en playtest.
 **Example:** «Te quedan {n} movimientos»: 22 fijos + 2 dígitos = 24 ≤ 60, pasa.
@@ -238,15 +238,15 @@ Blanda significa que el sistema funciona sin esas listas, pero no puede probar q
 | Sistema | Tipo | Qué usa | Estado |
 |---|---|---|---|
 | #13 Entrada y selección | Dura | Textos de rechazo y aviso neutro | En diseño, en paralelo |
-| #15 HUD, #16 Vista previa, #17 Interfaz del Modificador | Dura | Claves `ui`, piezas, caras; aviso de cambio de idioma | Pendientes |
+| #15 HUD, #16 Vista previa, #17 Interfaz del Modificador | Dura | Claves `ui`, piezas, caras; aviso de cambio de idioma | #15 y #17 existen (tanda 3) y definen sus claves; #16 pendiente |
 | #18 Render | Blanda | MUERE y ROTO si van como texto | Pendiente |
 | #20 Ajustes, #21 Menú | Dura | Lista de idiomas, idioma actual, claves | Pendientes (Vertical Slice) |
 | #23 Accesibilidad, #24 Tutorial | Blanda | Textos; espacio para texto escalado | Pendientes |
 | #31 Emotes, #34 Chat | Dura | Frases predefinidas | Pendientes (Alpha) |
-| #6 Movimiento, #7–#11 reglas | Blanda | Textos de sus códigos visibles | #6, #7, #8, #10, #11 y #13 lo listan; #9, pendiente |
+| #6 Movimiento, #7–#11 reglas | Blanda | Textos de sus códigos visibles | #6, #7, #8, #10, #11 y #13 lo listan; #9 no tiene códigos de rechazo ni textos propios |
 | #12 Timer | Blanda | Nombres de los cuatro modos | Existe y lo lista |
 
-**Supuestos provisionales:** claves `ui` (#15–#18, #21), lugar del botón ES/EN (pantalla previa a la partida y HUD) y qué eventos llevan texto.
+**Supuestos provisionales:** claves `ui` de #16, #18 y #21 y qué eventos de Render llevan texto. Las de #15 y #17 y el lugar del botón ES/EN en la partida (#15, regla 21) quedaron fijados en la tanda 3.
 
 ## Tuning Knobs
 
@@ -255,6 +255,9 @@ Blanda significa que el sistema funciona sin esas listas, pero no puede probar q
 | `presupuesto` botón | 18 | 12–26 | Botones anchos que tapan el tablero | Traducciones forzadas | Con `expansion_pct` |
 | `presupuesto` etiqueta | 24 | 16–34 | Etiquetas que no entran en la ficha | Abreviaturas | Con `expansion_pct` |
 | `presupuesto` título | 32 | 20–45 | Títulos en dos líneas | Títulos vagos | Con `expansion_pct` |
+| `presupuesto` chip | 18 | 12–26 | Chips que no entran en la celda de una cara (#17, F3) | Motivos crípticos | Con `expansion_pct` |
+| `presupuesto` efecto | 48 | 30–70 | El efecto de la cara no entra en la placa (#17) | Efectos incompletos | Con `expansion_pct` |
+| `presupuesto` nota | 180 | 120–260 | Notas del panel «?» que nadie lee | Falta la explicación del reparto | — |
 | `presupuesto` aviso | 60 | 40–90 | No se lee dentro del turno | No alcanza para decir la causa | Con la duración del aviso (#13) |
 | `presupuesto` párrafo | 240 | 120–400 | Nadie lo lee | Reglas incompletas | — |
 | `expansion_pct` | 40 | 20–60 | Fallan pantallas que están bien | No descubre textos cortados | Multiplica el efecto de los presupuestos |
@@ -279,7 +282,7 @@ Opcional en `Meta`. Solo una meta: el cambio de idioma se ve en el siguiente cua
 
 - **Botón ES/EN (MVP):** muestra los dos idiomas y marca el activo con forma, no solo color. Está antes de la partida y en la partida; no tapa el tablero ni el timer. Tamaño táctil: el de la pantalla que lo aloja (#13, #15).
 - **Cajas de texto:** aceptan el presupuesto de su tipo y el texto inflado de F5 sin cortar.
-- **Avisos:** en un solo lugar fijo, definido por #13 y #15.
+- **Avisos:** en un solo lugar fijo: la zona de avisos del HUD, banda superior a la derecha del timer (#15, regla 18). **Un término por concepto:** el castillo que no recluta es «Castillo cortado» en todas las pantallas (#10, #17, #5).
 - **Deshabilitado (`Degradada`):** el botón se ve deshabilitado y no responde.
 - **Ayuda para lectores de pantalla:** todo botón sin texto tiene una clave `ui` con su nombre. Alcance exacto: #23.
 
@@ -339,7 +342,7 @@ Automáticos (Logic) salvo que se indique. «Tablas de prueba» son fixtures del
 | Nombres en inglés de las 7 piezas, MUERE/ROTO y glosario | localization-lead, hablante nativo | Antes de la primera build con textos |
 | ¿El voseo molesta a jugadores de otras regiones de Latinoamérica? | Playtest | Primeros playtests del MVP |
 | Nombre del juego: ¿igual en los dos idiomas? | creative-director | Cuando deje de ser provisional |
-| Textos de las 5 caras (IDs en #11) y sus recuadros | #17 | En su GDD |
-| Lugar exacto del botón ES/EN y duración de los avisos | #13, #15 | En sus GDD |
+| ~~Textos de las 5 caras y sus recuadros~~ **Resuelta por #17 (regla 13)** | — | — |
+| ~~Lugar exacto del botón ES/EN y duración de los avisos~~ **Resuelta por #15 (reglas 18 y 21)** y Entrada (#13) | — | — |
 | Qué eventos llevan texto | #15, #18 | En sus GDD |
 

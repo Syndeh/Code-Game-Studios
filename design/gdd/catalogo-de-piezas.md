@@ -75,7 +75,7 @@ El Catálogo **no tiene lógica ni estado**: no calcula daño, no mueve piezas y
    | 5 | Demoledor | 6 | 1 | 1 | 30 | 1 | 10 | 0 | 4 |
    | 6 | Rey | 6 | 1 | 1 | 8 | 5 | 30 | 0 | 1 |
 
-   - La explosión del demoledor no usa `danoArea` (queda en 0). La regla de que daña las 8 vecinas con su `ataque` (supuesto del prototipo) es de Resolución (#9), que la confirma.
+   - La explosión del demoledor no usa `danoArea` (queda en 0). La regla de que daña las 8 vecinas con su `ataque` es de Resolución (#9), que la confirmó (regla 8, cierre de la tanda 3).
    - Cambios de la v5 (2026-11-24), decididos por el jugador después de las partidas v4 del 2026-11-21: alcance máximo del arquero 6 → 4, alcance máximo del escudero 1 → 2 (su cobertura sigue siendo a un aliado vecino, regla del Escudero), ataque de la catapulta 12 → 10, su daño de área 8 → 6 y su escudo 3 → 2, escudo del soldado 2 → 3.
    - Los topes suman 60 más el Rey, igual que las 61 piezas vivas de la Librería.
 5. **Estático.** El Catálogo no cambia durante la partida. Los bonos de turno (Grito de guerra: +2 de movimiento a todas y +2 de ataque salvo al demoledor, nunca al `danoArea`; #11) viven en el estado y se combinan con `EffectiveStats(estado, pieza)`. El +2 de escudo y el +2 de alcance del arquero sobre el muro (v5, 2026-11-25: alcance 1–4 → 1–6) son del Castillo (#5), no del Catálogo.
@@ -127,7 +127,7 @@ Un archivo que no se puede leer no llega a ser un Catálogo: el cliente no ofrec
 | #19 Métricas, #32 Analítica | `versionBalance` y huella de cada partida | Métricas |
 | #26 Registro, #28 Servidor | El Registro guarda la tabla en la config de cada partida (así el Catálogo no conserva versiones viejas); el Servidor carga el mismo archivo y compara huellas | Registro y Servidor (provisional hasta que existan) |
 
-**Provisional:** #9 y #26 todavía no tienen GDD. Estos contratos son lo que este documento espera de ellos.
+**Provisional:** #26 todavía no tiene GDD; su contrato es lo que este documento espera de él. El de #9 lo confirmó su GDD (tanda 3, 2026-11-25).
 
 **Observaciones que pasan a Open Questions:** el demoledor mata solo a cualquier pieza que no sea el Rey. El Grito (+2 de ataque) no suma al `danoArea` ni a la explosión; sí al impacto de la catapulta (Modificador, #11, regla 7).
 
@@ -184,7 +184,7 @@ con división entera hacia abajo (todos los valores son no negativos, como exige
 
 **Chequeos de balance sobre el Catálogo** (los hace un test; el pilar 2 es *"ninguna pieza gana sola"*):
 
-- **I1, excepciones aprobadas (2026-11-19).** Los únicos pares con `piezasParaMatar = 1` son: demoledor contra cualquier tipo menos el Rey (a cambio muere al explotar, hay 4 y daña a los aliados vecinos) y catapulta contra demoledor (contrajuego a distancia de 6 casillas). Con los valores v5 este último par ya no se da (catapulta 10 contra escudo + vida 11): la excepción sigue aprobada, pero hoy el demoledor es el único que mata solo. **Contra los tramos de muro** (Castillo y muros, F3), el demoledor (ataque 30) rompe un tramo de `vida_tramo` 30 de un golpe y, pegado a un tramo recto, hasta 3 a la vez: excepción aprobada el 2026-11-25, PROVISIONAL hasta Resolución (#9). **Con Grito de guerra** la catapulta pega 12 y vuelve a matar sola al demoledor (escudo + vida 11): es la excepción ya aprobada, durante un turno. Cualquier otro par en 1 hace fallar el test hasta que se apruebe.
+- **I1, excepciones aprobadas (2026-11-19).** Los únicos pares con `piezasParaMatar = 1` son: demoledor contra cualquier tipo menos el Rey (a cambio muere al explotar, hay 4 y daña a los aliados vecinos) y catapulta contra demoledor (contrajuego a distancia de 6 casillas). Con los valores v5 este último par ya no se da (catapulta 10 contra escudo + vida 11): la excepción sigue aprobada, pero hoy el demoledor es el único que mata solo. **Contra los tramos de muro** (Castillo y muros, F3), el demoledor (ataque 30) rompe un tramo de `vida_tramo` 30 de un golpe y, pegado a un tramo recto, hasta 3 a la vez: excepción aprobada el 2026-11-25, confirmada por Resolución (#9). **Con Grito de guerra** la catapulta pega 12 y vuelve a matar sola al demoledor (escudo + vida 11): es la excepción ya aprobada, durante un turno. Cualquier otro par en 1 hace fallar el test hasta que se apruebe.
 - **I2, el Rey (regla dura, sin excepciones).** `piezasParaMatar(a, Rey) ≥ 2` para todo atacante `a`. Con las cifras vigentes el mínimo es 2 (el demoledor): ninguna pieza gana la partida sola.
 - **I3, el área no mata sola.** Para todo tipo con `danoArea > 0` y todo objetivo `t`, `danoArea − escudo_t < vida_t`: el área ablanda y no reemplaza a los demás (*"las piezas de área habilitan combos, no los reemplazan"*, pilar 2). Con la catapulta (6) el daño neto máximo es 5, contra 10 de vida mínima del demoledor.
 
@@ -228,6 +228,8 @@ con división entera hacia abajo (todos los valores son no negativos, como exige
 | Estadísticas | 0 a 1.000 | F2 y F4 | Revisar el análisis de desborde de la Librería (resolución completa menor que 25.000.000) y subir la versión de reglas |
 | Piezas vivas por jugador | 61 | F5 y F6 (`topeTotal`) | Igual que arriba; además afecta el estado de la Librería |
 
+**Restricción de presentación (pedida por la Ficha, #15, F1 y AC-4; cierre de la tanda 3).** El tope del esquema sigue en 1.000, pero el Catálogo **que se publica** mantiene cada cifra que muestra la ficha, sumado su bono máximo (Grito +2, muro +2), en **99 o menos**: con tres cifras la ficha compacta no entra en la casilla. Un balance que la rompa no es inválido (la ficha lo muestra igual, sin truncar), pero falla el test AC-4 de la Ficha y obliga a rediseñarla.
+
 Esto evita un ciclo: la Librería depende del esquema del Catálogo, y el Catálogo no depende de la Librería. Los demás topes de la Librería no son del Catálogo: el tablero 24 × 15 es del Tablero (#4), la pila de 256 de la Máquina de turno (#3), y el bono de turno de 0 a 10 y C_MAX siguen en la Librería.
 
 **Dependen de este sistema:**
@@ -240,9 +242,9 @@ Esto evita un ciclo: la Librería depende del esquema del Catálogo, y el Catál
 | #5 Castillo y muros | Dura | `escudo` y `alcanceMax` del arquero y el ID del tipo arquero | Existe y ya nombra al Catálogo |
 | #6 Movimiento | Dura | `movimiento`, vía `EffectiveStats`, y los IDs de arquero, jinete y Rey | Existe y ya nombra al Catálogo |
 | #7 Alcance y asignación | Dura | `alcanceMin`, `alcanceMax`, `danoArea` y los IDs 2 y 5 | Existe y ya nombra al Catálogo |
-| #9 Resolución simultánea | Dura | `ataque`, `escudo`, `vida`, `danoArea` | Pendiente |
+| #9 Resolución simultánea | Dura | `ataque`, `escudo`, `vida`, `danoArea` | Existe y ya nombra al Catálogo |
 | #10 Reclutamiento | Dura | `topeVivas`, el orden de tipos y la vida | Existe y ya nombra al Catálogo |
-| #15 Ficha de pieza y HUD | Dura | Cifras base y efectivas para mostrar | Pendiente |
+| #15 Ficha de pieza y HUD | Dura | Cifras base y efectivas para mostrar; pide que toda cifra con su bono máximo sea ≤ 99 (abajo) | Existe y ya nombra al Catálogo |
 | #18 Render, #37 Skins | Blanda | Solo el ID de tipo | Pendiente |
 | #14 Localización | Blanda | Solo el ID de tipo (nombre de pieza, singular y plural) | Existe y ya nombra al Catálogo |
 | #19 Métricas, #28 Servidor | Blanda | `versionBalance` y huella; el Servidor carga el mismo archivo | Pendiente |
@@ -335,7 +337,7 @@ Sin pantalla propia. Las cifras de cada tipo se muestran en la ficha de pieza y 
 
 - **AC-16 (`topeTotal`)** — **GIVEN** topes {12, 16, 12, 8, 8, 4, 1} y topes {1, 1, 1, 1, 1, 1, 1}, **WHEN** se calcula `topeTotal`, **THEN** 61 y 7.
 - **AC-17 (`piezasParaMatar`, valores)** — **GIVEN** el Catálogo vigente, **WHEN** se calcula la matriz de 7 × 7, **THEN** coincide celda por celda con la matriz de Formulas (49 valores). **GIVEN** `ataque` 1, `escudo` 1.000 y `vida` 1.000, **THEN** 2.000; con `ataque` 1.000, `escudo` 0 y `vida` 1, **THEN** 1; sin desborde en ningún caso.
-- **AC-18 (`piezasParaMatar`, contra la regla real)** — *(Integration, PROVISIONAL hasta #9)* **GIVEN** cada par (atacante, objetivo) de la matriz con N = `piezasParaMatar`, **WHEN** se resuelve con la Resolución real N ataques y N − 1 ataques, **THEN** con N el objetivo muere y con N − 1 no (el oráculo coincide con la regla de #9).
+- **AC-18 (`piezasParaMatar`, contra la regla real)** — *(Integration, #9)* **GIVEN** cada par (atacante, objetivo) de la matriz con N = `piezasParaMatar`, **WHEN** se resuelve con la Resolución real N ataques y N − 1 ataques, **THEN** con N el objetivo muere y con N − 1 no (el oráculo coincide con la regla de #9).
 - **AC-19 (I1)** — **GIVEN** el Catálogo vigente, **WHEN** se evalúa I1, **THEN** los pares con `piezasParaMatar` = 1 son exactamente 6: demoledor contra Soldado, Arquero, Escudero, Catapulta, Jinete y Demoledor. **GIVEN** el `ataque` de la Catapulta en 11, **THEN** I1 pasa y el par catapulta → Demoledor aparece como excepción aprobada. **GIVEN** el `ataque` del Soldado en 11, **THEN** I1 falla y nombra el par Soldado → Demoledor.
 - **AC-20 (I2)** — **GIVEN** el Catálogo vigente, **WHEN** se evalúa I2, **THEN** el mínimo contra el Rey es 2 (demoledor) y pasa. **GIVEN** el `ataque` del Demoledor en 34, **THEN** pasa; en 35, **THEN** falla y nombra Demoledor → Rey.
 - **AC-21 (I3)** — **GIVEN** el Catálogo vigente, **WHEN** se evalúa I3, **THEN** pasa (daño neto máximo 5 contra la vida mínima 10). **GIVEN** `danoArea` de la Catapulta en 10, **THEN** pasa; en 11, **THEN** falla. **GIVEN** `danoArea` 8 en el Arquero, **THEN** I3 lo evalúa y pasa.
@@ -348,12 +350,12 @@ Sin pantalla propia. Las cifras de cada tipo se muestran en la ficha de pieza y 
 - **AC-25 (huella distinta en cliente y servidor)** — *(Integration, PROVISIONAL hasta #28; la Librería ya lo cubre en AC-61)* **GIVEN** un servidor con el Catálogo X y un cliente con el Y, **WHEN** el cliente pide una partida, **THEN** `VersionNoSoportada` y no se juega.
 - **AC-26 (repetición de un balance viejo)** — *(Integration, PROVISIONAL hasta #26)* **GIVEN** el registro de una partida jugada con el Catálogo A y el archivo actual B, **WHEN** se reproduce, **THEN** usa la tabla A guardada y el estado final es idéntico al original.
 - **AC-27 (editar con partida en curso)** — **GIVEN** una partida en curso con su contexto fijado, **WHEN** se reemplaza el archivo y se aplica un comando, **THEN** la huella y las cifras de esa partida no cambian; una partida nueva usa el archivo nuevo.
-- **AC-28 (ataque menor o igual que el escudo)** — *(Integration, PROVISIONAL hasta #9)* **GIVEN** un Escudero (ataque 4) que ataca a otro Escudero (escudo 5), **WHEN** se resuelve, **THEN** el daño neto es 0 y la vida no cambia; **WHEN** atacan 3 Escuderos al mismo objetivo, **THEN** pierde 7 de vida (12 − 5).
+- **AC-28 (ataque menor o igual que el escudo)** — *(Integration, #9)* **GIVEN** un Escudero (ataque 4) que ataca a otro Escudero (escudo 5), **WHEN** se resuelve, **THEN** el daño neto es 0 y la vida no cambia; **WHEN** atacan 3 Escuderos al mismo objetivo, **THEN** pierde 7 de vida (12 − 5).
 - **AC-29 (bono sobre el máximo)** — **GIVEN** un Catálogo con `ataque` 1.000 en el Soldado y un bono de +10, **WHEN** se llama `EffectiveStats`, **THEN** devuelve 1.010 sin error.
 - **AC-30 (ejército inicial)** — *(Integration con #4)* **GIVEN** el Catálogo vigente con `topeVivas` de Soldados en 3, **WHEN** se crea la partida, **THEN** `ConfigInvalida`.
 - **AC-31 (skin con ID inválido)** — *(Integration, PROVISIONAL hasta #18 y #38)* **GIVEN** una skin que declara el tipo 7, **WHEN** el validador la revisa, **THEN** la rechaza.
 - **AC-32 (cifras repetidas)** — **GIVEN** un Catálogo donde Soldado y Jinete tienen las mismas cifras, **WHEN** se llama `PrepararContexto`, **THEN** se acepta, con una huella distinta de la del vigente.
-- **AC-33 (área genérica)** — *(Integration, PROVISIONAL hasta #9)* **GIVEN** un Catálogo con `danoArea` 8 en el Arquero, **WHEN** un arquero ataca una casilla en alcance, **THEN** las 8 casillas alrededor reciben 8 de daño antes de escudo.
+- **AC-33 (área genérica)** — *(Integration, #9)* **GIVEN** un Catálogo con `danoArea` 8 en el Arquero, **WHEN** un arquero ataca una casilla en alcance, **THEN** las 8 casillas alrededor reciben 8 de daño antes de escudo.
 
 **Criterios que no se pueden automatizar** (van a playtest): que el jugador sienta que el duelo es justo y que no pueda culpar a los números (Player Fantasy). Que las skins nunca cambien una cifra lo hace cumplir el validador del Kit (#38); acá solo se prueba la forma (AC-13, AC-14).
 

@@ -78,6 +78,9 @@ entities:
       - design/gdd/alcance-y-asignacion-de-ataques.md
       - design/gdd/reclutamiento-y-limites.md
       - design/gdd/modificador.md
+      - design/gdd/resolucion-simultanea-del-dano.md
+      - design/gdd/ficha-de-pieza-y-hud.md
+      - design/gdd/interfaz-del-modificador.md
     id: 0
     movimiento: 4
     alcance_min: 1
@@ -102,6 +105,9 @@ entities:
       - design/gdd/alcance-y-asignacion-de-ataques.md
       - design/gdd/reclutamiento-y-limites.md
       - design/gdd/modificador.md
+      - design/gdd/resolucion-simultanea-del-dano.md
+      - design/gdd/ficha-de-pieza-y-hud.md
+      - design/gdd/interfaz-del-modificador.md
     id: 1
     movimiento: 4
     alcance_min: 1
@@ -127,6 +133,9 @@ entities:
       - design/gdd/reclutamiento-y-limites.md
       - design/gdd/modificador.md
       - design/gdd/cobertura-del-escudero.md
+      - design/gdd/resolucion-simultanea-del-dano.md
+      - design/gdd/ficha-de-pieza-y-hud.md
+      - design/gdd/interfaz-del-modificador.md
     id: 2
     movimiento: 4
     alcance_min: 1
@@ -150,6 +159,9 @@ entities:
       - design/gdd/alcance-y-asignacion-de-ataques.md
       - design/gdd/reclutamiento-y-limites.md
       - design/gdd/modificador.md
+      - design/gdd/resolucion-simultanea-del-dano.md
+      - design/gdd/ficha-de-pieza-y-hud.md
+      - design/gdd/interfaz-del-modificador.md
     id: 3
     movimiento: 2
     alcance_min: 2
@@ -175,6 +187,8 @@ entities:
       - design/gdd/alcance-y-asignacion-de-ataques.md
       - design/gdd/reclutamiento-y-limites.md
       - design/gdd/modificador.md
+      - design/gdd/resolucion-simultanea-del-dano.md
+      - design/gdd/interfaz-del-modificador.md
     id: 4
     movimiento: 6
     alcance_min: 1
@@ -197,6 +211,9 @@ entities:
       - design/gdd/alcance-y-asignacion-de-ataques.md
       - design/gdd/reclutamiento-y-limites.md
       - design/gdd/modificador.md
+      - design/gdd/resolucion-simultanea-del-dano.md
+      - design/gdd/ficha-de-pieza-y-hud.md
+      - design/gdd/interfaz-del-modificador.md
     id: 5
     movimiento: 6
     alcance_min: 1
@@ -220,6 +237,9 @@ entities:
       - design/gdd/alcance-y-asignacion-de-ataques.md
       - design/gdd/reclutamiento-y-limites.md
       - design/gdd/modificador.md
+      - design/gdd/resolucion-simultanea-del-dano.md
+      - design/gdd/ficha-de-pieza-y-hud.md
+      - design/gdd/interfaz-del-modificador.md
     id: 6
     movimiento: 6
     alcance_min: 1
@@ -357,6 +377,7 @@ formulas:
       - design/gdd/catalogo-de-piezas.md
       - design/gdd/tablero-y-despliegue-inicial.md
       - design/gdd/cobertura-del-escudero.md
+      - design/gdd/resolucion-simultanea-del-dano.md
     variables:
       - ataque_a
       - escudo_t
@@ -512,6 +533,7 @@ formulas:
     source: design/gdd/castillo-y-muros.md
     referenced_by:
       - design/gdd/castillo-y-muros.md
+      - design/gdd/resolucion-simultanea-del-dano.md
     variables:
       - tramos_rotos_corte
       - piezas_para_romper
@@ -529,6 +551,8 @@ formulas:
       - design/gdd/catalogo-de-piezas.md
       - design/gdd/alcance-y-asignacion-de-ataques.md
       - design/gdd/modificador.md
+      - design/gdd/ficha-de-pieza-y-hud.md
+      - design/gdd/resolucion-simultanea-del-dano.md
     variables:
       - escudo
       - alcance_max
@@ -560,6 +584,8 @@ formulas:
       - design/gdd/castillo-y-muros.md
       - design/gdd/libreria-de-reglas.md
       - design/gdd/reclutamiento-y-limites.md
+      - design/gdd/resolucion-simultanea-del-dano.md
+      - design/gdd/ficha-de-pieza-y-hud.md
     variables:
       - vida_i
       - tramos_rotos_corte
@@ -698,6 +724,7 @@ formulas:
       - design/gdd/reclutamiento-y-limites.md
       - design/gdd/libreria-de-reglas.md
       - design/gdd/maquina-de-turno.md
+      - design/gdd/interfaz-del-modificador.md
     variables:
       - puedeReclutar
       - llamadas_restantes
@@ -716,6 +743,7 @@ formulas:
     referenced_by:
       - design/gdd/reclutamiento-y-limites.md
       - design/gdd/modificador.md
+      - design/gdd/interfaz-del-modificador.md
     variables:
       - llamadas_max
       - usadas
@@ -731,6 +759,7 @@ formulas:
       - design/gdd/reclutamiento-y-limites.md
       - design/gdd/libreria-de-reglas.md
       - design/gdd/modificador.md
+      - design/gdd/interfaz-del-modificador.md
     variables:
       - puedeReclutar
       - llamadas_restantes
@@ -745,6 +774,7 @@ formulas:
     source: design/gdd/reclutamiento-y-limites.md
     referenced_by:
       - design/gdd/reclutamiento-y-limites.md
+      - design/gdd/interfaz-del-modificador.md
     variables:
       - c
       - f
@@ -831,6 +861,7 @@ formulas:
     source: design/gdd/timer-de-turno.md
     referenced_by:
       - design/gdd/timer-de-turno.md
+      - design/gdd/ficha-de-pieza-y-hud.md
     variables:
       - restante_ms
     output_range: [0, 750]
@@ -855,6 +886,7 @@ formulas:
     source: design/gdd/cobertura-del-escudero.md
     referenced_by:
       - design/gdd/cobertura-del-escudero.md
+      - design/gdd/resolucion-simultanea-del-dano.md
     variables:
       - c_e
       - f_e
@@ -871,6 +903,7 @@ formulas:
     referenced_by:
       - design/gdd/cobertura-del-escudero.md
       - design/gdd/libreria-de-reglas.md
+      - design/gdd/resolucion-simultanea-del-dano.md
     variables:
       - pieza
       - origen
@@ -914,6 +947,7 @@ formulas:
     referenced_by:
       - design/gdd/modificador.md
       - design/gdd/libreria-de-reglas.md
+      - design/gdd/interfaz-del-modificador.md
     variables:
       - mias
       - rival
@@ -928,6 +962,7 @@ formulas:
     referenced_by:
       - design/gdd/modificador.md
       - design/gdd/libreria-de-reglas.md
+      - design/gdd/interfaz-del-modificador.md
     variables:
       - p_c
       - estado_cara
@@ -950,6 +985,7 @@ formulas:
       - design/gdd/movimiento.md
       - design/gdd/catalogo-de-piezas.md
       - design/gdd/castillo-y-muros.md
+      - design/gdd/ficha-de-pieza-y-hud.md
     variables:
       - movimiento_t
       - ataque_t
@@ -1036,6 +1072,85 @@ formulas:
     notes: "E3 de Entrada; con casilla de 26 pt da 1,70: 14 de 24 columnas. Decide #41."
     added: 2026-11-25
     revised: ""
+  - name: bruto_casilla
+    status: active
+    source: design/gdd/resolucion-simultanea-del-dano.md
+    referenced_by:
+      - design/gdd/resolucion-simultanea-del-dano.md
+      - design/gdd/castillo-y-muros.md
+      - design/gdd/libreria-de-reglas.md
+    variables:
+      - golpes
+      - ataque_ef
+      - danoArea
+    output_range: [0, 61610]
+    expression: "suma de dano(g) de los golpes de la resolucion sobre la casilla c; directo, centro del area y explosion usan ataque_ef, las vecinas del area danoArea"
+    notes: "F1 de Resolucion; cada pieza golpea una casilla a lo sumo una vez; cota 61 x 1.010."
+    added: 2026-11-25
+    revised: ""
+  - name: dano_neto_pieza
+    status: active
+    source: design/gdd/resolucion-simultanea-del-dano.md
+    referenced_by:
+      - design/gdd/resolucion-simultanea-del-dano.md
+      - design/gdd/catalogo-de-piezas.md
+      - design/gdd/cobertura-del-escudero.md
+    variables:
+      - bruto_pieza
+      - escudo_ef
+      - vida
+    output_range: [0, 123220]
+    expression: "neto = max(0, bruto_propio + bruto_desviado - escudo_ef); vida_nueva = max(0, vida - neto)"
+    notes: "F2 y F3 de Resolucion; escudo restado una vez; el exceso sobre un escudero se pierde. Base del oraculo piezasParaMatar del Catalogo."
+    added: 2026-11-25
+    revised: ""
+  - name: vida_quitada_resolucion
+    status: active
+    source: design/gdd/resolucion-simultanea-del-dano.md
+    referenced_by:
+      - design/gdd/resolucion-simultanea-del-dano.md
+      - design/gdd/maquina-de-turno.md
+      - design/gdd/libreria-de-reglas.md
+    variables:
+      - vida_perdida
+      - bruto_casilla
+      - vida_tramo
+    output_range: [0, 1000015000]
+    expression: "quitada(J) = suma de vida_perdida de las piezas rivales + suma de min(vida(t), bruto_casilla(t)) de los tramos rivales"
+    notes: "F4 de Resolucion; escribe vidaQuitada (Maquina, regla 15); el fuego amigo no cuenta."
+    added: 2026-11-25
+    revised: ""
+  - name: atacantes_rivales
+    status: active
+    source: design/gdd/resolucion-simultanea-del-dano.md
+    referenced_by:
+      - design/gdd/resolucion-simultanea-del-dano.md
+      - design/gdd/libreria-de-reglas.md
+    variables:
+      - atacantes
+      - dueno
+    output_range: [0, 61]
+    expression: "numero de piezas atacantes de dueno distinto al del receptor con algun golpe sobre el; combinado si >= 2"
+    notes: "F5 de Resolucion; la explosion cuenta como golpe de su dueno; marca de golpe combinado (Libreria, regla 8)."
+    added: 2026-11-25
+    revised: ""
+  - name: motivo_bloqueo
+    status: active
+    source: design/gdd/reclutamiento-y-limites.md
+    referenced_by:
+      - design/gdd/reclutamiento-y-limites.md
+      - design/gdd/interfaz-del-modificador.md
+    variables:
+      - puedeReclutar
+      - llamadas_restantes
+      - vivas
+      - topeVivas
+      - libres
+    output_range: [0, 4]
+    expression: "CastilloSinReclutar si no puedeReclutar; si no SinLlamadas; si no TopeDePiezas; si no SinLugarParaReclutar; si no Ninguno"
+    notes: "Consulta pura pedida por #17 (F2); mismo orden que los rechazos de Reclutar (regla 7)."
+    added: 2026-11-25
+    revised: ""
 
 # Example:
 #
@@ -1095,6 +1210,7 @@ constants:
       - design/gdd/alcance-y-asignacion-de-ataques.md
       - design/gdd/cobertura-del-escudero.md
       - design/gdd/entrada-y-seleccion.md
+      - design/gdd/resolucion-simultanea-del-dano.md
     value: 5
     unit: ms
     added: 2026-11-19
@@ -1109,6 +1225,7 @@ constants:
       - design/gdd/alcance-y-asignacion-de-ataques.md
       - design/gdd/cobertura-del-escudero.md
       - design/gdd/entrada-y-seleccion.md
+      - design/gdd/resolucion-simultanea-del-dano.md
     value: 1
     unit: ms
     added: 2026-11-19
@@ -1132,6 +1249,7 @@ constants:
       - design/gdd/catalogo-de-piezas.md
       - design/gdd/libreria-de-reglas.md
       - design/gdd/maquina-de-turno.md
+      - design/gdd/resolucion-simultanea-del-dano.md
     value: 1000
     unit: "valor maximo de una estadistica del Catalogo (rango 0-1.000; adoptado de la Libreria, antes PROVISIONAL)"
     added: 2026-11-20
@@ -1173,6 +1291,7 @@ constants:
       - design/gdd/maquina-de-turno.md
       - design/gdd/tablero-y-despliegue-inicial.md
       - design/gdd/timer-de-turno.md
+      - design/gdd/ficha-de-pieza-y-hud.md
     value: 750
     unit: "segundos por jugador en toda la partida (12:30 = tope_partida_s / 2); corre solo en su turno; Sin limite no tiene reloj"
     added: 2026-11-25
@@ -1224,6 +1343,8 @@ constants:
       - design/gdd/maquina-de-turno.md
       - design/gdd/tablero-y-despliegue-inicial.md
       - design/gdd/cobertura-del-escudero.md
+      - design/gdd/resolucion-simultanea-del-dano.md
+      - design/gdd/ficha-de-pieza-y-hud.md
     value: 30
     unit: "vida inicial y maxima de cada uno de los 16 tramos de muro de un castillo; dato de la config de CrearPartida (validado 1-1000, entra a la huella); rango seguro 18-40, sin medir"
     added: 2026-11-25
@@ -1272,6 +1393,8 @@ constants:
       - design/gdd/maquina-de-turno.md
       - design/gdd/modificador.md
       - design/gdd/entrada-y-seleccion.md
+      - design/gdd/ficha-de-pieza-y-hud.md
+      - design/gdd/interfaz-del-modificador.md
     value: 12
     unit: "piezas que se mueven por turno, sin el Rey; config, valido 1-37 y la pila con el bono de movimiento del Grito <= 256 (Libreria, regla 2), rango seguro 8-16 sin medir"
     added: 2026-11-25
@@ -1413,6 +1536,7 @@ constants:
     source: design/gdd/timer-de-turno.md
     referenced_by:
       - design/gdd/timer-de-turno.md
+      - design/gdd/ficha-de-pieza-y-hud.md
     value: 10
     unit: "s"
     added: 2026-11-25
@@ -1422,6 +1546,7 @@ constants:
     source: design/gdd/timer-de-turno.md
     referenced_by:
       - design/gdd/timer-de-turno.md
+      - design/gdd/ficha-de-pieza-y-hud.md
     value: 60
     unit: "s"
     added: 2026-11-25
@@ -1431,6 +1556,7 @@ constants:
     source: design/gdd/timer-de-turno.md
     referenced_by:
       - design/gdd/timer-de-turno.md
+      - design/gdd/ficha-de-pieza-y-hud.md
     value: 10
     unit: "s"
     added: 2026-11-25
@@ -1467,6 +1593,7 @@ constants:
     source: design/gdd/localizacion.md
     referenced_by:
       - design/gdd/localizacion.md
+      - design/gdd/interfaz-del-modificador.md
     value: 24
     unit: "caracteres visibles"
     added: 2026-11-25
@@ -1485,6 +1612,7 @@ constants:
     source: design/gdd/localizacion.md
     referenced_by:
       - design/gdd/localizacion.md
+      - design/gdd/ficha-de-pieza-y-hud.md
     value: 60
     unit: "caracteres visibles"
     added: 2026-11-25
@@ -1503,6 +1631,8 @@ constants:
     source: design/gdd/localizacion.md
     referenced_by:
       - design/gdd/localizacion.md
+      - design/gdd/ficha-de-pieza-y-hud.md
+      - design/gdd/interfaz-del-modificador.md
     value: 40
     unit: "% de inflado del texto de prueba"
     added: 2026-11-25
@@ -1515,6 +1645,9 @@ constants:
       - design/gdd/libreria-de-reglas.md
       - design/gdd/catalogo-de-piezas.md
       - design/gdd/castillo-y-muros.md
+      - design/gdd/resolucion-simultanea-del-dano.md
+      - design/gdd/ficha-de-pieza-y-hud.md
+      - design/gdd/interfaz-del-modificador.md
     value: 2
     unit: "ataque extra del Grito por un turno, salvo el modo Explosion; nunca al danoArea; config, valido 0-10, no los dos bonos en 0; rango seguro 1-3"
     added: 2026-11-25
@@ -1527,6 +1660,8 @@ constants:
       - design/gdd/libreria-de-reglas.md
       - design/gdd/movimiento.md
       - design/gdd/tablero-y-despliegue-inicial.md
+      - design/gdd/ficha-de-pieza-y-hud.md
+      - design/gdd/interfaz-del-modificador.md
     value: 2
     unit: "movimiento extra del Grito por un turno, todas las piezas y el Rey; config, valido 0-10, la pila con el bono <= 256; rango seguro 1-2 con limite_normal 37"
     added: 2026-11-25
@@ -1537,6 +1672,7 @@ constants:
     referenced_by:
       - design/gdd/entrada-y-seleccion.md
       - design/gdd/movimiento.md
+      - design/gdd/ficha-de-pieza-y-hud.md
     value: 1000
     unit: "ms entre dos toques; objetivo de diseno sin fuente (PROVISIONAL, se mide en playtest)"
     added: 2026-11-25
@@ -1547,8 +1683,121 @@ constants:
     referenced_by:
       - design/gdd/entrada-y-seleccion.md
       - design/gdd/tablero-y-despliegue-inicial.md
+      - design/gdd/ficha-de-pieza-y-hud.md
     value: 44
     unit: "pt de lado de un blanco tactil comodo"
+    added: 2026-11-25
+    revised: ""
+  - name: bruto_casilla_max
+    status: active
+    source: design/gdd/resolucion-simultanea-del-dano.md
+    referenced_by:
+      - design/gdd/resolucion-simultanea-del-dano.md
+      - design/gdd/libreria-de-reglas.md
+      - design/gdd/castillo-y-muros.md
+    value: 61610
+    unit: "dano bruto maximo sobre una casilla en una resolucion (61 x 1.010)"
+    added: 2026-11-25
+    revised: ""
+  - name: golpes_resolucion_max
+    status: active
+    source: design/gdd/resolucion-simultanea-del-dano.md
+    referenced_by:
+      - design/gdd/resolucion-simultanea-del-dano.md
+      - design/gdd/libreria-de-reglas.md
+    value: 549
+    unit: "golpes por resolucion (61 x 9); cota de buffers, el como lo fija el ADR"
+    added: 2026-11-25
+    revised: ""
+  - name: eventos_resolucion_max
+    status: active
+    source: design/gdd/resolucion-simultanea-del-dano.md
+    referenced_by:
+      - design/gdd/resolucion-simultanea-del-dano.md
+      - design/gdd/libreria-de-reglas.md
+    value: 393
+    unit: "eventos de Resolucion por resolucion (61 + 122 + 32 + 32 + 122 + 24)"
+    added: 2026-11-25
+    revised: ""
+  - name: bloqueo_avance_ms
+    status: active
+    source: design/gdd/ficha-de-pieza-y-hud.md
+    referenced_by:
+      - design/gdd/ficha-de-pieza-y-hud.md
+      - design/gdd/entrada-y-seleccion.md
+    value: 300
+    unit: "ms en que Avanzar ignora toques tras cambiar de fase; rango 200-600"
+    added: 2026-11-25
+    revised: ""
+  - name: ficha_opacidad_pct
+    status: active
+    source: design/gdd/ficha-de-pieza-y-hud.md
+    referenced_by:
+      - design/gdd/ficha-de-pieza-y-hud.md
+      - design/art/art-bible.md
+    value: 96
+    unit: "opacidad de la placa de la ficha; confirmada por el jugador 2026-11-25"
+    added: 2026-11-25
+    revised: ""
+  - name: leyenda_ms
+    status: active
+    source: design/gdd/ficha-de-pieza-y-hud.md
+    referenced_by:
+      - design/gdd/ficha-de-pieza-y-hud.md
+      - design/gdd/maquina-de-turno.md
+      - design/gdd/interfaz-del-modificador.md
+    value: 1000
+    unit: "ms de la placa central de leyendas; cascada <= 1,5 s"
+    added: 2026-11-25
+    revised: ""
+  - name: cifra_ficha_max
+    status: active
+    source: design/gdd/ficha-de-pieza-y-hud.md
+    referenced_by:
+      - design/gdd/ficha-de-pieza-y-hud.md
+      - design/gdd/catalogo-de-piezas.md
+    value: 99
+    unit: "cifra mostrada mas su bono maximo; con tres cifras la ficha no entra en la casilla (AC-4)"
+    added: 2026-11-25
+    revised: ""
+  - name: guarda_cierre_panel_ms
+    status: active
+    source: design/gdd/interfaz-del-modificador.md
+    referenced_by:
+      - design/gdd/interfaz-del-modificador.md
+      - design/gdd/entrada-y-seleccion.md
+    value: 250
+    unit: "ms en que el tablero ignora toques tras cerrar el panel; propuesta"
+    added: 2026-11-25
+    revised: ""
+  - name: presupuesto_chip
+    status: active
+    source: design/gdd/localizacion.md
+    referenced_by:
+      - design/gdd/localizacion.md
+      - design/gdd/interfaz-del-modificador.md
+    value: 18
+    unit: "caracteres visibles; clase pedida por #17"
+    added: 2026-11-25
+    revised: ""
+  - name: presupuesto_efecto
+    status: active
+    source: design/gdd/localizacion.md
+    referenced_by:
+      - design/gdd/localizacion.md
+      - design/gdd/interfaz-del-modificador.md
+    value: 48
+    unit: "caracteres visibles; clase pedida por #17"
+    added: 2026-11-25
+    revised: ""
+  - name: presupuesto_nota
+    status: active
+    source: design/gdd/localizacion.md
+    referenced_by:
+      - design/gdd/localizacion.md
+      - design/gdd/interfaz-del-modificador.md
+    value: 180
+    unit: "caracteres visibles; clase pedida por #17"
     added: 2026-11-25
     revised: ""
 

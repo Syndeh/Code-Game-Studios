@@ -112,7 +112,7 @@ No hay ataques asignados fuera de `Atacar`. Si la partida termina por `Rendirse`
 | #4 Tablero | `dentro`, `ocupante`, `hayTramo`, dimensiones | — | Tablero |
 | #5 Castillo | Dueño y vida del tramo; bono del arquero vía `EffectiveStats` | — | Castillo |
 | #8 Cobertura | Cobertura actual del escudero | Exclusión ataque/cobertura | Compartida |
-| #9 Resolución | — | Lista `(pieza, objetivo, modo)` | Este GDD; *PROVISIONAL* |
+| #9 Resolución | — | Lista `(pieza, objetivo, modo)` | Este GDD; confirmado por #9 |
 | #10 Reclutamiento | Un recluta puede atacar ese turno | — | #10 |
 | #13 Entrada, #15 HUD, #16 Vista previa, #18 Render, #23 Accesibilidad, #24 Tutorial | — | Consultas, códigos, eventos | Cliente, solo lectura |
 | #19 Métricas | — | Eventos de asignación | Métricas |
@@ -255,7 +255,7 @@ The `asignaciones_max` formula is defined as:
 | #24 Tutorial | Dura | El paso de atacar |
 | #25 Rival IA | Dura | `ObjetivosValidos` |
 
-**Supuestos provisionales:** el formato de la lista y la zona de explosión (#9).
+**Supuestos provisionales:** ninguno sobre #9: el formato de la lista y la zona de explosión los confirmó Resolución al cerrar la tanda 3 (2026-11-25).
 
 ## Tuning Knobs
 
@@ -326,7 +326,7 @@ Restricciones: solo flechas del jugador de turno y sin color de bando; transicio
 
 ## Acceptance Criteria
 
-Salvo indicación: fase `Atacar` del jugador 0 (azul), tablero con solo las piezas nombradas y los Reyes lejos, cifras vigentes, casillas `(columna, fila)`. Tipos: **Logic** (prueba en EditMode), **Integration** y **Visual** (captura retenida). Los que dependen de #8 o #9 son PROVISIONAL.
+Salvo indicación: fase `Atacar` del jugador 0 (azul), tablero con solo las piezas nombradas y los Reyes lejos, cifras vigentes, casillas `(columna, fila)`. Tipos: **Logic** (prueba en EditMode), **Integration** y **Visual** (captura retenida). Los que dependían de #8 o #9 ya no son PROVISIONAL (cierres de las tandas 2 y 3).
 
 **Reglas**
 
@@ -348,7 +348,7 @@ Salvo indicación: fase `Atacar` del jugador 0 (azul), tablero con solo las piez
 - **AC-16 (regla 13, coincidencia)** — **GIVEN** un fixture con los 7 tipos, muros y huecos, **WHEN** se prueba `AsignarAtaque` de cada pieza del jugador del turno en las 360 casillas, cada vez sobre una copia, **THEN** se acepta si y solo si la casilla está en `ObjetivosValidos`. *(Logic)*
 - **AC-17 (regla 13, consultas)** — **GIVEN** la fase `Mover`, **WHEN** se consultan una pieza propia y una rival, **THEN** devuelven listas ordenadas por fila y columna, sin repetir; un ID inexistente, vacío; `CasillasEnAlcance` de un demoledor, vacía; la huella no cambia. *(Logic)*
 - **AC-18 (regla 14)** — **GIVEN** azul con solo el Rey y una catapulta y ningún enemigo al alcance, **WHEN** se abre `Atacar`, **THEN** no hay `FaseSaltada`; igual con un demoledor; con un soldado en su lugar, `FaseSaltada(Atacar)`. *(Integration #3)*
-- **AC-19 (regla 16)** — **GIVEN** ataques asignados en el orden de piezas 9, 2 y 5, **WHEN** llega `Resolver`, **THEN** Resolución recibe 2, 5 y 9, y en el turno siguiente no queda ninguno. *(Integration #9, PROVISIONAL)*
+- **AC-19 (regla 16)** — **GIVEN** ataques asignados en el orden de piezas 9, 2 y 5, **WHEN** llega `Resolver`, **THEN** Resolución recibe 2, 5 y 9, y en el turno siguiente no queda ninguno. *(Integration #9)*
 - **AC-20 (regla 15)** — **GIVEN** una pieza sin ataque, **WHEN** se acepta su asignación, **THEN** el evento trae pieza, objetivo, modo y `objetivoAnterior` vacío; al desplazar una cobertura, el evento de #8 sale antes. *(Logic / Integration #8)*
 - **AC-21 (regla 17)** — **GIVEN** el turno azul, **WHEN** rojo envía `AsignarAtaque` con una pieza suya, **THEN** `NoEsTuTurno`; azul en `Mover`, `FaseIncorrecta`. *(Logic)*
 
@@ -362,8 +362,8 @@ Salvo indicación: fase `Atacar` del jugador 0 (azul), tablero con solo las piez
 **Casos borde, rendimiento y presentación**
 
 - **AC-26 (estado inválido)** — **GIVEN** estados con un ataque fuera de alcance, con un escudero del turno que ataca y cubre, y con ataques en la fase `Mover`, **WHEN** se cargan, **THEN** los tres dan `EstadoInvalido`. *(Logic)*
-- **AC-27 (timeout)** — **GIVEN** 2 ataques asignados, **WHEN** llega `TurnTimeout` de atacar, **THEN** se entregan esos 2; con `CerrarPartida(RelojAgotado)`, ninguno. *(Integration #3 y #9, PROVISIONAL)*
-- **AC-28 (Rey propio)** — **GIVEN** una catapulta azul con su Rey a 3 casillas en línea recta, **WHEN** apunta a la casilla del Rey, **THEN** se acepta y la vista previa incluye el daño al Rey propio. *(Integration #9, PROVISIONAL)*
+- **AC-27 (timeout)** — **GIVEN** 2 ataques asignados, **WHEN** llega `TurnTimeout` de atacar, **THEN** se entregan esos 2; con `CerrarPartida(RelojAgotado)`, ninguno. *(Integration #3 y #9)*
+- **AC-28 (Rey propio)** — **GIVEN** una catapulta azul con su Rey a 3 casillas en línea recta, **WHEN** apunta a la casilla del Rey, **THEN** se acepta y la vista previa incluye el daño al Rey propio. *(Integration #9)*
 - **AC-29 (rendimiento)** — **GIVEN** el fixture de AC-24 de la Librería, **WHEN** se aplica `AsignarAtaque` 100 veces con el método de AC-25 de la Librería, **THEN** el p95 es ≤ 1 ms. *(Integration)*
 - **AC-30 (visual)** — **GIVEN** 1, 2 y 3 atacantes a una casilla, un disparo de área con una pieza propia dentro y una explosión, **WHEN** se captura en color, protan, deutan, tritan y grises, **THEN** se distinguen alcance, flecha, anillo, explosión y aviso de lo propio en las cinco versiones. *(Visual)*
 
