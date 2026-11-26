@@ -91,11 +91,12 @@ El jugador interactúa con la ficha de forma pasiva (la lee) y con el HUD de for
    | Movimiento | `restante / efectivo`, y la base entre paréntesis si difiere. `restante` solo para una pieza propia en `Mover` (Movimiento, F1); en cualquier otro caso, solo el efectivo | Siempre |
    | Alcance | `mín–máx` efectivo, y el base entre paréntesis si difiere (arquero en el muro: `1–6 (1–4)`) | Todo tipo menos el demoledor |
    | Área | `danoArea` (catapulta: 6). Demoledor: su explosión, que es su ataque efectivo sin bono (30); fila con ícono de área | Catapulta y demoledor |
+   | Vista previa | Solo en `Atacar`: el bloque de #16 (regla 13: Golpe, Desviado, Escudo, Pasa, Vida, Sobra, Atacantes; solo las filas que aplican), al final de la tarjeta, si lo elegido o en inspección recibe golpe en la lista vigente | Si aplica |
    | Estados | Hasta tres estados de texto, cada uno de una o dos líneas: `En el muro` (con la vida del tramo `n/30`), `Cubre a [tipo]`, `Cubierta por [tipo]`, `Ya movida` | Solo los que aplican |
 
    Los íconos de movimiento, alcance y área son nuevos (regla 17). Cada fila lleva ícono y número; **el texto solo aparece en el nombre del tipo y en los estados**, así cabe en 144 px con el texto inflado de Localización (regla 16). El Grito sobre una catapulta muestra `ataque 12 (10)` y `área 6` sin cambio; sobre el demoledor, `ataque 30` sin cambio y `movimiento 8 (6)` (Modificador, regla 7).
 9. **Tramos.** Un **tramo de muro** no tiene ficha compacta (no es una pieza). Su estado (entero, mellado, roto) lo dibuja el mundo (Castillo). Su vida exacta se lee **al tocarlo**: la tarjeta de la regla 8 muestra el ícono de muro, `Tramo de muro` y `vida actual / 30`, igual con mouse que con dedo y sin hover. *PROVISIONAL:* Entrada hoy elige solo piezas; hace falta que una pulsación sobre un tramo en pie y sin pieza lo deje en inspección (Open Questions 3).
-10. **Fase de ataque: la vista previa ocupa el lugar de la ficha.** En `Atacar`, una pieza o un tramo que es **objetivo de al menos una asignación** cede el ancla de su ficha a la vista previa (#16), que ocupa su lugar y no se pone al lado (art bible §7). Cuando se quita la última asignación a ese objetivo, la ficha vuelve **en el mismo cuadro**. La ficha extendida de la pieza elegida no se ve afectada. Este GDD cede el ancla y fija solo que la ficha y la vista previa **nunca están a la vez sobre la misma pieza**; el tamaño y el contenido de la vista previa son de #16.
+10. **Fase de ataque: la vista previa ocupa el lugar de la ficha.** En `Atacar`, una pieza o un tramo que **recibe golpe en la vista previa vigente** (`DanoRecibido` o `DanoATramo`; #16, regla 6), sea o no la casilla apuntada (las vecinas del área, la explosión, el escudero que absorbe, lo propio), cede el ancla de su ficha a la vista previa (#16), que ocupa su lugar y no se pone al lado (art bible §7). La ficha vuelve **en el mismo cuadro** en que la pieza deja de recibir golpe en la lista. La pieza cubierta cuyo daño se desvía entero (sin `DanoRecibido`) **conserva su ficha** (decisión del jugador, 2026-11-26; cierre de la tanda 4). La ficha extendida de la pieza elegida no se ve afectada. Este GDD cede el ancla y fija solo que la ficha y la vista previa **nunca están a la vez sobre la misma pieza**; el tamaño y el contenido de la vista previa son de #16.
 11. **Pieza que muere.** La ficha desaparece **en el mismo cuadro** que la figura, y es la placa MUERE (#16, #18) la que queda. Si la pieza muerta estaba elegida o en inspección, la tarjeta se va con la selección (Entrada, Edge Cases).
 
 #### C. Turno, tiempo y botones
@@ -109,7 +110,7 @@ El jugador interactúa con la ficha de forma pasiva (la lee) y con el HUD de for
     - **Sin límite:** sin anillo ni relojes; en su lugar una marca con el ícono de infinito y el texto `Sin límite` (`ui.hud_sin_limite`), sin dejar un hueco vacío.
     - **`EsperandoTirada` y pausa:** el anillo queda vacío y quieto con el ícono de dado y el texto `Esperando la tirada` (o `Pausa`); los dos relojes se ven **quietos** (sin subrayado de activo ni pulso) con el mismo indicador (Máquina, regla 14; Timer, regla 10). Online, con la predicción en 0 y sin decisión del servidor, el anillo muestra `Esperando al servidor` (`enEsperaDeTirada` falso; Timer, regla 15).
     - **`TiempoAgotado`:** una marca breve «Tiempo» junto al anillo, ≤ 1 s, sin sonido de error (Timer, Visual/Audio).
-13. **Bando de turno.** El **contorno del tablero** toma el color del bando de turno (Hueso o Ciruela) y el **emblema** junto al anillo cambia con él; juntos dicen de quién es el turno sin leer texto (art bible §7, §4). Al `TurnoIniciado` aparece el banner del turno al centro, como las leyendas de la regla 19: entra en ≤ 0,25 s, dura `leyenda_ms` (1.000 ms), no tapa una casilla con pieza más de 1 s y no suma tiempo al turno. Mientras el jugador local es el que tiene los comandos habilitados, el banner dice `Tu turno`; si no, `Turno del rival` (en local, hotseat, dice `Turno de [bando]`).
+13. **Bando de turno.** El **contorno del tablero** toma el color del bando de turno (Hueso o Ciruela) y el **emblema** junto al anillo cambia con él; juntos dicen de quién es el turno sin leer texto (art bible §7, §4). Al `TurnoIniciado` del **primer turno** (sin tirada) aparece el banner del turno al centro, como las leyendas de la regla 19: entra en ≤ 0,25 s, dura `leyenda_ms` (1.000 ms), no tapa una casilla con pieza más de 1 s y no suma tiempo al turno. **Desde el turno 2 no hay banner propio:** la placa de la cara del Modificador (#17, regla 2) o, con una cara de reclutar, el encabezado del recuadro, que llegan al centro en el mismo momento (Render, regla 25), lleva arriba un renglón con el emblema y el mismo texto del turno, y así el centro muestra una sola placa (decisión del jugador, 2026-11-26; cierre de la tanda 4). Mientras el jugador local es el que tiene los comandos habilitados, el banner dice `Tu turno`; si no, `Turno del rival` (en local, hotseat, dice `Turno de [bando]`).
 14. **Controles de la partida (lista cerrada; el «?» es de #17 y el botón ES/EN es de la regla 21).** Cuatro controles, todos con **objetivo táctil ≥ `objetivo_tactil_pt`** (44 pt; Entrada) y texto más ícono, nunca solo color:
     - **Avanzar** (abajo a la derecha): `Atacar` en `Mover`, `Terminar turno` en `Atacar`. Entrada manda `TerminarMovimiento` o `Resolver`. Sin diálogo de confirmación (pilar 4). **Se bloquea `bloqueo_avance_ms` (300 ms) tras cada cambio de fase y tras cada toque aceptado** (decisión del jugador, 2026-11-25) para que un doble clic no cierre la fase y luego el turno; un toque durante el bloqueo se ignora sin aviso. Deshabilitado (y con aspecto de deshabilitado) cuando no es el turno del jugador local, en `EsperandoTirada`, en `Reclutar` y en `Terminada`.
     - **Contador de piezas movidas** (arriba del botón de avanzar, solo en `Mover`): `piezasMovidas / límite` (por ejemplo `5/12`). Con Arremetida (`LimiteMovimientos(sin límite)`) muestra `piezasMovidas` y el ícono de infinito, sin tope. Al llegar al límite, el contador pasa a **borde grueso** (cupo lleno: solo se mueven el Rey y las piezas ya movidas; Movimiento, estados). El Rey no cuenta.
@@ -127,11 +128,11 @@ El jugador interactúa con la ficha de forma pasiva (la lee) y con el HUD de for
     | Sobre el tablero | Fichas, banderines, leyendas centrales (regla 19) y los recuadros de #10 y #17 |
 16. **Contador de tramos rotos (pedido del Castillo).** Uno por castillo, **siempre visible** para los dos jugadores, en el margen del lado de su castillo (izquierdo el del jugador 0, derecho el del jugador 1) y a la altura del bloque del castillo (filas 5 a 9): ícono de **grieta** y el número `tramosRotos` (0, 1, 2…). En **1** muestra un renglón de aviso; al pasar a **2** muestra una sola vez el aviso `Sin reclutamiento` y deja el contador con borde grueso. Nunca solo color (Castillo, Visual/Audio). El valor es `tramosRotos` de Castillo, no una cuenta del HUD.
 17. **Íconos nuevos que este GDD le pide al art bible** (grilla de 24 px, un color, trazo grueso; art bible §7): **movimiento** (huella), **alcance** (corchetes de esquina, igual que la marca del tablero), **área** (anillo doble, igual que la marca de la catapulta), **cobertura** (eslabón), **banderín**, **grieta** (la misma de ROTO) y **bandera blanca** (Rendirse); más el de **muro** (bloque) para la tarjeta del tramo. Los íconos de **infinito** y **dado** son de la interfaz. Hasta que existan se usan marcadores de texto en los builds de desarrollo.
-18. **Zona de avisos (define el lugar fijo que piden Localización y Entrada).** Los avisos de rechazo de Entrada y cualquier otro aviso de texto que no tenga un lugar propio (`Sin reclutamiento` vive en su contador, regla 16; `Tiempo`, junto al anillo, regla 12) se muestran en **un solo lugar fijo: la banda superior, a la derecha del timer (x 1170 a 1840)**, a una o dos líneas de 16 px, con ícono además del texto y sin usar el rojo como único indicador. Un aviso nuevo **reemplaza** al anterior; la duración la fija Entrada (≤ `presupuesto_aviso` de 60 caracteres, Localización). Esto **reemplaza** la franja «abajo y al centro del tablero» que propone Entrada, que tapaba casillas (Open Questions 4).
+18. **Zona de avisos (define el lugar fijo que piden Localización y Entrada).** Los avisos de rechazo de Entrada y cualquier otro aviso de texto que no tenga un lugar propio (`Sin reclutamiento` vive en su contador, regla 16; `Tiempo`, junto al anillo, regla 12) se muestran en **un solo lugar fijo: la banda superior, a la derecha del timer (x 1170 a 1840)**, a una o dos líneas de 16 px, con ícono además del texto y sin usar el rojo como único indicador. Un aviso **transitorio** nuevo **reemplaza** al anterior. El aviso de la vista previa (#16, regla 14) es **persistente**: dura mientras su condición se cumpla; un transitorio lo tapa durante su duración y después vuelve (cierre de la tanda 4); la duración la fija Entrada (≤ `presupuesto_aviso` de 60 caracteres, Localización). Esto **reemplaza** la franja «abajo y al centro del tablero» que propone Entrada, que tapaba casillas (Open Questions 4).
 19. **Leyendas centrales de la Máquina.** Los eventos `FaseSaltada`, `ReclutaPerdido` y el recluta automático se muestran como **una sola placa al centro del tablero con hasta 3 líneas** (en orden de llegada), durante `leyenda_ms` (1.000 ms) y no más de 1,5 s en total por cascada (Máquina, Visual/Audio). Líneas: `Sin movimientos` o `Sin objetivos` (`FaseSaltada`), `Sin reclutas disponibles` (`ReclutaPerdido`). El recluta automático no usa placa: la pieza reclutada lleva una marca breve `Elegido por el tiempo` sobre su ficha, ≤ 1 s. Ninguna leyenda suena a error (Máquina, Audio). No suman tiempo al turno ni frenan los relojes.
 20. **Qué eventos llevan texto (cierra la pregunta de Localización).** Llevan texto: el nombre del tipo (ficha extendida), el nombre de la cara (etiqueta, #17), el banner del turno, `Tramo final`, `Tiempo`, las leyendas de la regla 19, `Sin reclutamiento`, `Sin límite`, `Esperando la tirada`, `Esperando al servidor`, `Pausa`, los rechazos de Entrada y el motivo del fin. **No llevan texto** (solo forma, número o ícono): cada número de la ficha, el subrayado, la atenuación, el banderín, el contador de tramos rotos (ícono y número) y los relojes. Todo texto sale de Localización por clave `ui.hud_*`, y se guarda la clave y no el texto, para que el cambio de idioma sea instantáneo (Localización, regla 12).
 21. **Botón ES/EN.** Vive en el **margen derecho, arriba (y 70 a 130)**, debajo del «?»; muestra los dos idiomas y marca el activo con forma (Localización, UI Requirements); el cambio no pausa timers ni toca la selección. Hasta que Ajustes (#20) lo absorba (Vertical Slice), es el único control de idioma durante la partida.
-22. **Fin de partida: datos que entrega el HUD.** El HUD entrega a la pantalla de resultado (#21) el **motivo** (`fin.*`) y, para `RelojAgotado`, **los dos relojes** del resumen; el diseño de la pantalla (Victoria, Derrota, revancha, repetición) es de #21 y de la sección 2 del art bible. *PROVISIONAL hasta que exista #21.*
+22. **Fin de partida: datos que entrega el HUD.** El HUD entrega a la pantalla de resultado (#21) el **motivo** (`fin.*`) y, para `RelojAgotado`, **los dos relojes** del resumen; el diseño de la pantalla (Victoria, Derrota, revancha, repetición) es de #21 y de la sección 2 del art bible. La placa de fin de partida lleva además el botón `Exportar métricas` de Métricas (#19, UI Requirements 1), con sus mensajes `Métricas exportadas (k partidas)`, `No hay métricas guardadas` y `No se pudo exportar` en la misma placa (claves `ui.metricas_*`). *PROVISIONAL hasta que exista #21.*
 
 ### States and Transitions
 
@@ -161,7 +162,7 @@ Los controles y la ficha derivan su estado de las fuentes de la regla 1; no hay 
 | | **Quieto** | `EsperandoTirada`, pausa o espera | Sin subrayado de activo ni pulso |
 | Ficha compacta | **Normal** | Pieza viva | Placa Tinta con colores semánticos |
 | | **Atenuada** | Propia, `Reclutar` o `Mover`, `usados > 0` | Números e íconos en gris apagado y marco hueso de 1 px |
-| | **Cedida** | Objetivo de una asignación en `Atacar` | Se ve la vista previa (#16) |
+| | **Cedida** | Recibe golpe en la vista previa vigente de `Atacar` (#16, regla 6) | Se ve la vista previa (#16) |
 | | **Simple** | Opción activa | Solo renglón A |
 | Ficha extendida | **Cerrada** | Sin selección ni inspección | No ocupa lugar |
 | | **Abierta** | Pieza elegida o en inspección, o tramo en inspección | Tarjeta del margen izquierdo |
@@ -185,12 +186,13 @@ Transiciones: toda variación visual dura **≤ 0,25 s con frenado suave** (art 
 | #12 Timer | Vista de relojes y eventos | Anillo, relojes, avisos | Timer (qué números y cuándo avisa); #15 (cómo se ve) |
 | #13 Entrada | Pieza elegida o en inspección; estado del gesto | Estado de cada control (activo, bloqueado, desactivado) y lugar de los avisos | Entrada (qué hace cada botón); #15 (cómo se ve y en qué estado queda) |
 | #14 Localización | Textos por clave `ui.hud_*`; aviso de cambio de idioma | Claves y parámetros | Localización (texto); #15 (claves `ui`) |
-| #16 Vista previa | Reemplaza la ficha del objetivo en `Atacar` | El ancla de la ficha, cedida | #16 (contenido); #15 (ancla) |
+| #16 Vista previa | Reemplaza la ficha de cada receptor de golpe en `Atacar`; agrega su bloque a la tarjeta | El ancla de la ficha, cedida; el final de la tarjeta | #16 (contenido); #15 (ancla y tarjeta) |
 | #17 Interfaz del Modificador | Etiqueta de la cara y «?» en la banda superior | El lugar de cada uno | #17 (contenido); #15 (lugar) |
 | #18 Render | Posición en pantalla de cada casilla y de las figuras | La posición de la ficha, anclada a la casilla | Render (dibujo de las figuras); #15 (la ficha, capa del sistema) |
-| #19 Métricas, #20 Ajustes, #21 Menú, #23 Accesibilidad, #24 Tutorial | — | Uso de Deshacer y de Rendirse (eventos), opción Ficha simple, datos del resumen, la ficha como material de la vista de estadísticas | Cada GDD (todos PROVISIONALES: aún sin GDD) |
+| #19 Métricas | — | Nada nuevo: el deshacer sale del evento de la Máquina y `rendirseDisponible` de la Librería; lee `FichaSimple` y `ReducirEfectos` al empezar la partida; el botón `Exportar métricas` de la placa de fin | Métricas |
+| #20 Ajustes, #21 Menú, #23 Accesibilidad, #24 Tutorial | — | Opción Ficha simple, datos del resumen, la ficha como material de la vista de estadísticas | Cada GDD (todos PROVISIONALES: aún sin GDD) |
 
-**Provisional:** #16, #18, #19, #20, #21, #23 y #24 todavía no tienen GDD; #9 y #17 se escribieron en paralelo y no se verificaron contra este documento. Lo que este documento espera de ellos queda en Dependencies y en Open Questions.
+**Provisional:** #20, #21, #23 y #24 todavía no tienen GDD. #9 y #17 se verificaron al cerrar la tanda 3, y #16, #18 y #19 al cerrar la tanda 4 (2026-11-26). Lo que este documento espera de ellos queda en Dependencies y en Open Questions.
 
 ## Formulas
 
@@ -362,7 +364,7 @@ La fórmula `marca_de_cifra` se define así:
 
 La fórmula `alto_tarjeta` se define así:
 
-`alto_tarjeta = alto_cabecera_px + n_filas × alto_fila_px + n_lineas_estado × alto_linea_px + 2 × margen_tarjeta_px`
+`alto_tarjeta = alto_cabecera_px + (n_filas + n_filas_vp) × alto_fila_px + n_lineas_estado × alto_linea_px + 2 × margen_tarjeta_px`
 
 **Variables:**
 
@@ -370,12 +372,13 @@ La fórmula `alto_tarjeta` se define así:
 |----------|------|-------|--------|-------------|
 | alto_cabecera_px | int | 28 | constant | Fila del tipo (ícono y nombre) |
 | n_filas | int | 5–6 | calculated | Vida, ataque, escudo, movimiento y alcance; más área si el tipo la tiene (la fila de alcance falta en el demoledor, que sí tiene área) |
+| n_filas_vp | int | 0–7 | calculated | Filas del bloque Vista previa de #16 (regla 13), solo en `Atacar`; Desviado solo en un escudero que cubre |
 | alto_fila_px | int | 24 | constant | Una fila de valores (texto de 16 px) |
 | n_lineas_estado | int | 0–6 | calculated | Renglones de estado: hasta 3 estados, cada uno puede envolver a 2 líneas con el texto inflado +40% |
 | alto_linea_px | int | 20 | constant | Una línea de texto de estado |
 | margen_tarjeta_px | int | 8 | constant | Aire interno |
 
-**Output Range:** de `28 + 5×24 + 0 + 16` = **164 px** (sin estados) a `28 + 6×24 + 6×20 + 16` = **308 px** (peor caso). Límite: ≤ **400 px** (y 70 a 470 del margen izquierdo, regla 15).
+**Output Range (fuera de `Atacar`):** de `28 + 5×24 + 0 + 16` = **164 px** (sin estados) a `28 + 6×24 + 6×20 + 16` = **308 px** (peor caso). Límite: ≤ **400 px** (y 70 a 470 del margen izquierdo, regla 15). **Con el bloque de #16** (cierre de la tanda 4): en `Atacar` no hay estado `Ya movida`, y Desviado solo existe en el escudero, así que el peor caso es un arquero en el muro y cubierto, con texto inflado: 28 + (5 + 6) × 24 + 4 × 20 + 16 = **388 px**, dentro del límite.
 **Example:** catapulta elegida en `Mover` con movimiento restante: 6 filas (vida, ataque, escudo, movimiento, alcance, área), un estado (`Ya movida`): 28 + 144 + 20 + 16 = **208 px**. Arquero en el muro, cubierto por un escudero: 5 filas, estados `En el muro (22/30)` y `Cubierta por Escudero`, de 1 línea en español y 2 en inglés (+40%): 28 + 120 + 60 + 16 = **224 px**.
 *Resultado de los límites:* el ancho útil de la tarjeta es 128 px (144 − 2×8): una fila de valores de hasta 10 caracteres (`12/12 (12)`) usa ≈ 20 + 4 + 80 = 104 px; el texto de estado envuelve y nunca se corta (Localización, F5).
 
@@ -426,7 +429,7 @@ La fórmula `alto_tarjeta` se define así:
 
 - **If la partida termina (`Terminada`):** los relojes se congelan; Avanzar, Deshacer y Rendirse se deshabilitan u ocultan; la tarjeta se cierra; la pantalla de resultado (#21) toma el centro y recibe el motivo y, para `RelojAgotado`, los dos relojes. PROVISIONAL: #21.
 - **If es el turno del rival (online):** Avanzar y Deshacer están deshabilitados, la inspección sigue activa y los dos relojes se ven (el del rival corriendo, en ámbar si limita: lo ven los dos jugadores).
-- **If la ventana efectiva es menor que 1080p:** el cliente muestra una sola vez el aviso `Para jugar bien necesitás al menos 1080p` (`ui.hud_resolucion_baja`) y escala todo el HUD de forma uniforme; los números pueden bajar de 14 px y AC-1 solo se garantiza a 1080p (art bible §7, decisión del jugador: mínimo 1080p). PROVISIONAL: la política de resolución es de Render (#18).
+- **If la ventana efectiva es menor que 1080p:** el cliente muestra una sola vez el aviso `Para jugar bien necesitás al menos 1080p` (`ui.hud_resolucion_baja`) y escala todo el HUD de forma uniforme; los números pueden bajar de 14 px y AC-1 solo se garantiza a 1080p (art bible §7, decisión del jugador: mínimo 1080p). La política de resolución es la F3 de Render (#18): escala uniforme, centrada, terreno en el sobrante.
 - **If Localización queda `Fallida`:** no hay partida y el HUD no se dibuja (Localización, regla 13); **si queda `Degradada`:** el HUD funciona con la tabla que cargó y el botón ES/EN se ve deshabilitado.
 - **If una clave `ui.hud_*` falta en el idioma actual:** respaldo de Localización (regla 14); el HUD no escribe texto propio.
 - **If el jugador tiene 122 fichas en pantalla (61 por bando):** los números se redibujan solo cuando un evento los cambia, no por cuadro (ui-programmer); el presupuesto de cuadro lo fija el ADR de UI.
@@ -457,15 +460,15 @@ La fórmula `alto_tarjeta` se define así:
 
 | Sistema | Tipo | Qué usa | Estado del GDD |
 |---|---|---|---|
-| #16 Vista previa de ataques | **Dura** | El ancla de la ficha (regla 10): reemplaza la ficha del objetivo en `Atacar`; el lugar de la zona de avisos y de las leyendas | Pendiente |
+| #16 Vista previa de ataques | **Dura** | El ancla de la ficha (regla 10): reemplaza la ficha de cada receptor en `Atacar`; el bloque de la tarjeta; el lugar de la zona de avisos | Existe (tanda 4) |
 | #17 Interfaz del Modificador | **Dura** | Los lugares fijos de la etiqueta de la cara (izquierda del timer) y del «?» (extremo derecho) en la banda superior, y la reserva del centro del tablero | Existe (escrito en paralelo el 2026-11-25); se leyeron solo los pasajes que nombran a #15 y este GDD adopta el lugar que propone |
-| #18 Render, animación y feedback | Blanda | La ficha como capa del sistema que Render debe dejar intacta; posición de cada casilla en pantalla | Pendiente |
+| #18 Render, animación y feedback | Blanda | La ficha como capa del sistema que Render debe dejar intacta; posición de cada casilla en pantalla (`casillaEnPantalla`, F3 de #18) | Existe (tanda 4) |
 | #23 Accesibilidad | Blanda | Escala de texto, daltonismo, tamaños táctiles de los controles, lector de pantalla de la tarjeta | Pendiente |
 | #24 Tutorial básico de 3 pasos | **Dura** | La ficha y la tarjeta como la «vista de estadísticas de todas las piezas» | Pendiente |
 | #38 Kit de skins con validador | Blanda | «Ficha del sistema intocable»: el validador comprueba que ningún pack toque la zona o los colores de la ficha | Pendiente |
 | #41 Adaptación móvil | Blanda | Zoom o dos niveles de estadísticas; la ficha y los márgenes a otra escala | Pendiente |
 | #20 Ajustes, #21 Menú | Blanda | Opción «Ficha simple» y «Reducir efectos»; el motivo del fin y los relojes para la pantalla de resultado | Pendiente |
-| #19 Métricas locales | Blanda | Eventos de uso de Deshacer y de Rendirse, y de la opción «Ficha simple» (si Métricas los pide) | Pendiente |
+| #19 Métricas locales | Blanda | Lee `FichaSimple` y `ReducirEfectos` al empezar; el botón `Exportar métricas` de la placa de fin. No pide eventos nuevos | Existe (tanda 4) |
 
 **Bidireccionalidad (verificada con `grep` sobre los GDD el 2026-11-25).** Nombran a #15 como dependiente, con el contrato que este documento cumple: Catálogo (Dura), Máquina de turno (Blanda; este GDD la trata como Dura porque sin fase no hay botón), Timer (Dura), Modificador (Dura), Localización (Dura), Castillo (Blanda), Movimiento (Blanda), Alcance (Blanda), Reclutamiento (Blanda), Cobertura (referencia, en su Visual/Audio), Entrada (en su tabla de interacciones) y Tablero (Blanda). **La Librería (#1) los nombra como «13, 15–19, 22, 24 Cliente»**, sin fila propia para #15: queda pendiente para `/review-all-gdds`. Cada GDD pendiente de la tabla de arriba debe nombrar a #15 en su sección Dependencies al escribirse.
 
@@ -593,8 +596,8 @@ Este sistema **es** la capa de interfaz de la partida; su especificación comple
 
 **Fase de ataque, muerte y skins (reglas 2, 10, 11)**
 
-- **AC-12 (Integration; regla 10, PROVISIONAL: depende de #16)** — **GIVEN** la fase `Atacar`, **WHEN** se asigna un ataque a un enemigo, **THEN** su ficha compacta se oculta y su lugar lo ocupa la vista previa en el mismo cuadro; **WHEN** se quita la única asignación, **THEN** la ficha vuelve en el mismo cuadro. **THEN** en ningún cuadro hay ficha y vista previa a la vez sobre la misma pieza.
-- **AC-26 (UI; regla 2, PROVISIONAL: depende de #18 y #38)** — **GIVEN** la misma partida dibujada con la skin básica y con un pack de prueba, **WHEN** se compara la zona de la ficha (placa, íconos, números, banderín), **THEN** es idéntica píxel a píxel.
+- **AC-12 (Integration; regla 10)** — **GIVEN** la fase `Atacar`, **WHEN** se asigna un ataque a un enemigo, **THEN** su ficha compacta se oculta y su lugar lo ocupa la vista previa en el mismo cuadro; **WHEN** se quita la única asignación, **THEN** la ficha vuelve en el mismo cuadro. **GIVEN** una catapulta que apunta a una casilla con una pieza vecina no apuntada, **THEN** la vecina también cede su ficha; **GIVEN** un aliado cubierto con todo el daño desviado, **THEN** conserva su ficha. **THEN** en ningún cuadro hay ficha y vista previa a la vez sobre la misma pieza.
+- **AC-26 (UI; regla 2, PROVISIONAL: depende de #38; el formato de skin de Render, #18, ya no tiene campos que puedan tocar la ficha)** — **GIVEN** la misma partida dibujada con la skin básica y con un pack de prueba, **WHEN** se compara la zona de la ficha (placa, íconos, números, banderín), **THEN** es idéntica píxel a píxel.
 - **AC-27 (Integration; regla 11)** — **GIVEN** una pieza elegida que muere en la resolución, **WHEN** se resuelve, **THEN** su ficha y la tarjeta desaparecen en el mismo cuadro que su figura y queda la placa MUERE.
 
 **Turno, tiempo y controles (reglas 12 a 14; F2 a F4)**
@@ -616,13 +619,13 @@ Este sistema **es** la capa de interfaz de la partida; su especificación comple
 
 - **AC-25 (Logic; regla 1)** — **GIVEN** una partida fija (semilla y comandos), **WHEN** se juega con el HUD activo y sin él, **THEN** la huella del estado es idéntica; **THEN** cada cifra que muestra la ficha es igual a la de `EffectiveStats` en las 61 piezas de un estado de prueba (el HUD no tiene un segundo cálculo).
 - **AC-30 (Performance; Game Feel)** — **GIVEN** 122 fichas en pantalla, **WHEN** pasan 60 cuadros sin eventos, **THEN** el HUD no redibuja ningún número; **WHEN** llega un evento que cambia una cifra, **THEN** solo se redibujan las fichas afectadas. El presupuesto de tiempo por cuadro lo fija el ADR de UI (PROVISIONAL).
-- **AC-31 (UI; Edge Cases, PROVISIONAL: política de resolución de #18)** — **GIVEN** una ventana menor que 1080p, **THEN** aparece una sola vez el aviso `Para jugar bien necesitás al menos 1080p` y el HUD escala de forma uniforme.
+- **AC-31 (UI; Edge Cases)** — **GIVEN** una ventana menor que 1080p, **THEN** aparece una sola vez el aviso `Para jugar bien necesitás al menos 1080p` y el HUD escala de forma uniforme.
 - **AC-32 (Logic; Edge Cases)** — **GIVEN** un Catálogo de prueba con una cifra de 100, **WHEN** se dibuja la ficha, **THEN** muestra `100` completo (no lo trunca), la placa crece a 71 px y se registra un error en el build de desarrollo.
 - **AC-35 (Release check; regla 17)** — **GIVEN** un build candidato, **THEN** no contiene ningún marcador de texto sustituto de los íconos de la regla 17.
 
 **Cruces con otros sistemas**
 
-- **AC-33 (UI; cruza el AC-31 del Modificador, PROVISIONAL: depende de #16)** — **GIVEN** el Grito activo y un arquero asignando un ataque, **THEN** su ficha muestra 8 subrayado y la tarjeta `8 (6)`, la vista previa usa 8, la catapulta muestra 12 de impacto y 6 de área, y el demoledor no muestra cambio de ataque. Evidencia: `production/qa/evidence/modificador-grito-ficha-vista-previa.png`.
+- **AC-33 (UI; cruza el AC-31 del Modificador)** — **GIVEN** el Grito activo y un arquero asignando un ataque, **THEN** su ficha muestra 8 subrayado y la tarjeta `8 (6)`, la vista previa usa 8, la catapulta muestra 12 de impacto y 6 de área, y el demoledor no muestra cambio de ataque. Evidencia: `production/qa/evidence/modificador-grito-ficha-vista-previa.png`.
 - **AC-34 (Integration; cruza el Castillo)** — **GIVEN** un arquero propio al lado de un tramo libre, **WHEN** se acepta el `Mover` al tramo, **THEN** en ese mismo cuadro su ficha muestra escudo 4 y alcance 1–6 con subrayado, y la tarjeta agrega `En el muro`.
 
 **Playtest (MVP)**

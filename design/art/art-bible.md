@@ -162,7 +162,7 @@ lee antes que el detalle" (Sección 1, principio 1; pilar 1). Definiciones del j
   se rechaza la skin. Es la regla que garantiza que el tipo se lea aunque cada pack
   reinterprete el rasgo. La prueba se hace con el cuadro de reposo **y** con el cuadro del
   golpe del ataque, porque la animación exagerada puede deformar el rasgo (Sección 9).
-- En el MVP (1 o 2 orientaciones) el arma o la montura apuntan hacia el rival, lo que también
+- En el MVP (1 orientación dibujada y espejada, Render #18) el arma o la montura apuntan hacia el rival, lo que también
   respalda el bando (Sección 4).
 
 ### Terreno
@@ -401,12 +401,13 @@ figuras de packs distintos se ven parte del mismo tablero.
 
 - **Castillo base:** medieval europeo sobrio. Muros bajos de piedra seca, de una casilla de
   alto, con almenas simples y sin torres (las torres están fuera de las reglas). Interior de
-  5 × 5 de empedrado gastado, más claro y más plano que la tierra de afuera. Es la única obra
+  3 × 3 dentro del bloque de 5 × 5 (corrección de Castillo, #5), de empedrado gastado, más claro y más plano que la tierra de afuera. Es la única obra
   humana del tablero: se lee como "lo que se defiende".
 - **Castillo por pack (decisión del jugador, 2026-11-17):** cada pack de skins puede traer su
   propio castillo (por ejemplo, Japón medieval: piedra en talud y tejas). Tiene que respetar
   la Sección 3: geometría recta, 16 tramos de una casilla y los tres estados de daño (entero,
-  mellado, roto). Suma trabajo de arte por pack: muros en tres estados más el interior.
+  mellado, roto). Suma trabajo de arte por pack: muros en tres estados más el interior. El
+  formato de skin de Render (#18) trae el castillo como opcional: sin él, se usa el básico.
 - **Variante sin castillos:** campo abierto; el Rey sobre una casilla de tierra apisonada.
 
 ### Textura: pintada a mano, sin PBR
@@ -439,8 +440,9 @@ Sin texto ni números:
   lejos qué castillo viene perdiendo.
 
 **Límites:** las marcas quedan por debajo del contraste de cualquier figura (Sección 1), no
-superan la saturación del terreno y se desvanecen a los 3 turnos, para que el tablero no se
-ensucie. Las piezas muertas no dejan cuerpo: caen y desaparecen, y la casilla queda libre a la
+superan la saturación del terreno y se desvanecen a los 3 turnos (`marcas_turnos`, Render
+#18), para que el tablero no se ensucie; **los escombros y huecos de un muro roto no se
+desvanecen** (corrección de Castillo, #5): son estado de juego. Las piezas muertas no dejan cuerpo: caen y desaparecen, y la casilla queda libre a la
 vista.
 
 ## 7. UI/HUD Visual Direction
@@ -519,6 +521,25 @@ Modificador, los emblemas de los dos bandos, el signo de pregunta, deshacer y av
 alcance, área, cobertura, banderín del Grito, grieta (tramos rotos), bandera blanca (Rendirse)
 y muro (Ficha y HUD, #15, regla 17); subió, bajó, candado, dado, reloj y piezas vivas, con el
 marco del panel «?» y del recuadro de reclutar (Interfaz del Modificador, #17, Visual/Audio).
+**Agregados en la tanda 4 (2026-11-26):** el ícono de **impacto** (Vista previa, #16), en el
+bermellón del ataque.
+
+### Marcas del tablero y de la vista previa (tanda 4)
+
+Definidas por Render (#18, regla 12) y la Vista previa (#16); forma final a cargo del director
+de arte. Todas se leen por forma, no solo por color:
+
+- **Alcance:** corchetes de esquina por casilla (el mismo ícono de alcance de la ficha).
+- **Destino:** un punto con el costo adentro.
+- **Inspección:** contorno doble fino. **Lo propio en zona y el fuego amigo:** contorno
+  discontinuo.
+- **Explosión:** mecha sobre el demoledor y contorno dentado en sus 8 vecinas.
+- **Desvío:** la flecha llega a la casilla del aliado y se quiebra hacia el escudero; la línea
+  de cobertura se ve resaltada (trazo doble) mientras absorbe y cortada si se rompería.
+  La cobertura queda visible para los dos jugadores.
+- **Placa de la vista previa:** de un renglón sobre un tramo (`vidaAntes→vidaDespues`); con
+  **marco de fin** si el Rey propio muere.
+- **Casilla del arquero en el muro:** dos números, la pieza abajo y el tramo arriba.
 
 ### Animación de la interfaz
 
@@ -575,7 +596,7 @@ assets de arte.
 
 | | Reposo | Ataque | Movimiento | Orientaciones |
 |---|---|---|---|---|
-| **MVP** | ≤ 4 | ~6 | Por código | 1 o 2, espejadas |
+| **MVP** | ≤ 4 | ~6 | Por código | 1 dibujada, espejada para el bando derecho (decisión del jugador, 2026-11-26; Render, #18) |
 | **Arte completo** (primer pack de skins) | ≤ 4 | ~6 | Caminata ~8 | 8 direcciones; izquierda y derecha espejadas: 5 dibujadas |
 
 **Terreno y castillo:** 4-6 variantes de casilla; muros en 3 estados (entero, mellado, roto);

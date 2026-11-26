@@ -291,8 +291,8 @@ The `ms_por_pieza` formula is defined as:
 | #13 Entrada y selección | Dura | `MovimientosLegales`, códigos de rechazo, varios `Mover` por pieza |
 | #14 Localización | Blanda | Textos de los códigos visibles |
 | #15 Ficha y HUD | Blanda | `piezasMovidas`, límite vigente, restante |
-| #18 Render | Dura | `PiezaMovida` con su camino |
-| #19 Métricas | Blanda | `PiezaMovida` y deshechos |
+| #18 Render | Dura | `PiezaMovida` con su camino (existe desde la tanda 4) |
+| #19 Métricas | Blanda | `PiezaMovida` y `MovimientoDeshecho` (evento de la Máquina, regla 16) |
 | #24 Tutorial, #25 Rival IA | Dura | Las mismas reglas y consultas que un jugador |
 
 #7, #8 y #9 no dependen de este sistema: leen del estado dónde quedaron las piezas.
@@ -424,9 +424,9 @@ La regla 1 es de alcance del documento y la 9 la cubren AC-4, AC-5 y AC-6. La fa
 | Pregunta | Dueño | Para cuándo |
 |---|---|---|
 | ¿Entran 13 gestos en 40 s en pantalla táctil (3,1 s por pieza)? | Entrada (#13), Timer (#12), playtest | MVP |
-| ¿Una muralla de 15 piezas traba la partida (pilar 4)? | Métricas (#19), playtest | MVP |
-| ¿El Rey sin cupo se vuelve la mejor pieza de ataque? | Métricas (#19), playtest | MVP |
+| ¿Una muralla de 15 piezas traba la partida (pilar 4)? La medida existe (Métricas, #19, regla 14). | Métricas (#19), playtest | MVP |
+| ¿El Rey sin cupo se vuelve la mejor pieza de ataque? La medida existe (Métricas, #19, regla 14). | Métricas (#19), playtest | MVP |
 | ¿Frustra que ir y volver gaste cupo? Evitarlo exige guardar la casilla inicial | Playtest | MVP |
-| ¿El rango 8–16 de `limite_normal` es correcto? | Métricas (#19) | Tras las primeras 20 partidas online |
+| ¿El rango 8–16 de `limite_normal` es correcto? La medida existe (Métricas, #19, regla 14). | Métricas (#19) | Tras las primeras 20 partidas online |
 | ~~La marca de pieza ya movida~~ **Resuelta por #15 (regla 5)**, confirmada por el jugador el 2026-11-25 | — | — |
 | Cómo se busca el camino sin reservar memoria | ADR de la Librería | `/create-architecture` |

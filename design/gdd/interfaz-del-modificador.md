@@ -62,12 +62,12 @@ Este sistema es dueño de cuatro cosas: **la disposición** (qué va dónde, con
 
    | Elemento | Existe | Muestra | Toques |
    |---|---|---|---|
-   | **Placa** de la cara | Al aplicarse una `Tirada` válida (turno 2 en adelante) con una cara que no recluta | Ícono y nombre de la cara, al centro | Ninguno: los toques la atraviesan hacia el tablero |
+   | **Placa** de la cara | Al aplicarse una `Tirada` válida (turno 2 en adelante) con una cara que no recluta | Arriba, el renglón del turno (emblema y `Tu turno` / `Turno de [bando]`, que reemplaza al banner del HUD, #15 regla 13); debajo, ícono y nombre de la cara, al centro | Ninguno: los toques la atraviesan hacia el tablero |
    | **Etiqueta** de la cara | Todo el turno, desde el primero | Emblema del bando de turno, ícono y nombre de la cara (o su variante, regla 5) | Ninguno |
-   | **Recuadro de reclutar** | Con una cara de reclutar, mientras dura la fase `Reclutar` | Encabezado con la cara y hasta 3 tarjetas, una por tipo | Una tarjeta = un tipo (regla 6) |
+   | **Recuadro de reclutar** | Con una cara de reclutar, mientras dura la fase `Reclutar` | Encabezado con el renglón del turno y la cara, y hasta 3 tarjetas, una por tipo | Una tarjeta = un tipo (regla 6) |
    | **Botón «?» y panel** | Todo el tiempo con la partida en curso | Tabla efectiva de los dos jugadores con motivos (reglas 7 a 11) | El botón, la X y el velo (regla 7) |
 
-3. **Cuándo se dispara la placa.** Con el evento `Tirada` aplicado, **una sola vez por `contadorTirada`**. En local la tirada se aplica en el mismo cuadro en que se abre el turno (la inyecta el cliente, Modificador, regla 9); online, cuando llega del servidor. **No hay placa** en el primer turno (Máquina, regla 3), ni con una `Tirada` rechazada (`TiradaInvalida`, contador viejo: nada cambia en pantalla), ni al reconectar con una tirada ya aplicada (se muestra la etiqueta directo, sin animación). Contenido: el ícono de la cara y su nombre (`cara.<id>`, regla 13) en 34 a 40 px (art bible §7). Tamaño máximo: 9 columnas por 2 filas, centrada.
+3. **Cuándo se dispara la placa.** Con el evento `Tirada` aplicado, **una sola vez por `contadorTirada`**. En local la tirada se aplica cuando termina la presentación de la resolución del turno anterior, o cuando el jugador la salta (la inyecta el cliente, Modificador, regla 9; Render, regla 25); el renglón del turno que lleva la placa reemplaza al banner del turno del HUD (decisión del jugador, 2026-11-26); online, cuando llega del servidor. **No hay placa** en el primer turno (Máquina, regla 3), ni con una `Tirada` rechazada (`TiradaInvalida`, contador viejo: nada cambia en pantalla), ni al reconectar con una tirada ya aplicada (se muestra la etiqueta directo, sin animación). Contenido: el ícono de la cara y su nombre (`cara.<id>`, regla 13) en 34 a 40 px (art bible §7). Tamaño máximo: 9 columnas por 2 filas, centrada.
 
 4. **Línea de tiempo de la placa (F1).** Caída de 0,20 s con el golpe seco al asentarse, 0,60 s de pausa legible, acople de 0,20 s hacia la etiqueta y 0,20 s de pulso de la etiqueta: **1,2 s** en total y **1,0 s como máximo tapando el tablero** (art bible §2: nunca más de 1 s sobre una casilla con pieza). **Distracción** suma 0,30 s en la franja superior (el estandarte del HUD se dobla y cae, con la etiqueta desaturada): 1,5 s en total, pero la placa gris sobre el tablero dura lo mismo que las otras. La placa **no bloquea nada**: la fase siguiente ya está abierta, el primer comando válido se acepta de inmediato y los toques sobre la placa llegan al tablero (Entrada, reglas 4 y 6). Tampoco cuesta reloj: en `EsperandoTirada` no corre ninguno (Máquina, regla 14) y, una vez abierta la fase, la placa no frena un comando. Con la opción «Reducir efectos» (art bible §7) la placa aparece por fundido de 0,10 s, sin caída ni golpe, y la etiqueta no pulsa; el resto de los tiempos no cambia.
 
@@ -249,7 +249,7 @@ No hay transición `Etiqueta` → `Placa`: una tirada nunca se repite (Modificad
 | #14 Localización | Texto por clave, aviso de cambio de idioma | Claves y parámetros de la regla 13 | Localización (mecanismo); esta interfaz (las claves) |
 | #15 Ficha de pieza y HUD | Posición de la franja superior, relojes, bando de turno | La etiqueta, el «?» y su blanco táctil | HUD (disposición general); esta interfaz (sus elementos) |
 | #16 Vista previa | — | Nada: el bono del Grito ya está en `EffectiveStats` | Vista previa |
-| #18 Render | — | Qué casillas numerar y cuándo; el pedido de animación de placa | Render (cómo se dibuja en el tablero) |
+| #18 Render | — | Qué casillas numerar y cuándo; el resplandor y el ambiente de la placa (la placa la anima esta interfaz, en la capa 9) | Render (cómo se dibuja en el tablero) |
 | #19 Métricas | — | `PanelAbierto(...)` | Métricas (esquema) |
 | #22 Audio | — | Una señal por cara, apertura del panel | Audio |
 | #23 Accesibilidad, #41 Adaptación móvil | Tamaño de texto, «Reducir efectos», escala de pantalla | Nombres accesibles de los elementos | Cada GDD |
@@ -257,7 +257,7 @@ No hay transición `Etiqueta` → `Placa`: una tirada nunca se repite (Modificad
 | #25 Rival IA | — | Nada: la IA usa la consulta pura, no esta capa | Rival IA |
 | #28 Servidor | La tirada cuando llega (online) | Nada | Servidor |
 
-**Supuestos PROVISIONALES sobre GDD sin escribir:** que Render (#18) dibuje las casillas numeradas que esta interfaz le pide. Confirmados al cerrar la tanda 3 (2026-11-25): el HUD (#15) acepta la etiqueta a la izquierda del timer; Entrada (#13) suma el estado «panel abierto» y el reparto de toques de la regla 6; la Librería expone el id de la tabla base y Reclutamiento `motivo_bloqueo`.
+**Supuestos sobre GDD vecinos:** confirmados al cerrar la tanda 4 (2026-11-26): Render (#18, regla 13) dibuja las casillas numeradas; la placa vive en la capa 9 y la anima esta interfaz, y Render solo pone el resplandor y el ambiente de Distracción y de la tirada; Métricas (#19, regla 4) guarda `PanelAbierto` tal como está. Confirmados al cerrar la tanda 3 (2026-11-25): el HUD (#15) acepta la etiqueta a la izquierda del timer; Entrada (#13) suma el estado «panel abierto» y el reparto de toques de la regla 6; la Librería expone el id de la tabla base y Reclutamiento `motivo_bloqueo`.
 
 ## Formulas
 
@@ -463,14 +463,14 @@ Esta interfaz **no suma tiempo de turno por diseño**: la placa no bloquea y el 
 
 | Sistema | Tipo | Qué usa |
 |---|---|---|
-| #18 Render, animación y feedback | Dura | La lista de casillas a numerar y cuándo, y el pedido de animación de la placa |
+| #18 Render, animación y feedback | Dura | La lista de casillas a numerar y cuándo; resplandor y ambiente de la placa (existe desde la tanda 4) |
 | #15 Ficha de pieza y HUD | Blanda | Lugar de la etiqueta y del «?» en la franja superior |
 | #19 Métricas locales | Blanda | El evento `PanelAbierto(...)` |
 | #22 Audio y SFX | Blanda | Una señal por cara y la apertura del panel |
 | #24 Tutorial básico | Blanda | Identificadores estables de la regla 18 |
 | #23 Accesibilidad, #41 Adaptación móvil | Blanda | Nombres accesibles, «Reducir efectos», escala del panel en pantalla estrecha |
 
-**Bidireccionalidad.** Ya nombran a la Interfaz del Modificador (#17): el Modificador (sus reglas 10 y su tabla de dependencias), Reclutamiento (Player Fantasy, UI Requirements y dependencias), Entrada (Interactions) y Localización (Dependencies, Interactions y Open Questions); Castillo (UI Requirements) la nombra como «#17». **No la nombran todavía** y hay que sumarla: la Librería (la consulta con el id de la tabla base), la Máquina (etiqueta y placa en `EsperandoTirada`), el Timer (la no-pausa del panel), el Tablero (anillo en F5) y el Catálogo (orden de tipos). **Provisionales:** HUD (#15), Render (#18), Métricas (#19), Audio (#22) y Tutorial (#24) no tienen GDD; sus aristas se confirman al escribirlos.
+**Bidireccionalidad.** Ya nombran a la Interfaz del Modificador (#17): el Modificador (sus reglas 10 y su tabla de dependencias), Reclutamiento (Player Fantasy, UI Requirements y dependencias), Entrada (Interactions) y Localización (Dependencies, Interactions y Open Questions); Castillo (UI Requirements) la nombra como «#17». **No la nombran todavía** y hay que sumarla: la Librería (la consulta con el id de la tabla base), la Máquina (etiqueta y placa en `EsperandoTirada`), el Timer (la no-pausa del panel), el Tablero (anillo en F5) y el Catálogo (orden de tipos). **Provisionales:** HUD (#15), Render (#18), Métricas (#19), Audio (#22) y Tutorial (#24) no tienen GDD; sus aristas se confirman al escribirlos. Al cerrar la tanda 4 (2026-11-26) la nombran también Vista previa (#16), Render (#18) y Métricas (#19).
 
 ## Tuning Knobs
 
@@ -668,7 +668,7 @@ Esta interfaz **es** la UI del dado: no hay una pantalla propia, sino cuatro ele
 ### Huecos que quedan (lente de QA)
 
 - **Sin criterio automático:** que el panel «se entienda» y «se use», que el nombre neutro no funcione como etiqueta y que el Grito en 85% no se sienta injusto: son preguntas de playtest medidas con `PanelAbierto` (Open Questions), no criterios.
-- **PROVISIONAL** hasta que existan los GDD vecinos: AC-8 y AC-9 (casillas numeradas, Render #18) y AC-27 (esquema de Métricas, #19). AC-5, AC-6, AC-13, AC-16 y AC-18 dejaron de serlo al cerrar la tanda 3 (Entrada, HUD, Librería y Reclutamiento ya lo recogen).
+- **PROVISIONAL:** ninguno. AC-8, AC-9 (Render, #18) y AC-27 (Métricas, #19) dejaron de serlo al cerrar la tanda 4. AC-5, AC-6, AC-13, AC-16 y AC-18 dejaron de serlo al cerrar la tanda 3 (Entrada, HUD, Librería y Reclutamiento ya lo recogen).
 - **NOT SOURCEABLE:** `docs/engine-reference/unity/` no cubre UI Toolkit sobre un tablero dibujado fuera de ella, el puntero único mouse/dedo en WebGL ni la escala de texto en WebGL, así que AC-5, AC-13, AC-14 y AC-26 **no se pueden dar por pasados desde la referencia**: se verifican con el prototipo en el navegador y en un teléfono real.
 - **Sin presupuesto propio de rendimiento:** el panel hace dos consultas puras, las derivaciones de F2 y el dibujo de 10 celdas; hereda el presupuesto de la Librería (ADR) y no se mide acá.
 

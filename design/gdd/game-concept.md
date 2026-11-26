@@ -368,7 +368,8 @@ móvil.
   reclutar. La primera de la v4 duró 23:01, con menos turnos (28 tiradas contra 42) y el mismo
   turno promedio (0:57). Mitigación (2026-11-19): meta revisada a 15–20 min con techo de 25;
   la Máquina de turno es dueña del presupuesto de duración; el arte final no se produce hasta
-  que 3 partidas seguidas duren 25 min o menos.
+  que 3 partidas seguidas terminen en el tablero (Rey muerto, doble Rey o rendición), con
+  timer y contra un humano, en 25:00 o menos de duración de pared (Métricas, #19, regla 12).
 - **Mover 12 o 13 piezas en 60–90 s en pantalla táctil** puede ser pesado (TD). Probar en un
   teléfono real antes de cerrar las reglas.
 - **Dos demoledores matan a un Rey de 30 de vida de una vez** (v2, partida 1). A vigilar en
@@ -468,7 +469,7 @@ Estimaciones del productor (PR-SCOPE, 2026-11-19, sobre el índice de sistemas):
 | Tier | Content | Features | Timeline |
 | ---- | ---- | ---- | ---- |
 | **MVP (Fase 1, publicable sola)** | 1 tablero, 7 piezas, 1 skin base reducida | Partida local completa en web, tutoriales | 14–22 meses (~18) |
-| **Vertical Slice** | Una partida completa con el arte final de una pieza en 8 direcciones | Núcleo + dado final + medir el costo de arte por animación; solo después de pasar la compuerta de duración (3 partidas seguidas de 25 min o menos) | Dentro de la Fase 1 |
+| **Vertical Slice** | Una partida completa con el arte final de una pieza en 8 direcciones | Núcleo + dado final + medir el costo de arte por animación; solo después de pasar la compuerta de duración (3 partidas seguidas que terminan en el tablero (Rey muerto, doble Rey o rendición), con timer y contra un humano, en 25:00 o menos de duración de pared; Métricas, regla 12) | Dentro de la Fase 1 |
 | **Fases 1 y 2** | MVP + online | 2a: online 1 contra 1 con cuentas, validación en servidor, reconexión y timer del servidor · 2b: lobby, chat, repeticiones y ranking | 24–34 meses (~29) |
 | **Full Vision** | Packs de skins en 8 direcciones, kit de skins para la comunidad, facciones | Fases 1 a 4 en web (local, online, tienda, torneos) → Fase 5 móvil con online → Fase 6 PC (Steam) y consolas si el móvil tiene éxito | 4–6 años o más |
 

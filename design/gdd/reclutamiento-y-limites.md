@@ -296,7 +296,7 @@ The `delta_reclutamiento` formula is defined as:
 | #24 Tutorial, #25 Rival IA | Dura | Consultas y comando |
 | #26 Registro | Blanda | `tablaReclutas` en la config |
 
-**Bidireccionalidad:** los cambios en los vecinos se aplicaron el 2026-11-25 al cerrar la tanda 1 (Librería, Catálogo, Máquina, Tablero, Castillo, Movimiento y concepto). #11 (tanda 2) y #17 (tanda 3) ya tienen GDD y nombran a Reclutamiento. **Provisional:** #19 no tiene GDD; su arista se confirma al escribirlo.
+**Bidireccionalidad:** los cambios en los vecinos se aplicaron el 2026-11-25 al cerrar la tanda 1 (Librería, Catálogo, Máquina, Tablero, Castillo, Movimiento y concepto). #11 (tanda 2), #17 (tanda 3), #18 y #19 (tanda 4) ya tienen GDD y nombran a Reclutamiento; la arista Dura con #19 queda confirmada.
 
 ## Tuning Knobs
 
@@ -387,9 +387,9 @@ Todos automatizados (EditMode) salvo donde se indica.
 
 | Pregunta | Dueño | Cuándo |
 |---|---|---|
-| ¿Llenar el propio anillo para subir Grito o Arremetida es una estrategia dominante? | Métricas (#19) | Playtests del MVP |
-| Valor de `bajas_por_turno` para cerrar Δturnos (F6) | Métricas (#19) | Primeras 3 partidas del MVP |
-| ¿El tope de 6 Llamadas sirve si casi nunca se alcanza (4–11%)? Se mantiene en 6 como seguro (Modificador, Tuning Knobs) | Métricas (#19) | Playtest |
+| ¿Llenar el propio anillo para subir Grito o Arremetida es una estrategia dominante? La medida existe (Métricas, #19, regla 14). | Métricas (#19) | Playtests del MVP |
+| Valor de `bajas_por_turno` para cerrar Δturnos (F6) Se mide con Métricas (#19, F4). | Métricas (#19) | Primeras 3 partidas del MVP |
+| ¿El tope de 6 Llamadas sirve si casi nunca se alcanza (4–11%)? Se mantiene en 6 como seguro (Modificador, Tuning Knobs) La medida existe (Métricas, #19, regla 14). | Métricas (#19) | Playtest |
 | Con todo o nada, ¿los jinetes bloqueados con 5 a 8 vivos se sienten injustos? El prototipo v5 reclutaba parcial: esta regla está sin jugar | Playtest | MVP |
 | Dos repartos según la causa (F5 y `reparto_liberado`): ¿se entienden en el panel "?"? #17 los muestra con el cambio contra la base y el motivo; queda medirlo | Playtest | MVP |
-| Con 12 piezas o menos, Grito absorbe hasta 85%; el pilar 3a se enmendó para admitirlo (Modificador, regla 12): ¿se siente injusto? | Métricas (#19) | Playtest |
+| Con 12 piezas o menos, Grito absorbe hasta 85%; el pilar 3a se enmendó para admitirlo (Modificador, regla 12): ¿se siente injusto? La medida existe (Métricas, #19, regla 14). | Métricas (#19) | Playtest |

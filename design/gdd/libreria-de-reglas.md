@@ -411,8 +411,8 @@ la pantalla del otro pasó distinto", "perdí por algo que no se veía".
     difieren: el final del servidor manda, también si el cliente terminó por error con
     otro ganador. Si es válido, el resultado es el estado del servidor tal cual (también su
     pila de deshacer y su tirada pendiente) y un evento `Resincronizado` con el motivo, la
-    huella local vieja y la nueva. Con Divergencia, la interfaz avisa al jugador y Métricas
-    (#19) lo registra como S1; con Reconexion, ninguno de los dos. Una carrera esperable
+    huella local vieja y la nueva. Con Divergencia, la interfaz avisa al jugador y la Analítica
+    online (#32) lo registra como S1 (Métricas, #19, solo corre en local); con Reconexion, ninguno de los dos. Una carrera esperable
     (un comando que llega después del `TurnTimeout`) nunca termina en Resincronizar.
 15. **Resolución simultánea.** Resolver calcula todo el daño sobre el estado de **antes**
     de resolver: una pieza que muere en esa resolución igual golpea, y el orden por ID solo
@@ -484,12 +484,12 @@ espera una tirada: la autoridad la envía en cuanto se pide.
 | 13 Entrada | Traduce clics en comandos | Consultas para resaltar casillas; códigos de rechazo | Entrada |
 | 14 Localización | Textos de códigos y eventos | Códigos | Localización |
 | 15–18, 22 Presentación | Nada | Estado, eventos y vista previa | Cada GDD |
-| 19 Métricas | Nada | Eventos | Métricas |
+| 19 Métricas | Nada | Eventos, `Rechazado` con su código y `ErrorInterno` (S1) | Métricas |
 | 25 Rival IA | Comandos por la misma API | Estado público y consultas | Rival IA |
 | 26 Registro | Config, comandos y tiradas guardados | Reproduce aplicando los mismos comandos | Registro |
 | 28 Servidor | Es la autoridad de Tirada, `TurnTimeout` y `CerrarPartida` (abandono y reloj agotado); transporte autenticado | Corre la misma librería; compara (`contadorComandos`, huella) con el cliente | Servidor |
 
-Existen los GDD #2 a #8 y #10 a #14. Con los demás, las interfaces son contrato provisional.
+Existen los GDD #2 a #19 (tandas 1 a 4, cierre del 2026-11-26). Con los demás, las interfaces son contrato provisional.
 
 ## Formulas
 

@@ -286,11 +286,11 @@ El índice solo nombra la Máquina; la Librería es una dependencia dura real po
 | Sistema | Tipo | Qué usa | Estado del GDD |
 |---|---|---|---|
 | #15 Ficha y HUD | Dura | La vista de relojes y los eventos de aviso | Existe (tanda 3) |
-| #19 Métricas | Blanda | `TurnoMedido`, `RelojesAlCierre`, `TiempoAgotado` | Pendiente |
+| #19 Métricas | Blanda | `TurnoMedido`, `RelojesAlCierre`, `TiempoAgotado` | Existe (tanda 4) |
 | #21 Menú principal | Blanda | La lista de modos para la pantalla de partida local | Pendiente |
 | #20 Ajustes | Blanda | El identificador del modo para recordar la última elección | Pendiente |
 | #22 Audio | Blanda | Los eventos que llevan sonido | Pendiente |
-| #18 Render | Blanda | `TramoFinalIniciado` para el cambio de luz | Pendiente |
+| #18 Render | Blanda | `TramoFinalIniciado` para el cambio de luz | Existe (tanda 4) |
 | #28 Servidor | Dura | La política de vencimientos como biblioteca y el formato online | Pendiente |
 | #25 Rival IA | Blanda | Si sus turnos descuentan reloj | Pendiente |
 | #14 Localización | Blanda | Nombres de los cuatro modos | Existe |
@@ -435,16 +435,16 @@ El HUD (#15) lee de la vista de relojes (regla 13) y tiene que mostrar:
 | Pregunta | Dueño | Para cuándo |
 |---|---|---|
 | ¿El tramo final de 40 s para mover alcanza en pantalla táctil con 12 piezas? Choca con el pilar 1 | Playtest en táctil | MVP |
-| ¿El reloj por jugador decide partidas que el pilar 3 (siempre hay vuelta) habría salvado? | Métricas (#19) | MVP |
+| ¿El reloj por jugador decide partidas que el pilar 3 (siempre hay vuelta) habría salvado? La medida existe (Métricas, #19, regla 14). | Métricas (#19) | MVP |
 | ¿Hace falta un botón de pausa manual en local (un llamado, una interrupción)? | Menú (#21) y playtest | MVP |
 | ~~¿Cómo conviven el anillo de la etapa y el reloj de partida sin dos ámbar compitiendo?~~ **Resuelta por #15 (reglas 12 y 13, F3):** el ámbar solo lo lleva el timer que de verdad limita; el tramo final es un anillo grueso de color base | — | — |
 | ¿Se pausan los relojes online por desconexión, y hay gracia por latencia? Hoy: no se pausa y no hay gracia | Servidor (#28) | En su GDD |
 | ¿El formato del restante online y la corrección de la predicción? | Servidor (#28) | En su GDD |
 | ¿`LimitePartida` cierra con `Tablas`? Hoy es lo único sin ganador | Librería (#1) y Servidor (#28) | En el ADR de la Librería |
 | ¿Los turnos del Rival IA descuentan reloj? ¿La partida tutorial usa timers? | Rival IA (#25) y Tutorial (#24) | En sus GDD |
-| ¿La animación de resolución (≤ 1,5 s) corre sobre el reloj del jugador siguiente? Hoy: sí, sin pausa | Ficha y HUD (#15) y playtest | MVP |
+| ~~¿La animación de resolución corre sobre el reloj del jugador siguiente?~~ **Resuelta para el modo local (2026-11-26):** no; la `Tirada` espera a la presentación (Render, #18, regla 25, ≤ 2,0 s) y el reloj no corre en `EsperandoTirada`. Online sigue abierta | Servidor (#28) | Antes del online |
 | ¿Las repeticiones muestran los relojes? El núcleo no guarda `consumido_ms` | Registro de partida (#26) | En su GDD |
-| ¿Las partidas Sin límite cuentan para la compuerta del arte? (Máquina, Open Questions) | Métricas (#19) | En su GDD |
+| ~~¿Las partidas Sin límite cuentan para la compuerta del arte?~~ **Resuelta 2026-11-26:** no (Métricas, regla 12) | — | — |
 | ¿Se distingue en web perder el foco de una suspensión? **NOT SOURCEABLE** en la referencia del motor. Si el navegador congela una pestaña oculta más de 5 s, hoy ese tiempo no se cuenta y vuelve la pausa gratis | ADR del Timer | Antes de implementar |
 | ¿Se mantiene `salto_reloj_max_ms` de 5 s o se mide una forma mejor de detectar la suspensión? | Playtest local | MVP |
-| Fijo 90 con uso máximo termina en el turno 17: ¿aceptable? | Métricas (#19) | MVP |
+| Fijo 90 con uso máximo termina en el turno 17: ¿aceptable? La medida existe (Métricas, #19, regla 14). | Métricas (#19) | MVP |

@@ -39,7 +39,7 @@ Sirve al **Pilar 1** («Al mover armás la estrategia; al atacar ejecutás el pl
 
 ### Core Rules
 
-1. **Todo texto visible sale de una tabla.** Ningún sistema de presentación escribe texto literal. Excepciones cerradas: los números, los símbolos sin idioma (`:` del reloj, `+`, `×`, `/`), el nombre del juego, las etiquetas «ES» y «EN» del botón y la pantalla fija de la regla 13.
+1. **Todo texto visible sale de una tabla.** Ningún sistema de presentación escribe texto literal. Excepciones cerradas: los números, los símbolos sin idioma (`:` del reloj, `+`, `×`, `/`, `→` y `−` de la vista previa, #16), el nombre del juego, las etiquetas «ES» y «EN» del botón y la pantalla fija de la regla 13.
 2. **Dos idiomas.** `es` (español latino, trato de **vos**; decisión del jugador, 2026-11-25) y `en` (inglés). Lista cerrada en el MVP. Sumar un idioma es sumar una tabla y una entrada en la lista, sin tocar ninguna pantalla.
 3. **Idioma fuente.** El español es la fuente: una clave nace en `es` y el inglés la traduce. Las dos tablas tienen **exactamente el mismo conjunto de claves** (F1).
 4. **Forma de la clave.** `grupo.nombre`: el grupo es uno de la tabla; el nombre lleva letras ASCII, números y guion bajo. La clave distingue mayúsculas. Una clave publicada no cambia de significado: si cambia el sentido, se crea otra.
@@ -161,7 +161,7 @@ The largo_peor formula is defined as:
 |---|---|---|---|---|
 | fijos(k, L) | int | 0–1.000 | calculated | Caracteres sin los parámetros; en una plural, se evalúa cada forma |
 | ancho_max(p, L) | int | 1–1.000 | data file | Entero: los dígitos declarados para el parámetro (1 a 11). Clave: el texto más largo posible en L. Se suma por cada aparición |
-| presupuesto(k) | int | 1–1.000 | data file | Botón 18 · chip 18 · etiqueta 24 · efecto 48 · título 32 · aviso 60 · nota 180 · párrafo 240 (chip, efecto y nota los pidió #17) |
+| presupuesto(k) | int | 1–1.000 | data file | Placa 6 · botón 18 · chip 18 · etiqueta 24 · efecto 48 · título 32 · aviso 60 · nota 180 · párrafo 240 (chip, efecto y nota los pidió #17; placa, #16, para MUERE y ROTO: inglés `DIES` y `BROKEN`) |
 
 **Output Range:** 1 a 1.000; pasarse del presupuesto rompe el test. *Por qué 60 para un aviso:* unos 4 s de lectura a 15 caracteres por segundo, una velocidad **hipotética** a medir en playtest.
 **Example:** «Te quedan {n} movimientos»: 22 fijos + 2 dígitos = 24 ≤ 60, pasa.
@@ -238,15 +238,16 @@ Blanda significa que el sistema funciona sin esas listas, pero no puede probar q
 | Sistema | Tipo | Qué usa | Estado |
 |---|---|---|---|
 | #13 Entrada y selección | Dura | Textos de rechazo y aviso neutro | En diseño, en paralelo |
-| #15 HUD, #16 Vista previa, #17 Interfaz del Modificador | Dura | Claves `ui`, piezas, caras; aviso de cambio de idioma | #15 y #17 existen (tanda 3) y definen sus claves; #16 pendiente |
-| #18 Render | Blanda | MUERE y ROTO si van como texto | Pendiente |
+| #15 HUD, #16 Vista previa, #17 Interfaz del Modificador | Dura | Claves `ui`, piezas, caras; aviso de cambio de idioma | Los tres existen y definen sus claves (#15 y #17 en la tanda 3; #16, `ui.vista_previa_*`, en la tanda 4) |
+| #18 Render | Blanda | Nada: Render no tiene textos propios; MUERE y ROTO son de #16 | Existe (tanda 4) |
+| #19 Métricas | Blanda | Claves `ui.metricas_*` (botón y mensajes de exportar, Ajustes); el archivo exportado no se traduce, lleva códigos | Existe (tanda 4) |
 | #20 Ajustes, #21 Menú | Dura | Lista de idiomas, idioma actual, claves | Pendientes (Vertical Slice) |
 | #23 Accesibilidad, #24 Tutorial | Blanda | Textos; espacio para texto escalado | Pendientes |
 | #31 Emotes, #34 Chat | Dura | Frases predefinidas | Pendientes (Alpha) |
 | #6 Movimiento, #7–#11 reglas | Blanda | Textos de sus códigos visibles | #6, #7, #8, #10, #11 y #13 lo listan; #9 no tiene códigos de rechazo ni textos propios |
 | #12 Timer | Blanda | Nombres de los cuatro modos | Existe y lo lista |
 
-**Supuestos provisionales:** claves `ui` de #16, #18 y #21 y qué eventos de Render llevan texto. Las de #15 y #17 y el lugar del botón ES/EN en la partida (#15, regla 21) quedaron fijados en la tanda 3.
+**Supuestos provisionales:** claves `ui` de #21. Las de #16 y #19 quedaron fijadas en la tanda 4, y Render (#18) no lleva texto en ningún evento. Las de #15 y #17 y el lugar del botón ES/EN en la partida (#15, regla 21) quedaron fijados en la tanda 3.
 
 ## Tuning Knobs
 
@@ -257,6 +258,7 @@ Blanda significa que el sistema funciona sin esas listas, pero no puede probar q
 | `presupuesto` título | 32 | 20–45 | Títulos en dos líneas | Títulos vagos | Con `expansion_pct` |
 | `presupuesto` chip | 18 | 12–26 | Chips que no entran en la celda de una cara (#17, F3) | Motivos crípticos | Con `expansion_pct` |
 | `presupuesto` efecto | 48 | 30–70 | El efecto de la cara no entra en la placa (#17) | Efectos incompletos | Con `expansion_pct` |
+| `presupuesto` placa | 6 | 5–8 | MUERE o ROTO no entran en la placa de la vista previa (#16) | Abreviaturas | Con `expansion_pct` |
 | `presupuesto` nota | 180 | 120–260 | Notas del panel «?» que nadie lee | Falta la explicación del reparto | — |
 | `presupuesto` aviso | 60 | 40–90 | No se lee dentro del turno | No alcanza para decir la causa | Con la duración del aviso (#13) |
 | `presupuesto` párrafo | 240 | 120–400 | Nadie lo lee | Reglas incompletas | — |
@@ -344,5 +346,5 @@ Automáticos (Logic) salvo que se indique. «Tablas de prueba» son fixtures del
 | Nombre del juego: ¿igual en los dos idiomas? | creative-director | Cuando deje de ser provisional |
 | ~~Textos de las 5 caras y sus recuadros~~ **Resuelta por #17 (regla 13)** | — | — |
 | ~~Lugar exacto del botón ES/EN y duración de los avisos~~ **Resuelta por #15 (reglas 18 y 21)** y Entrada (#13) | — | — |
-| Qué eventos llevan texto | #15, #18 | En sus GDD |
+| ~~Qué eventos llevan texto~~ **Resuelta:** #15 (regla 20) y Render (#18: ninguno) | — | — |
 

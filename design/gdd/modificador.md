@@ -102,7 +102,7 @@ Sin el Modificador no habría remontada (pilar 3), el turno sería siempre igual
    - Dura **solo ese turno**: la Máquina borra los bonos al cerrarlo (Máquina, regla 11). No se acumula: hay una cara por turno, y volver a escribirlo deja 2, no 4.
    - Suma también al daño contra muros (Castillo, F3).
 8. **Distracción.** `SaltearMovimiento`: se abre `Atacar` directo. No hay `Mover` ni `Deshacer` ese turno, y la etapa del timer es solo la de atacar. El jugador ataca, asigna y cubre con lo que ya tiene posicionado. Si no hay acción posible en `Atacar`, la Máquina salta la fase y cierra el turno (Máquina, regla 10); con una catapulta o un demoledor propios vivos `Atacar` nunca se salta (Alcance, regla 14). Es la excepción vigente al anti-pilar «NOT un dado que decide golpes» y se mantiene por decisión del jugador.
-9. **La tirada.** La autoridad envía `Tirada(n, contadorTiradaEsperado)` con `n` de 0 a 99 (en local el cliente; online solo el servidor). La Librería aplica `cara_por_tirada` sobre la tabla efectiva guardada: las caras con 0% nunca salen. El evento de la tirada lleva `n`, la cara y la tabla usada (Librería, AC-8) y **además el nombre de la tabla base elegida** (Librería, regla 8). Una tirada no se repite ni se deshace.
+9. **La tirada.** La autoridad envía `Tirada(n, contadorTiradaEsperado)` con `n` de 0 a 99 (en local el cliente, **cuando termina la presentación de la resolución del turno anterior** o el jugador la salta, Render #18 regla 25; online solo el servidor). La Librería aplica `cara_por_tirada` sobre la tabla efectiva guardada: las caras con 0% nunca salen. El evento de la tirada lleva `n`, la cara y la tabla usada (Librería, AC-8) y **además el nombre de la tabla base elegida** (Librería, regla 8). Una tirada no se repite ni se deshace.
 10. **Panel de probabilidades («?», pilar 3b).** Los dos jugadores pueden consultar en cualquier momento la tabla efectiva de ambos. Debe mostrar la efectiva y no la base, y el motivo de cada cara en 0% o redistribuida (sin muros, sin llamadas, sin tope, sin lugar, 12 piezas o menos). La disposición es de la Interfaz del Modificador (#17).
 11. **Rendirse comparte el umbral.** El jugador del turno ve `Rendirse` mientras cumple la condición 1 de la regla 4 (`mias × 2 ≤ rival`), evaluada con el estado actual. Hay una sola definición de «la mitad de las piezas del rival o menos» y es esta.
 12. **Enmienda del pilar 3a (decisión del jugador, 2026-11-25).** El Grito da estadísticas y la redacción vigente del 3a dice *«nunca estadísticas»*. El jugador decidió **enmendar el pilar**, no ampliar la excepción. Texto propuesto para el test 3a: *«(a) da opciones (más chances de reclutar) y nunca estadísticas permanentes ni escudo. El único bono de daño admitido es el Grito de guerra: +2 de ataque (sin daño de área ni explosión) y de movimiento durante un turno, igual para los dos jugadores, visible en el «?» y en la vista previa; el que va perdiendo solo lo recibe más seguido como parte de la probabilidad que una cara de reclutar o Arremetida no puede usar, nunca por ir perdiendo.»* **Aplicada en `game-concept.md` el 2026-11-25**, al cerrar la tanda 2. **Prueba operativa:** en las cinco tablas base, el Grito de las tablas «Pierde» es menor o igual que el de las tablas «Gana» (hoy 20 contra 25).
@@ -146,6 +146,7 @@ No hay transición Resuelta → Esperando: una tirada nunca se repite ni se pide
 | #2 Catálogo | `ataque`, `movimiento` base | — | Catálogo |
 | #12 Timer | Etapa actual del turno | Con Distracción no hay etapa de mover | Timer |
 | #15 HUD, #16 Vista previa, #17 Interfaz del Modificador | — | Cara, bonos, tabla efectiva de los dos jugadores y motivo de cada 0% (solo lectura) | Cada GDD |
+| #18 Render | — | Evento `Tirada` para el ambiente; en local, la `Tirada` sale al terminar su presentación | Render |
 | #19 Métricas, #22 Audio, #24 Tutorial, #25 Rival IA, #28 Servidor | — | Evento de la tirada, consulta pura, tablas | Cada GDD |
 
 **Supuestos sobre GDD vecinos:** confirmados al cerrar la tanda 3 (2026-11-25): Resolución (#9) lee el ataque solo por `EffectiveStats` y no suma bonos por su cuenta; la Interfaz del Modificador (#17) muestra el motivo de cada cara en 0%.
@@ -268,7 +269,7 @@ The `ritmo_remontada` formula is defined as:
 | `n_max` | int | 1–17 (hoy 4) | data file (config, #10) | Piezas por llamada, tomando el máximo; cota superior |
 | `p_Llamada`, `p_Cuerno` | int | 0–100 | calculated (F1) | Probabilidad de las caras de reclutar en la tabla base |
 | `ritmo_x100` | int | 0–1.700 | calculated | Piezas nuevas esperadas por turno × 100, como cota superior |
-| `líder inicial` | jugador | — | calculated (Métricas, #19) | Quien cumple primero la condición «Gana 4 a 3 o más» (F1) al abrir su turno, o el rival de quien primero cumple «Pierde 3/4 o menos» |
+| `líder inicial` | jugador | — | calculated (Métricas, #19) | Quien cumple primero la condición «Gana 4 a 3 o más» (F1) al abrir su turno, o el rival de quien primero cumple «Pierde 3/4 o menos»; se mide con el primer evento de la tirada cuya tabla base no es Normal (Métricas, F3) |
 | `W` | int (%) | 0–100 | calculated (Métricas, #19) | Parte de las partidas terminadas que gana el líder inicial |
 
 **Output Range:** con las tablas vigentes `ritmo_x100` vale 120 (Gana 2 a 1), 140 (Gana 4 a 3), 160 (Normal), 180 (Pierde 3/4) y 200 (Pierde 1/2). La brecha entre extremos es de 80 (0,8 piezas por turno, hasta 11 en 14 turnos como cota; el tope de 48 reclutas por jugador manda, Reclutamiento F6). **Umbral del pilar 3c (jugador, 2026-11-25): `W` ≥ 2/3.** **NOT SOURCEABLE — `W` no está medida:** con 20 partidas el error estándar es de unos 10,5 puntos, así que las primeras 20 orientan y no deciden.
@@ -346,14 +347,15 @@ Fijar el bono en +2 con exclusión del área y la explosión levanta provisional
 | #15 Ficha de pieza y HUD | Dura | Cara del turno, bonos activos y estadística efectiva |
 | #16 Vista previa de ataques | Dura | Ataque efectivo con el bono del Grito |
 | #17 Interfaz del Modificador | Dura | Tablas de los dos jugadores, motivos de cada 0% y las elecciones |
-| #19 Métricas locales | Dura | Evento de la tirada, tabla base y efectiva (F4, F5) |
+| #18 Render, animación y feedback | Blanda | `Tirada` (ambiente); el envío local de la `Tirada` espera a Render |
+| #19 Métricas locales | Dura | Evento de la tirada, tabla base y efectiva (F4, F5); existe desde la tanda 4 |
 | #24 Tutorial, #25 Rival IA | Dura | Consulta pura de probabilidades y resultado tipado |
 | #28 Servidor autoritativo | Dura | Envío de la tirada y compromiso verificable |
 | #22 Audio y SFX | Blanda | Una señal sonora por cara |
 | #14 Localización | Blanda | IDs de las cinco caras y motivos de cada 0% |
 | #12 Timer | Blanda | Sin cambios si lee la etapa de la Máquina (Distracción no abre la etapa de mover) |
 
-**Bidireccionalidad.** Ya nombran al Modificador en sus tablas: la Librería, la Máquina, Reclutamiento, Castillo, Movimiento y Localización. Alcance, Catálogo, Tablero y Timer lo nombran desde el 2026-11-25. Resolución (#9), HUD (#15) e Interfaz del Modificador (#17) tienen GDD desde la tanda 3 y nombran al Modificador. **Provisionales:** Vista previa (#16) y Métricas (#19) no tienen GDD; sus aristas se confirman al escribirlos.
+**Bidireccionalidad.** Ya nombran al Modificador en sus tablas: la Librería, la Máquina, Reclutamiento, Castillo, Movimiento y Localización. Alcance, Catálogo, Tablero y Timer lo nombran desde el 2026-11-25. Resolución (#9), HUD (#15) e Interfaz del Modificador (#17) tienen GDD desde la tanda 3 y nombran al Modificador. Vista previa (#16), Render (#18) y Métricas (#19) tienen GDD desde la tanda 4; la arista Dura con #19 queda confirmada.
 
 ## Tuning Knobs
 
@@ -510,7 +512,7 @@ Tipos de evidencia (`coding-standards.md`): **Logic** e **Integration** son test
 ### Huecos que quedan (lente de QA)
 
 - **Sin criterio automático:** que el «?» esté «siempre disponible» (se verifica con la captura de AC-19) y que el dado «no se sienta decisivo» (pregunta de playtest, no criterio).
-- **PROVISIONAL:** AC-31 hasta que exista #16. AC-19 (cubierta por AC-16 de #17; AC-30 comparte su captura en grises) y los de Resolución (#9) dejaron de serlo al cerrar la tanda 3.
+- **PROVISIONAL:** ninguno: AC-31 dejó de serlo al escribirse #16 (tanda 4). AC-19 (cubierta por AC-16 de #17; AC-30 comparte su captura en grises) y los de Resolución (#9) dejaron de serlo al cerrar la tanda 3.
 - **El umbral 3c** (`W` ≥ 2/3) no es un criterio de aceptación sino una medición del MVP con 20 partidas o más (Open Questions).
 - **Sin presupuesto propio de rendimiento:** la consulta recorre 5 caras y hereda el de la Librería (ADR).
 
@@ -518,12 +520,12 @@ Tipos de evidencia (`coding-standards.md`): **Logic** e **Integration** son test
 
 | Pregunta | Dueño | Cuándo |
 |---|---|---|
-| ¿El reparto de caras bloqueadas le da demasiado Grito al que pierde (hasta 85%, +60 puntos frente a un líder en 25%)? Medir cuántos turnos del que pierde tienen Grito en 60% o más | Métricas (#19) | Playtests del MVP |
-| ¿`W` cumple 2 de cada 3? Con 20 partidas el error estándar es de unos 10,5 puntos: las primeras 20 orientan y no deciden | Métricas (#19) | MVP; propuesta de cambios después de 20 partidas online |
-| Valor de `Δturnos_D` y de `t_atacar` (F4) | Métricas (#19) | Primeras 3 partidas del MVP |
+| ¿El reparto de caras bloqueadas le da demasiado Grito al que pierde (hasta 85%, +60 puntos frente a un líder en 25%)? Medir cuántos turnos del que pierde tienen Grito en 60% o más La medida existe (Métricas, #19, regla 14). | Métricas (#19) | Playtests del MVP |
+| ¿`W` cumple 2 de cada 3? Con 20 partidas el error estándar es de unos 10,5 puntos: las primeras 20 orientan y no deciden Se mide con Métricas (#19, F3). | Métricas (#19) | MVP; propuesta de cambios después de 20 partidas online |
+| Valor de `Δturnos_D` y de `t_atacar` (F4) Se mide con Métricas (#19, F4). | Métricas (#19) | Primeras 3 partidas del MVP |
 | ¿Distracción sin objetivos posibles (turno vacío) se siente como el castigo que el director creativo marcó? | Playtest | MVP |
 | El Grito es el 40% de las tiradas de la apertura (tabla Normal 20/40/20/20/0) y deja el margen del golpe del turno 1 en 1: ¿acelera demasiado los primeros turnos? | Playtest y Tablero (#4) | MVP |
-| Estrategias degeneradas: cortar el propio castillo, llenar el propio anillo o sacrificar piezas para cruzar un umbral, en especial de 13 a 12 sin el Rey (15 a 40 puntos de Arremetida pasan a Grito) | Métricas (#19), Reclutamiento (#10) | Playtests del MVP |
+| Estrategias degeneradas: cortar el propio castillo, llenar el propio anillo o sacrificar piezas para cruzar un umbral, en especial de 13 a 12 sin el Rey (15 a 40 puntos de Arremetida pasan a Grito) La medida existe (Métricas, #19, regla 14). | Métricas (#19), Reclutamiento (#10) | Playtests del MVP |
 | ¿Los dos repartos (liberado y sin lugar) se entienden en el panel «?»? #17 los muestra con el cambio contra la base y el motivo de cada cara (F2, F3); queda medirlo | Playtest | MVP |
 | ¿Pasar los umbrales de F1 (1/2, 3/4, 4 a 3, 2 a 1) a la config? | Este GDD y Librería | Después de 20 partidas |
 | ¿Qué pasa si la autoridad no envía la tirada (online)? ¿Compromiso verificable de las tiradas? | Servidor (#28) | Antes de lanzar el online |

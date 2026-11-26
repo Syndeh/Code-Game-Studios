@@ -156,7 +156,7 @@ Los pasos 2 a 5 no escriben en el estado: es lo que permite que la vista previa 
 | #19 Métricas | — | `vidaQuitada`, eventos de daño y de muerte | Métricas, solo lectura |
 | #24 Tutorial, #25 Rival IA | — | La misma operación sobre una copia (IA: evaluar jugadas) | Cada GDD, solo lectura |
 
-**Supuestos provisionales que quedan:** ninguno sobre los GDD vecinos (todos existen). Quedan sin GDD los lectores de los eventos (#16, #18, #19, #22, #24, #25): la forma de cada evento es de este GDD y ellos la confirman al escribirse.
+**Supuestos provisionales que quedan:** ninguno sobre los GDD vecinos (todos existen). #16, #18 y #19 confirmaron la forma de los eventos sin pedir cambios al cerrar la tanda 4 (2026-11-26). Quedan sin GDD los lectores #22, #24 y #25: la forma de cada evento es de este GDD y ellos la confirman al escribirse.
 
 ## Formulas
 
@@ -404,9 +404,9 @@ Valores del Catálogo v5: soldado ataque 8, escudo 3, vida 25 · arquero 6, 2, 1
 | #8 Cobertura | Dura | El reparto numérico y el momento de la muerte de la cobertura | Sí |
 | #5 Castillo | Dura | Aplicación del daño al tramo, tramos rotos y muertes | Sí |
 | #7 Alcance | Dura | Consumo de la lista y la zona de explosión | Sí |
-| #16 Vista previa | Dura | La misma operación sobre una copia; los eventos como contenido de MUERE, ROTO y números flotantes | Pendiente (sin GDD) |
-| #18 Render, animación y feedback | Dura | Los eventos, con `combinado` y `atacantesRivales`, para animar | Pendiente (sin GDD) |
-| #19 Métricas locales | Blanda | `vidaQuitada` y los eventos de daño y de muerte | Pendiente (sin GDD) |
+| #16 Vista previa | Dura | La misma operación sobre una copia; los eventos como contenido de MUERE, ROTO y números flotantes | Existe (tanda 4); lee los eventos de la regla 14 sin pedir campos nuevos |
+| #18 Render, animación y feedback | Dura | Los eventos, con `combinado` y `atacantesRivales`, para animar | Existe (tanda 4); no pide un evento por golpe |
+| #19 Métricas locales | Blanda | `vidaQuitada` y los eventos de daño y de muerte | Existe (tanda 4); confirma la forma de los eventos sin cambios |
 | #22 Audio y SFX | Blanda | Los eventos y la marca de combinado | Pendiente (sin GDD) |
 | #24 Tutorial, #25 Rival IA | Dura | Resolver sobre una copia para evaluar jugadas | Pendiente (sin GDD) |
 
@@ -414,7 +414,7 @@ Valores del Catálogo v5: soldado ataque 8, escudo 3, vida 25 · arquero 6, 2, 1
 
 **No dependen ni dependen de Resolución:** Movimiento (#6, lee dónde quedaron las piezas), Reclutamiento (#10, lee `puedeReclutar` de Castillo, no de acá), Timer (#12, solo manda `TurnTimeout`), Localización (#14: Resolución no tiene códigos de rechazo ni texto propio; los textos de MUERE y ROTO son de #16 y #14) y Entrada (#13).
 
-**Supuestos provisionales:** ninguno sobre un GDD vecino: los ocho existen y ya nombran a #9. Los lectores de los eventos (#16, #18, #19, #22, #24, #25) no tienen GDD: la forma de los eventos de la regla 14 es de este GDD y ellos la confirman al escribirse.
+**Supuestos provisionales:** ninguno sobre un GDD vecino: los ocho existen y ya nombran a #9. #16, #18 y #19 tienen GDD desde la tanda 4 y no piden cambios. **Aporte a la duración:** el `Δturnos` de Resolución es **0 por definición**: los turnos que hacen falta para matar son la base `N_base` (Máquina, D1; Métricas, F4). Los lectores #22, #24 y #25 no tienen GDD: la forma de los eventos de la regla 14 es de este GDD y ellos la confirman al escribirse.
 
 ## Tuning Knobs
 
@@ -472,7 +472,7 @@ La resolución es el estado «Resolución / cosecha» del art bible (Sección 2,
 | `DanoATramo` | El tramo muestra su estado por la forma: entero con borde recto, **mellado** si `vidaDespues × 2 < vida_tramo`, número flotante con el **bruto** | Golpe sobre piedra |
 | `TramoRoto` | El tramo se vuelve **hueco con escombro bajo y borde quebrado**, la placa **ROTO** (grieta en zigzag) y el contador del castillo se actualiza (Castillo, UI). Deja escombros (cuantos más tramos rotos, más escombros) | Derrumbe de piedra; más fuerte con el segundo tramo roto (corte de reclutamiento) |
 | `PiezaMuerta` (`Dano`) | La pieza se **desatura y cae**, en el mismo momento que las demás muertes (art bible, Sección 5, *Golpe y muerte*), con la placa **MUERE** | Caída, sin diferencia entre bandos |
-| `PiezaMuerta` (`Explosion`) | Sin caída: la pieza desaparece dentro de la explosión | Parte del estallido |
+| `PiezaMuerta` (`Explosion`) | Sin caída: la pieza desaparece dentro de la explosión; el demoledor que explota **no muestra número** aunque tenga `DanoRecibido` (Render, #18) | Parte del estallido |
 | `CoberturaQuitada` | La línea de cobertura se corta en el mismo cuadro | Cue breve de escudo roto, solo si el escudero murió |
 
 ### Restricciones
@@ -599,7 +599,7 @@ Las piezas se nombran por tipo y casilla `(columna, fila)`. Valores del Catálog
 
 ### Visual
 
-- **AC-43 (capturas de la cosecha)** *(Visual, dueño #18, PROVISIONAL hasta que exista)* — **GIVEN** Render, **WHEN** se resuelven (a) un combo de 4 atacantes, (b) un golpe absorbido por el escudo (neto 0), (c) una cobertura que desvía, (d) una explosión de demoledor sobre un muro de 3 tramos, (e) un tramo roto con el arquero sobreviviente, (f) un fuego amigo, **THEN** se guarda una captura de cada una en `production/qa/evidence/` donde se ven todos los impactos en el mismo cuadro, el número flotante igual al de la vista previa, las placas MUERE y ROTO, la línea de desvío y la marca de fuego amigo por forma.
+- **AC-43 (capturas de la cosecha)** *(Visual, dueño #18; la cubre AC-21 de Render)* — **GIVEN** Render, **WHEN** se resuelven (a) un combo de 4 atacantes, (b) un golpe absorbido por el escudo (neto 0), (c) una cobertura que desvía, (d) una explosión de demoledor sobre un muro de 3 tramos, (e) un tramo roto con el arquero sobreviviente, (f) un fuego amigo, **THEN** se guarda una captura de cada una en `production/qa/evidence/` donde se ven todos los impactos en el mismo cuadro, el número flotante igual al de la vista previa, las placas MUERE y ROTO, la línea de desvío y la marca de fuego amigo por forma.
 
 ### Revisión de QA
 
@@ -607,16 +607,16 @@ Las piezas se nombran por tipo y casilla `(columna, fila)`. Valores del Catálog
 - **Cruces:** hay criterios con Máquina (AC-1, 37, 41), Castillo (AC-3, 11, 12, 13, 20, 21), Cobertura (AC-4, 17 a 20, 22), Catálogo (AC-33, 39), Reclutamiento y Modificador (AC-38) y Librería (AC-2, 28, 29).
 - **Rendimiento:** el tiempo no es un criterio de test (las pruebas no pueden depender del reloj): AC-29 solo verifica cotas y ausencia de asignaciones de memoria. El presupuesto en milisegundos se mide con `/perf-profile`, no en EditMode.
 - **No automatizable (a Open Questions):** que la resolución completa entre en ~2 s, que el desvío se entienda y que ningún resultado se perciba como azar son preguntas de playtest.
-- **Tipos:** AC-5 a AC-10, 14 a 16, 23 a 27 y 30 a 32, 34 a 36, 40 y 42 son Logic; AC-1 a 4, 11 a 13, 17 a 22, 28, 33, 37 a 39 y 41 son Integration; AC-29 es Logic PROVISIONAL hasta el ADR; AC-43 es Visual con captura retenida.
+- **Tipos:** AC-5 a AC-10, 14 a 16, 23 a 27 y 30 a 32, 34 a 36, 40 y 42 son Logic; AC-1 a 4, 11 a 13, 17 a 22, 28, 33, 37 a 39 y 41 son Integration; AC-29 es Logic PROVISIONAL hasta el ADR; AC-43 es Visual con captura retenida (cubierta por AC-21 de #18).
 
 ## Open Questions
 
 | Pregunta | Dueño | Cuándo |
 |---|---|---|
-| ¿La tortuga (cubrir al Rey cada turno, con el exceso perdido) alarga la partida más allá del pilar 4 o vuelve inútil juntar daño sobre el Rey? Medir cuántos turnos el Rey no pierde vida y cuántas coberturas se rompen | Cobertura (#8) y Métricas (#19); playtest | MVP |
-| ¿El demoledor de asedio corta el reclutamiento rival demasiado barato? Medir cuántos demoledores llegan al muro antes de morir y cuántas partidas tienen un corte por explosión (borde exacto: `vida_tramo` 31) | Castillo (#5) y Métricas (#19); playtest | MVP |
-| ¿La resolución completa entra en ~2 s con 12 ataques, un área y una explosión a la vez? | Render (#18), prototipo | Cuando exista #18 |
-| ¿Render necesita un evento por golpe individual (no agregado por receptor) para dibujar cada trazo que converge? Hoy basta `AtaqueEjecutado` más la lista de asignaciones de la vista previa; si no alcanza, se agrega a `DanoRecibido` la lista de atacantes sin cambiar el cálculo | Render (#18) | Al escribir #18 |
-| ¿`vidaQuitada` con la pieza y el tramo del arquero en el muro por separado es la medida que Métricas necesita, o debería contar un golpe una sola vez? Hoy ninguna regla la lee | Métricas (#19) | Al escribir #19 |
-| ¿El jugador entiende adónde fue el golpe del aliado cubierto (línea y número del escudero) y el exceso perdido sin leer el texto? | Vista previa (#16); playtest | Al escribir #16 |
+| ¿La tortuga (cubrir al Rey cada turno, con el exceso perdido) alarga la partida más allá del pilar 4 o vuelve inútil juntar daño sobre el Rey? Medir cuántos turnos el Rey no pierde vida y cuántas coberturas se rompen La medida existe en Métricas (#19, regla 14). | Cobertura (#8) y Métricas (#19); playtest | MVP |
+| ¿El demoledor de asedio corta el reclutamiento rival demasiado barato? Medir cuántos demoledores llegan al muro antes de morir y cuántas partidas tienen un corte por explosión (borde exacto: `vida_tramo` 31) La medida existe en Métricas (#19, regla 14). | Castillo (#5) y Métricas (#19); playtest | MVP |
+| ~~¿La resolución completa entra en ~2 s?~~ Definida por Render (#18, F1): 1,65 s por defecto con techo de 2,0 s, sin depender de la cantidad de ataques; queda validarla en el prototipo | Render (#18), prototipo | MVP |
+| ~~¿Render necesita un evento por golpe individual?~~ **Resuelta 2026-11-26:** no; alcanzan `AtaqueEjecutado`, la casilla objetivo y `brutoDesviado` (Render, reglas 12 y 21) | — | — |
+| ~~¿`vidaQuitada` con la pieza y el tramo por separado es la medida que Métricas necesita?~~ **Resuelta 2026-11-26:** sí, queda como está; Métricas cuenta los golpes aparte con `AtaqueEjecutado` (#19, regla 14) | — | — |
+| ¿El jugador entiende adónde fue el golpe del aliado cubierto (línea y número del escudero) y el exceso perdido sin leer el texto? Pasa a la Vista previa (#16, Open Questions 3) | Vista previa (#16); playtest | MVP |
 | ¿La forma canónica de los eventos de la regla 14 (campos y orden) es la que el ADR de la Librería necesita para repeticiones y para la autoridad online? | Librería (#1) y ADR | En el ADR de la Librería |

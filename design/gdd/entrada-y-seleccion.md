@@ -128,9 +128,10 @@ Un gesto es un par pulsar-soltar (regla 2); si se descarta, ningún estado cambi
 | #12 Timer | `TurnTimeout` (indirecto, por el cambio de fase) | Nada | Timer |
 | #14 Localización | Texto por clave (`codigo.*`, `sistema.aviso_neutro`) | Código de rechazo | Localización la clave; este GDD si, dónde y cuánto se muestra |
 | #15 Ficha y HUD | Botones, contador de piezas movidas, relojes | Selección actual (qué pieza se resalta) | HUD (cómo se ve); este GDD (qué hace cada botón) |
-| #16 Vista previa | — | Cada asignación aceptada dispara su recálculo (vía eventos) | Vista previa |
+| #16 Vista previa | — | Cada asignación aceptada y cada `CoberturaAsignada` o `CoberturaQuitada` disparan su recálculo (vía eventos) | Vista previa |
 | #17 Interfaz del Modificador | — | Los toques en el recuadro central y el "?" los atiende #17; Entrada no los interpreta | #17 |
-| #18 Render | — | Selección, destinos, alcance, objetivos, flechas e inspección (qué dibujar) | Render (cómo se dibuja) |
+| #18 Render | — | Selección, destinos, alcance, objetivos, flechas e inspección (qué dibujar); las coordenadas del toque salen de `casillaEnPantalla` (#18, F3) | Render (cómo se dibuja) |
+| #19 Métricas | — | `Rechazo(codigo, comando)` por cada `Rechazado` | Métricas |
 | #23 Accesibilidad, #41 Adaptación móvil | — | Tamaño de casilla, escala del tablero | Cada GDD |
 | #25 Rival IA | — | Nada: usa los comandos de la Librería directamente, no esta capa | Rival IA |
 
@@ -218,6 +219,7 @@ Lente `systems-designer` aplicada a las secciones C y D (modo `full`, sin agente
 - **Si la pulsación empieza en un botón del HUD y se suelta sobre el tablero (o al revés):** no se activa ninguno (regla 3).
 - **Si la ventana pierde el foco con el puntero pulsado:** el gesto se descarta.
 - **Si el jugador hace doble clic sobre un destino:** el primer clic manda `Mover`; el segundo, dentro de `ventana_antidoble_ms` y sobre la misma casilla, se ignora (regla 16). Pasado ese tiempo se resuelve contra el estado nuevo: la casilla es la de la pieza, así que la suelta (regla 6, fila 2).
+- **Si el jugador toca durante la presentación de la resolución:** el toque lo consume Render como salto (#18, regla 24): la animación pasa a su estado final y el toque no llega como selección ni como comando.
 - **Si un toque cae en un punto fuera del tablero y fuera de un control** (los bordes del HUD): no hace nada y no suelta la selección.
 
 ### Selección
@@ -285,10 +287,11 @@ Lente `systems-designer` aplicada a las secciones C y D (modo `full`, sin agente
 
 | Sistema | Qué le exige | Estado |
 |---|---|---|
-| #15 Ficha y HUD | Botones de avanzar, Deshacer y el control de Rendirse; contador de piezas movidas; lee qué pieza está elegida | Sin GDD |
-| #16 Vista previa de ataques | Se recalcula con cada asignación aceptada | Existe (tanda 3) |
+| #15 Ficha y HUD | Botones de avanzar, Deshacer y el control de Rendirse; contador de piezas movidas; lee qué pieza está elegida | Existe (tanda 3) |
+| #16 Vista previa de ataques | Se recalcula con cada asignación aceptada y con `CoberturaAsignada` y `CoberturaQuitada` | Existe (tanda 4) |
 | #17 Interfaz del Modificador | Atiende sus propios toques (recuadro central y "?"); estado «panel abierto» sin comandos (regla 4) | Existe (tanda 3) |
-| #18 Render | Dibuja selección, destinos, alcance, objetivos, flechas e inspección | Sin GDD |
+| #18 Render | Dibuja selección, destinos, alcance, objetivos, flechas e inspección; da `casillaEnPantalla` para convertir el toque | Existe (tanda 4) |
+| #19 Métricas | Al recibir un `Rechazado` de `Aplicar`, el cliente anota `Rechazo(codigo, comando)`; Entrada no muestra nada nuevo | Existe (tanda 4) |
 | #23 Accesibilidad | Alternativas a color y a pulso; lector de pantalla; cuadrícula opcional | Sin GDD |
 | #24 Tutorial | Enseña los gestos (elegir, mover, atacar, deshacer) | Sin GDD |
 | #41 Adaptación móvil | Decide el tamaño táctil y el zoom (E3) | Sin GDD |
@@ -317,11 +320,11 @@ Lente `art-director` aplicada (modo `full`, sin agente) a partir del art bible, 
 
 **Marcas en el tablero** (cada una distinguible por forma, no solo por color: art bible §7, *Usabilidad y accesibilidad*):
 
-- **Pieza elegida (comandable):** contorno grueso alrededor de la figura. **En inspección:** contorno distinto en forma (por ejemplo discontinuo), para no confundir "voy a mover esto" con "estoy mirando esto".
-- **Destinos:** una marca por casilla alcanzable con el **costo** en número (≥ 14 px, negrita, borde Tinta, como los números de la ficha). Un destino legal nunca tiene pieza encima, así que la marca no compite con una ficha.
-- **Alcance:** relleno tenue por casilla; la **zona ciega** se distingue por forma (Alcance #7, UI Requirements). Los **objetivos válidos** dentro del alcance llevan una marca más fuerte y distinta del alcance.
+- **Pieza elegida (comandable):** contorno grueso alrededor de la figura. **En inspección:** **contorno doble fino** (el discontinuo queda para lo propio en zona y el fuego amigo; Render, #18), para no confundir "voy a mover esto" con "estoy mirando esto".
+- **Destinos:** un **punto con el costo adentro** por casilla alcanzable (Render, #18), en número (≥ 14 px, negrita, borde Tinta, como los números de la ficha). Un destino legal nunca tiene pieza encima, así que la marca no compite con una ficha.
+- **Alcance:** **corchetes de esquina** por casilla (Render, #18; el mismo ícono de alcance de la ficha, #15); la **zona ciega** se distingue por forma (Alcance #7, UI Requirements). Los **objetivos válidos** dentro del alcance llevan una marca más fuerte y distinta del alcance.
 - **Flechas:** una por ataque asignado, con la punta sobre la casilla objetivo; esa casilla es el blanco táctil de la punta (regla 8). Siempre visibles en `Atacar`.
-- **Pieza ya movida:** marca por forma para saber qué piezas gastaron cupo (Movimiento, UI Requirements; *propuesta de #6, no está en el art bible*).
+- **Pieza ya movida:** ficha atenuada con gris y marco interior (#15, regla 5; art bible §7).
 - **Estado pulsado:** la casilla bajo el puntero se marca mientras está pulsada, para que el jugador sepa que el toque se registró antes de soltar.
 - **Aviso de rechazo:** en la zona de avisos del HUD, la banda superior a la derecha del timer (x 1170 a 1840; #15, regla 18, cierre de la tanda 3), donde no tapa ninguna casilla, texto de 16 px, con un ícono además del texto; entra con la animación de interfaz (≤ 0,25 s, frenado suave). No usa el rojo como único indicador.
 

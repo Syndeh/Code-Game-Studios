@@ -228,7 +228,7 @@ con división entera hacia abajo (todos los valores son no negativos, como exige
 | Estadísticas | 0 a 1.000 | F2 y F4 | Revisar el análisis de desborde de la Librería (resolución completa menor que 25.000.000) y subir la versión de reglas |
 | Piezas vivas por jugador | 61 | F5 y F6 (`topeTotal`) | Igual que arriba; además afecta el estado de la Librería |
 
-**Restricción de presentación (pedida por la Ficha, #15, F1 y AC-4; cierre de la tanda 3).** El tope del esquema sigue en 1.000, pero el Catálogo **que se publica** mantiene cada cifra que muestra la ficha, sumado su bono máximo (Grito +2, muro +2), en **99 o menos**: con tres cifras la ficha compacta no entra en la casilla. Un balance que la rompa no es inválido (la ficha lo muestra igual, sin truncar), pero falla el test AC-4 de la Ficha y obliga a rediseñarla.
+**Restricción de presentación (pedida por la Ficha, #15, F1 y AC-4; cierre de la tanda 3).** El tope del esquema sigue en 1.000, pero el Catálogo **que se publica** mantiene cada cifra que muestra la ficha, sumado su bono máximo (Grito +2, muro +2), en **99 o menos**: con tres cifras la ficha compacta no entra en la casilla. Un balance que la rompa no es inválido (la ficha lo muestra igual, sin truncar), pero falla el test AC-4 de la Ficha y obliga a rediseñarla. **Segunda restricción (pedida por la Vista previa, #16, F2 y AC-11; cierre de la tanda 4):** `vida_max + escudo_ef_max ≤ 100` para cada tipo, así el golpe que hace falta para matar se muestra con dos cifras en la placa; hoy el máximo es el Rey, 30 + 7 = 37.
 
 Esto evita un ciclo: la Librería depende del esquema del Catálogo, y el Catálogo no depende de la Librería. Los demás topes de la Librería no son del Catálogo: el tablero 24 × 15 es del Tablero (#4), la pila de 256 de la Máquina de turno (#3), y el bono de turno de 0 a 10 y C_MAX siguen en la Librería.
 
@@ -245,9 +245,9 @@ Esto evita un ciclo: la Librería depende del esquema del Catálogo, y el Catál
 | #9 Resolución simultánea | Dura | `ataque`, `escudo`, `vida`, `danoArea` | Existe y ya nombra al Catálogo |
 | #10 Reclutamiento | Dura | `topeVivas`, el orden de tipos y la vida | Existe y ya nombra al Catálogo |
 | #15 Ficha de pieza y HUD | Dura | Cifras base y efectivas para mostrar; pide que toda cifra con su bono máximo sea ≤ 99 (abajo) | Existe y ya nombra al Catálogo |
-| #18 Render, #37 Skins | Blanda | Solo el ID de tipo | Pendiente |
+| #18 Render, #37 Skins | Blanda | Solo el ID de tipo | #18 existe (tanda 4); la carga de Render rechaza el tipo 7 |
 | #14 Localización | Blanda | Solo el ID de tipo (nombre de pieza, singular y plural) | Existe y ya nombra al Catálogo |
-| #19 Métricas, #28 Servidor | Blanda | `versionBalance` y huella; el Servidor carga el mismo archivo | Pendiente |
+| #19 Métricas, #28 Servidor | Blanda | `versionBalance` y huella; el Servidor carga el mismo archivo | #19 existe (tanda 4): `versionBalance` y la huella van en el encabezado de cada registro (Métricas, regla 3) |
 | #26 Registro | Blanda | Guarda la tabla en la config de cada partida | Pendiente |
 | #8 Cobertura | Referencia | ID del Escudero (2); `escudo` y `vida` solo en su oráculo C2 | Existe y ya nombra al Catálogo |
 | #11 Modificador | Blanda | `ataque` y `movimiento` base; el bono se suma en `EffectiveStats` | Existe y ya nombra al Catálogo |
@@ -353,7 +353,7 @@ Sin pantalla propia. Las cifras de cada tipo se muestran en la ficha de pieza y 
 - **AC-28 (ataque menor o igual que el escudo)** — *(Integration, #9)* **GIVEN** un Escudero (ataque 4) que ataca a otro Escudero (escudo 5), **WHEN** se resuelve, **THEN** el daño neto es 0 y la vida no cambia; **WHEN** atacan 3 Escuderos al mismo objetivo, **THEN** pierde 7 de vida (12 − 5).
 - **AC-29 (bono sobre el máximo)** — **GIVEN** un Catálogo con `ataque` 1.000 en el Soldado y un bono de +10, **WHEN** se llama `EffectiveStats`, **THEN** devuelve 1.010 sin error.
 - **AC-30 (ejército inicial)** — *(Integration con #4)* **GIVEN** el Catálogo vigente con `topeVivas` de Soldados en 3, **WHEN** se crea la partida, **THEN** `ConfigInvalida`.
-- **AC-31 (skin con ID inválido)** — *(Integration, PROVISIONAL hasta #18 y #38)* **GIVEN** una skin que declara el tipo 7, **WHEN** el validador la revisa, **THEN** la rechaza.
+- **AC-31 (skin con ID inválido)** — *(Integration, PROVISIONAL hasta #38; la carga de Render ya lo rechaza, #18 regla 7 y AC-4)* **GIVEN** una skin que declara el tipo 7, **WHEN** el validador la revisa, **THEN** la rechaza.
 - **AC-32 (cifras repetidas)** — **GIVEN** un Catálogo donde Soldado y Jinete tienen las mismas cifras, **WHEN** se llama `PrepararContexto`, **THEN** se acepta, con una huella distinta de la del vigente.
 - **AC-33 (área genérica)** — *(Integration, #9)* **GIVEN** un Catálogo con `danoArea` 8 en el Arquero, **WHEN** un arquero ataca una casilla en alcance, **THEN** las 8 casillas alrededor reciben 8 de daño antes de escudo.
 

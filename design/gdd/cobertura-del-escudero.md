@@ -341,8 +341,8 @@ Principios del art bible: *El plan se lee antes que el detalle* (1), *El combo s
 | `CoberturaAsignada` | **Línea recta eslabonada**, acero, sin punta, entre el escudero y el aliado (art bible, Sección 4, *Flechas de ataque*); la línea aparece en el mismo cuadro en que se acepta el comando | Golpe metálico sordo, más grave que el de asignar un ataque |
 | Reemplazo (`aliadoAnterior`) | La línea vieja desaparece en el mismo cuadro en que entra la nueva | Solo el sonido de asignar |
 | `CoberturaQuitada`, `Quitada` o `Desplazada` | La línea se borra | Toque seco |
-| La línea durante el turno del rival | **Queda visible para los dos jugadores** hasta que se borra. **Falta en el art bible**, que dibuja marcas solo del jugador del turno | — |
-| Golpe desviado (vista previa y resolución) | La flecha **termina en el escudero**, no en el aliado, y se funde con las que ya iban a él (×1 / ×1,5 / ×2); la línea eslabonada se resalta mientras absorbe. **Falta en el art bible** | Golpe de escudo sobre el golpe combinado, que sube con la cantidad de atacantes |
+| La línea durante el turno del rival | **Queda visible para los dos jugadores** hasta que se borra (confirmado por Render, #18). Falta en el art bible, que dibuja marcas solo del jugador del turno | — |
+| Golpe desviado (vista previa y resolución) | La flecha **llega a la casilla del aliado y se quiebra hacia el escudero**, donde se funde con las que ya iban a él (×1 / ×1,5 / ×2); así la punta original sigue siendo el blanco táctil de Entrada (Render, #18). En la vista previa la línea eslabonada se ve **resaltada** (trazo doble) mientras absorbe y **cortada** si la cobertura se rompería (#16, regla 10). Falta sumarlo al art bible | Golpe de escudo sobre el golpe combinado, que sube con la cantidad de atacantes |
 | Aliado que sale intacto | Ninguna placa de daño sobre el aliado; la placa va sobre el escudero (vida que queda, o MUERE) | — |
 | `CoberturaQuitada`, `EscuderoMuerto` / `AliadoMuerto` | La línea se rompe en el mismo cuadro de la caída | Se suma a la caída; sin sonido propio |
 | `CoberturaQuitada`, `Caducada` | La línea se desvanece al abrir el turno del dueño | **Ninguno**: caducan varias a la vez y un sonido por línea sería ruido |
@@ -455,10 +455,10 @@ Las piezas se nombran por tipo y casilla. Valores del Catálogo v5: soldado ataq
 | Pregunta | Dueño | Cuándo |
 |---|---|---|
 | El reparto numérico (se suma al bruto del escudero, escudo una sola vez, el exceso se pierde) y el lugar del borrado de coberturas de piezas muertas dentro del cierre de la resolución | Resolución (#9) | En su GDD |
-| ¿La tortuga alrededor del Rey (cubrir cada turno) alarga las partidas? Medir turnos con el Rey cubierto y duración de esas partidas | Métricas (#19), playtest | MVP, contra la compuerta del pilar 4 |
+| ¿La tortuga alrededor del Rey (cubrir cada turno) alarga las partidas? Medir turnos con el Rey cubierto y duración de esas partidas La medida existe (Métricas, #19, regla 14). | Métricas (#19), playtest | MVP, contra la compuerta del pilar 4 |
 | ¿Cubrir resulta siempre mejor que atacar con 4? (el escudero ataca 4, el soldado 8) | Playtest; Catálogo (#2) si hay que tocar números | MVP |
 | ¿Castiga el área de la catapulta (16 sumados sobre el escudero) lo suficiente a la cobertura, o hace falta más contrajuego? | Playtest, Resolución (#9) | MVP |
-| ¿Se entiende a ojo sobre quién cae cada flecha? ¿Se lee la línea eslabonada sin depender del color? | Vista previa (#16), playtest | MVP |
+| ¿Se entiende a ojo sobre quién cae cada flecha? ¿Se lee la línea eslabonada sin depender del color? Compartida con la Vista previa (#16, Open Questions 3). | Vista previa (#16), playtest | MVP |
 | El art bible no define la línea de cobertura durante el turno del rival, el desvío de la flecha hacia el escudero ni una pose de "cubriendo" | Art bible (`art-director`) | Antes de producir arte |
 | ¿Hace falta un paso del tutorial para cubrir, y qué le muestra al jugador novato? | Tutorial (#24) | En su GDD |
 

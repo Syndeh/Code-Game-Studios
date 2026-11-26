@@ -150,7 +150,9 @@ de mover se pierde; se mide en playtest (Open Questions).
     para toda la partida. Corre solo durante sus turnos, en `Reclutar`, `Mover` y
     `Atacar`; **no corre en `EsperandoTirada`** (jugador, 2026-11-25): el jugador no paga la
     demora de la autoridad. **Convive con el timer de cada etapa** (mover y atacar). Así ninguna partida con
-    timer pasa de 25:00, sin contar las esperas de la tirada. El tiempo lo mide la autoridad (Timer #12 local, Servidor #28
+    timer pasa de 25:00, sin contar las esperas de la tirada (en local incluyen la
+    presentación de la resolución, ≤ 2 s por turno con ataques: la `Tirada` espera a Render,
+    #18 regla 25). El tiempo lo mide la autoridad (Timer #12 local, Servidor #28
     online); el núcleo no tiene reloj. Cuando el reloj de un jugador llega a 0, en cualquier
     fase, la autoridad envía `CerrarPartida` con ganador = el rival (motivo **RelojAgotado**,
     Librería, reglas 3 y 16, que lo rechaza con `CierreInvalido` si el ganador no es el rival
@@ -167,7 +169,9 @@ de mover se pierde; se mide en playtest (Open Questions).
     desborda.
 16. **Eventos de la Máquina (lista cerrada).** `TurnoIniciado(numeroTurno, jugador)`,
     `FaseIniciada(fase)`, `FaseSaltada(fase)`, `ReclutaPerdido`, `TurnoTerminado` y
-    `PartidaTerminada(ganador, motivo)`.
+    `PartidaTerminada(ganador, motivo)` y `MovimientoDeshecho(pieza, origen, destino,
+    usadosRestaurados)`, el evento de `Deshacer` que exige la Librería (regla 8: todo comando
+    aceptado emite al menos uno; nombre propuesto por Métricas, #19, cierre de la tanda 4).
 17. **Matriz de comandos por fase.** Sale del orden de validación de la Librería (regla 4):
 
     | Comando | `EsperandoTirada` | `Reclutar` | `Mover` | `Atacar` |
@@ -255,11 +259,12 @@ Para entrar en la meta de 15–20 min hacen falta 16–21 turnos a 57 s por turn
 40 s.
 
 **Aporte de los demás sistemas.** Resolución (#9), Reclutamiento (#10) y Modificador (#11)
-declaran en su GDD cuántos turnos suman por partida (`Δturnos`).
+declaran en su GDD cuántos turnos suman por partida (`Δturnos`); el de Resolución es **0 por
+definición** (los turnos que hacen falta para matar son la base; Métricas, F4).
 `turnos_estimados = N_base + ΔResolución + ΔReclutamiento + ΔModificador`, y
-`turnos_estimados ≤ turnos_presupuesto`. **NOT SOURCEABLE — `N_base` no está medido:** las
-dos v4 incluyen remontadas y no hay partida sin ellas. Se fija con las Métricas (#19) en el
-MVP.
+`turnos_estimados ≤ turnos_presupuesto`. `N_base` no se mide directamente (las dos v4
+incluyen remontadas y no hay partida sin ellas): se estima con `N_base_estimado` de
+Métricas (#19, F4), que es una **cota inferior**.
 
 ### D2. Reloj de partida por jugador
 
@@ -407,7 +412,7 @@ Dependencies*). Por eso esos sistemas dependen de ella y no al revés.
 | #13 Entrada | Blanda | Fase, jugador del turno y pila: los botones de avanzar y Deshacer | Existe |
 | #14 Localización | Blanda | Nombres de fases y motivos de fin | Existe |
 | #15 Ficha y HUD | Blanda | Fase, etapa y cuántos movimientos se pueden deshacer | Existe (tanda 3) |
-| #19 Métricas | Blanda | Eventos de fase, `TurnoTerminado`, `PartidaTerminada` | Pendiente |
+| #19 Métricas | Blanda | Eventos de fase, `TurnoTerminado`, `PartidaTerminada`, `MovimientoDeshecho` | Existe (tanda 4) |
 | #21 Menú principal | Blanda | Inicia la partida y recibe `PartidaTerminada` | Pendiente |
 | #25 Rival IA | Dura | Mismas fases y comandos que un jugador | Pendiente |
 | #28 Servidor | Dura | Autoridad de `Tirada`, `TurnTimeout` y `CerrarPartida` | Pendiente |
@@ -457,7 +462,7 @@ define no se repiten acá; solo se listan los eventos que **ya tienen** tratamie
 | `ReclutaPerdido` | Leyenda breve "Sin reclutas disponibles", ≤ 1 s, en la placa central de leyendas (HUD, #15, regla 19) | **Falta** en el art bible; lugar cerrado por #15 |
 | Recluta automático (`automatico`) | La pieza aparece con una marca breve "Elegido por el tiempo", para que el jugador sepa que decidió el timer; la marca va sobre su ficha, ≤ 1 s (HUD, #15) | **Falta** en el art bible; lugar cerrado por #15 |
 | `PartidaTerminada` con `ReyMuerto`, Rendición o Abandono | Pantallas espejo de Victoria y Derrota | Definido (§2 *Estados*) |
-| `PartidaTerminada` con `DobleRey` | Victoria para el jugador del turno, con los dos Reyes cayendo | **Falta** el detalle de los dos Reyes |
+| `PartidaTerminada` con `DobleRey` | Victoria para el jugador del turno: las dos figuras de Rey caen en el mismo cuadro y después entra la luz de Victoria (Render, #18) | Definido en #18; falta en el art bible |
 | `PartidaTerminada` con `RelojAgotado` | Victoria o Derrota; el resumen dice a quién se le acabó el reloj | **Falta** el texto en el resumen |
 
 **Restricciones de animación:** ningún evento le suma tiempo al turno (§2 *Reglas de ritmo*,
@@ -635,10 +640,11 @@ integración con otro sistema. **Config/Data** = chequeo de humo. Los criterios 
 
 ### Fórmulas (Sección D)
 
-- **AC-25 (Config/Data, D1; cruce con #19, PROVISIONAL)** — **GIVEN** el archivo de métricas
+- **AC-25 (Config/Data, D1; cruce con #19)** — **GIVEN** el archivo de métricas
   de una partida (N = 24, 1.381 s), **WHEN** se calcula el presupuesto, **THEN** `seg_medio`
-  = 57 y `turnos_presupuesto` = 26; con `seg_medio` = 0 se usa 1 y da 1.500. El archivo marca
-  si la partida entró en 1.500 s.
+  = 57 y `turnos_presupuesto` = 26; con `seg_medio` = 0 se usa 1 y da 1.500. El cierre del
+  registro trae `duracion_pared_s` y `pasa` (Métricas, F1 y F2); `turnos_presupuesto` lo
+  calcula la herramienta de informe.
 - **AC-26 (Logic, D2; cruce con #12)** — **GIVEN** `T_tope` = 1.500, 1.291 y
   1.290, **WHEN** se calcula `reloj_jugador_s`, **THEN** da 750, 645 y 645; Sin límite no da
   reloj.
@@ -654,9 +660,10 @@ integración con otro sistema. **Config/Data** = chequeo de humo. Los criterios 
 
 ### Contratos entre sistemas
 
-- **AC-29 (Config/Data, D1; cruce con #9, #10 y #11, PROVISIONAL)** — **GIVEN** los GDD de
-  Resolución, Reclutamiento y Modificador ya escritos, **WHEN** se revisa su sección de
-  dependencias, **THEN** cada uno nombra a la Máquina y declara su `Δturnos`.
+- **AC-29 (Config/Data, D1; cruce con #9, #10 y #11)** — **GIVEN** los GDD de
+  Resolución, Reclutamiento y Modificador, **WHEN** se revisa su sección de
+  dependencias, **THEN** cada uno nombra a la Máquina; Reclutamiento y Modificador declaran
+  su `Δturnos` y el de Resolución es 0 por definición (Métricas, F4).
 
 - **AC-30 (UI, regla 14; cruce con #15, PROVISIONAL)** — **GIVEN** un modo con timer,
   **WHEN** se muestra el HUD en el turno de cada jugador, **THEN** se ven los dos relojes y
@@ -668,7 +675,9 @@ integración con otro sistema. **Config/Data** = chequeo de humo. Los criterios 
 
 **Criterios que no se automatizan** (van a playtest): que la presión del timer se sienta
 como "presión buscada" y no como castigo (Player Fantasy); que la partida dure 15–20
-minutos (lo mide la compuerta de 3 partidas seguidas ≤ 25 min con las Métricas, #19).
+minutos (lo mide la compuerta de Métricas, #19, regla 12: 3 partidas seguidas que terminan
+en el tablero —Rey muerto, doble Rey o rendición—, con timer y contra un humano, en 25:00 o
+menos de duración de pared).
 
 **Huecos conocidos:** "la Máquina no conoce a ningún sistema por nombre" se prueba con un
 Modificador de prueba (AC-5); la política de la regla 14 se prueba en #12 y #28 (AC-20);
@@ -682,8 +691,8 @@ tiene criterio porque quedó como pregunta abierta.
 |---|---|---|
 | ¿Los relojes se pausan durante una desconexión (online)? En el MVP no (Timer, #12) | Servidor (#28) | En su GDD |
 | ¿Cómo se ven los dos relojes? (Los umbrales de aviso son del Timer, #12: 60 s y 10 s) | Ficha y HUD (#15) | En su GDD |
-| ¿Las partidas Sin límite cuentan para la compuerta del arte (3 partidas seguidas ≤ 25 min)? Propuesta: no | Métricas (#19) | En su GDD |
+| ~~¿Las partidas Sin límite cuentan para la compuerta del arte?~~ **Resuelta 2026-11-26:** no (Métricas, regla 12) | — | — |
 | ¿El timeout durante `Reclutar` salta `Mover` y se siente como castigo? | Playtest | MVP |
-| ¿El reloj decide partidas que el tablero no decidió? Medir cuántas terminan por reloj y quién iba adelante. Con pasividad total pierde azul, que empieza | Métricas (#19) | MVP |
-| `N_base` y `Δturnos` de #9, #10 y #11 | Métricas (#19), #9, #10, #11 | MVP |
+| ¿El reloj decide partidas que el tablero no decidió? Medir cuántas terminan por reloj y quién iba adelante. Con pasividad total pierde azul, que empieza. La medida existe (Métricas, regla 14) | Métricas (#19) | MVP |
+| ~~`N_base` y `Δturnos` de #9, #10 y #11~~ **Resuelta 2026-11-26:** `N_base` se estima con Métricas F4 (cota inferior); el `Δturnos` de Resolución es 0 por definición | — | — |
 | Que ninguno de los dos jugadores pueda actuar durante varios turnos (casi inalcanzable; en Sin límite solo lo corta `C_MAX`) | Timer (#12) y Librería (ADR) | Antes de lanzar Sin límite |

@@ -72,8 +72,9 @@ Ya pasadas al concepto (`design/gdd/game-concept.md`).
   declaran cuánto suma cada uno a la duración.
 - **Duración revisada (pilar 4):** la partida dura 15–20 minutos y nunca pasa de 25. El timer
   es presión buscada: agotar el tiempo de mover o de atacar no es una falla.
-- **Compuerta del arte:** no se produce arte final hasta que 3 partidas seguidas duren
-  25 min o menos, con piezas provisorias. Se mide con las Métricas locales (19).
+- **Compuerta del arte:** no se produce arte final hasta que 3 partidas seguidas que terminan en el tablero (Rey muerto, doble Rey o rendición), con timer y contra un humano, en 25:00 o menos de duración de pared, con piezas
+  provisorias. Se mide con las Métricas locales (19, regla 12): un reloj agotado o unas tablas
+  devuelven la racha a 0; Sin límite, Rival IA e incompletas no cuentan.
 - **Calibración:** con partidas humanas, sin simulador. Después de las primeras 20 partidas
   online se escribe una propuesta de cambios (Modificador, umbral 2 de 3, duración,
   Distracción) con los datos de la Analítica online (32) y el Registro de partida (26).
@@ -158,7 +159,7 @@ Ya pasadas al concepto (`design/gdd/game-concept.md`).
   por partida local, en un archivo que se exporta a mano (nada se envía). Balance: duración
   de partida y de turno, caras del Modificador, piezas vivas por turno (remontadas, umbral 2
   de 3), piezas usadas, ataques combinados, uso del deshacer y del timer. Uso: pasos del
-  tutorial completados o abandonados. Técnico: fps, tiempos de carga, errores. Es lo que mide
+  tutorial completados o abandonados (reservado en el esquema hasta el Tutorial, #24). Técnico: fps, tiempos de carga, errores. Es lo que mide
   la compuerta de 25 min desde los primeros playtests del MVP.
 
 **Fase 1 publicable (Vertical Slice)**
@@ -261,14 +262,14 @@ servidor.
 | 13 | Entrada y selección (inferred) | Core | MVP | Designed | design/gdd/entrada-y-seleccion.md | Librería de reglas, Máquina de turno, Tablero, Movimiento, Alcance y asignación, Cobertura del escudero, Reclutamiento, Localización, Timer (blanda) |
 | 14 | Localización (inferred) | Meta | MVP | Designed | design/gdd/localizacion.md | Catálogo de piezas (solo ID de tipo), Librería de reglas (blanda: lista de códigos) |
 | 15 | Ficha de pieza y HUD | UI | MVP | Designed | design/gdd/ficha-de-pieza-y-hud.md | Librería de reglas, Catálogo de piezas, Máquina de turno, Timer, Modificador, Localización; blandas: Entrada y selección, Movimiento, Castillo y muros (contador de tramos rotos), Alcance y asignación, Cobertura del escudero, Reclutamiento, Tablero, Resolución (eventos) |
-| 16 | Vista previa de ataques | UI | MVP | Not Started | — | Alcance y asignación, Resolución, Cobertura del escudero, Localización, Castillo y muros (blanda: daño y ROTO del tramo) |
+| 16 | Vista previa de ataques | UI | MVP | Designed | design/gdd/vista-previa-de-ataques.md | Librería de reglas, Alcance y asignación, Resolución, Cobertura del escudero, Ficha y HUD, Entrada y selección, Localización; blanda: Castillo y muros (daño y ROTO del tramo) |
 | 17 | Interfaz del Modificador | UI | MVP | Designed | design/gdd/interfaz-del-modificador.md | Modificador, Reclutamiento, Localización, Librería de reglas, Máquina de turno, Entrada y selección; blandas: Timer (el panel no pausa), Ficha y HUD (lugar en la franja superior), Catálogo, Tablero, Castillo y muros |
-| 18 | Render, animación y feedback de combate | UI | MVP | Not Started | — | Tablero, Catálogo de piezas, Movimiento, Resolución, Castillo y muros (blanda: tres estados del tramo), Alcance y asignación, Reclutamiento, Timer, Localización (blandas) |
-| 19 | Métricas locales de partida | Meta | MVP | Not Started | — | Máquina de turno, Resolución, Reclutamiento, Modificador, Timer, Catálogo de piezas (versionBalance), Movimiento, Alcance y asignación (blandas: eventos) |
+| 18 | Render, animación y feedback de combate | UI | MVP | Designed | design/gdd/render-animacion-y-feedback-de-combate.md | Tablero, Catálogo de piezas, Movimiento, Resolución, Cobertura del escudero, Interfaz del Modificador, Entrada y selección; blandas: Castillo y muros (tres estados del tramo), Alcance y asignación, Reclutamiento, Timer, Localización, Ficha y HUD, Modificador, Vista previa |
+| 19 | Métricas locales de partida | Meta | MVP | Designed | design/gdd/metricas-locales-de-partida.md | Máquina de turno, Resolución, Reclutamiento, Modificador, Timer, Catálogo de piezas (versionBalance); blandas: Movimiento, Alcance y asignación (eventos), Librería, Castillo, Entrada, Interfaz del Modificador, Ficha y HUD |
 | 20 | Ajustes (inferred) | Persistence | Vertical Slice | Not Started | — | Localización |
 | 21 | Menú principal y flujo de pantallas (inferred) | UI | Vertical Slice | Not Started | — | Máquina de turno, Ajustes, Localización |
-| 22 | Audio y SFX | Audio | Vertical Slice | Not Started | — | Resolución, Modificador, Render |
-| 23 | Accesibilidad (inferred) | Meta | Vertical Slice | Not Started | — | Ficha y HUD, Render, Ajustes, Alcance y asignación, Localización (blandas) |
+| 22 | Audio y SFX | Audio | Vertical Slice | Not Started | — | Resolución, Modificador, Render, Vista previa (blanda) |
+| 23 | Accesibilidad (inferred) | Meta | Vertical Slice | Not Started | — | Ficha y HUD, Render, Ajustes, Alcance y asignación, Localización, Vista previa (blandas) |
 | 24 | Tutorial básico de 3 pasos | Meta | Vertical Slice | Not Started | — | Movimiento, Alcance y asignación, Resolución, Reclutamiento, Modificador, Ficha y HUD, Vista previa, Interfaz del Modificador, Menú principal |
 | 25 | Rival IA básico (partida tutorial) | Gameplay | Vertical Slice | Not Started | — | Librería de reglas, Máquina de turno, Movimiento, Alcance y asignación, Cobertura del escudero, Resolución, Reclutamiento, Modificador, Menú principal, Castillo y muros (blanda: estado del muro, público) |
 | 26 | Registro de partida y serialización (inferred) | Persistence | Alpha | Not Started | — | Librería de reglas, Catálogo de piezas (tabla en la config), Castillo y muros y Reclutamiento (blandas: datos de la config) |
@@ -483,7 +484,7 @@ Los cuatro ciclos encontrados se cortaron con contratos; ninguno queda abierto.
 
 | System | Risk Type | Risk Description | Mitigation |
 |--------|-----------|-----------------|------------|
-| Duración de partida (dueño: Máquina de turno, 3) | Design | La primera partida de la v3 duró 33 min contra la meta de entonces (10–15); la primera de la v4, 23 min; meta revisada a 15–20 con techo de 25; romper el pilar 4 obliga a cambiar reglas y todo lo que depende de ellas | Presupuesto de duración en el GDD del 3 (con posible cierre por tiempo); 9, 10 y 11 declaran su aporte; medido con las Métricas locales (19); **compuerta del arte:** no se produce arte final hasta que 3 partidas seguidas duren 25 min o menos |
+| Duración de partida (dueño: Máquina de turno, 3) | Design | La primera partida de la v3 duró 33 min contra la meta de entonces (10–15); la primera de la v4, 23 min; meta revisada a 15–20 con techo de 25; romper el pilar 4 obliga a cambiar reglas y todo lo que depende de ellas | Presupuesto de duración en el GDD del 3 (con posible cierre por tiempo); 9, 10 y 11 declaran su aporte; medido con las Métricas locales (19); **compuerta del arte:** no se produce arte final hasta que 3 partidas seguidas que terminan en el tablero (Rey muerto, doble Rey o rendición), con timer y contra un humano, en 25:00 o menos de duración de pared (Métricas, regla 12) |
 | Modificador | Design | La remontada puede volverse injusta o el dado puede sentirse decisivo; la Distracción (ahora sin fase de movimiento, con ataque) fue marcada contra los pilares 1 y 3 | Probabilidades consultables; umbral "el que tiene más piezas gana 2 de cada 3" a fijar en su GDD; calibración con partidas humanas y propuesta de cambios después de 20 partidas online |
 | Resolución simultánea del daño | Design / Technical | Es la fórmula central; área, cobertura y muros interactúan; un orden no determinista rompe online y repeticiones | Orden estable por ID; tests de casos borde; vista previa como verificación visual |
 | Librería de reglas | Technical | Tiene que compilar igual en Unity WebGL/IL2CPP y en .NET para Cloud Run | ADR antes de escribir código; target `netstandard2.1`; prohibiciones del contrato |
@@ -523,10 +524,10 @@ Los cuatro ciclos encontrados se cortaron con contratos; ninguno queda abierto.
 | Metric | Count |
 |--------|-------|
 | Total systems identified | 41 |
-| Design docs started | 17 |
+| Design docs started | 20 |
 | Design docs reviewed | 1 |
 | Design docs approved | 0 |
-| MVP systems designed | 16/19 |
+| MVP systems designed | 19/19 |
 | Vertical Slice systems designed | 0/6 |
 
 ---

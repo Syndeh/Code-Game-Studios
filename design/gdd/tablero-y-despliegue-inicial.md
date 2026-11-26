@@ -399,11 +399,11 @@ Todos son automatizables en Edit Mode (lógica pura, sin pantalla); el dibujo de
 
 | Pregunta | Dueño | Para cuándo |
 |---|---|---|
-| Quien se acerca primero recibe el primer golpe: con los valores v5 azul amenaza hasta la columna 13 y rojo desde la 10, así que 8 y 9 son seguras para azul, 14 y 15 para rojo, y 10 a 13 están en disputa. ¿Mover primero o segundo da ventaja? Sin medir: el análisis de las 11 partidas v4 señala la ventaja de abrir reclutando (azul lo hizo en 7 y ganó 5), que la v5 quita al no tirar el Modificador en el turno 1 | Métricas (#19), playtest | MVP; medir quién da el primer daño y si esa partida la gana |
+| Quien se acerca primero recibe el primer golpe: con los valores v5 azul amenaza hasta la columna 13 y rojo desde la 10, así que 8 y 9 son seguras para azul, 14 y 15 para rojo, y 10 a 13 están en disputa. ¿Mover primero o segundo da ventaja? Sin medir: el análisis de las 11 partidas v4 señala la ventaja de abrir reclutando (azul lo hizo en 7 y ganó 5), que la v5 quita al no tirar el Modificador en el turno 1 La medida existe (Métricas, #19, regla 14). | Métricas (#19), playtest | MVP; medir quién da el primer daño y si esa partida la gana |
 | Margen de 3 casillas contra el golpe del turno 1 (v5; con la v4 era 1): el arquero está a 11 de la línea enemiga y amenaza 4 + 4 = 8; el escudero está a 9 y amenaza 4 + 2 = 6. Con Grito de guerra queda en 1. El arquero que se queda en su muro (+2 de alcance) llega solo a la columna 10 | Catálogo (#2), Modificador (#11) | Al revisar el Catálogo y en el GDD del Modificador |
 | Si nadie cruza las 8 columnas libres, decide el reloj de 12:30 por jugador, y en Sin límite la partida no termina sola. ¿Es aceptable? | Máquina de turno (#3), playtest | MVP |
-| Azul siempre a la izquierda y siempre el primero: no se separa el efecto de lado del de turno. ¿La revancha alterna lados? | Menú (#21), Métricas (#19) | Fase 1 |
+| Azul siempre a la izquierda y siempre el primero: no se separa el efecto de lado del de turno. ¿La revancha alterna lados? La medida existe (Métricas, #19, regla 14). | Menú (#21), Métricas (#19) | Fase 1 |
 | ~~Esquema de config para la vida inicial del tramo (arista de datos #4 → #5)~~ **Resuelta el 2026-11-25:** campo `vida_tramo` en la config (1 a 1.000), validado por la Librería (Castillo y muros, regla 14) | Castillo y muros (#5) | Cerrada |
-| Pisos útiles de `FILAS` (7) y de la composición inicial: sin medir | Métricas (#19), playtest | Compuerta de duración |
+| Pisos útiles de `FILAS` (7) y de la composición inicial: sin medir La medida existe (Métricas, #19, regla 14). | Métricas (#19), playtest | Compuerta de duración |
 | ¿El jugador percibe el despliegue como parejo? No automatizable | Playtest | MVP |
 | Sin cuadrícula dibujada, ¿se cumple "contar distancias" (pilar 1)? Depende del resaltado de Movimiento (#6) y Alcance (#7) y de la opción de Accesibilidad (#23) | #6, #7, #23, playtest | En sus GDD y en el MVP |

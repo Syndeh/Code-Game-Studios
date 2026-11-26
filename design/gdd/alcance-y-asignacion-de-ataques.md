@@ -278,10 +278,10 @@ Principios del art bible: *El plan se lee antes que el detalle*, *El combo se ve
 | Pieza elegida | `CasillasEnAlcance` con corchetes bermellón al 70%; los objetivos directos válidos, más marcados | Toque corto |
 | `AtaqueAsignado` directo | Arco `#E55A40` al 100% con borde Tinta de 2 px; se funde con los que van a la misma casilla (×1 / ×1,5 / ×2) | Trazo corto que sube con la cantidad de atacantes |
 | `AtaqueAsignado` de área | Arco más **anillo doble** en el punto elegido | Tensión de cuerda |
-| `AtaqueAsignado` de explosión | Marca sobre el demoledor y sus 8 vecinas, sin flecha. **Falta en el art bible** | Mecha |
+| `AtaqueAsignado` de explosión | Marca sobre el demoledor y sus 8 vecinas, sin flecha. La define Render (#18, regla 12); falta sumarla al art bible | Mecha |
 | Reemplazo | La flecha vieja desaparece en el mismo cuadro en que entra la nueva | Solo el sonido de asignar |
 | `AtaqueQuitado` | La flecha se borra | Toque seco |
-| Lo propio dentro de área o explosión | Señal de **forma** (no solo color) sobre cada pieza y tramo propio. **Falta en el art bible** | Aviso discreto, una vez por asignación |
+| Lo propio dentro de área o explosión | Señal de **forma** (no solo color) sobre cada pieza y tramo propio: contorno discontinuo (Render, #18, regla 12; Vista previa, #16). Falta sumarla al art bible | Aviso discreto, una vez por asignación |
 | Rechazo visible | Sacudida breve de la pieza y texto corto | Error suave |
 
 Restricciones: solo flechas del jugador de turno y sin color de bando; transiciones ≤ 0,25 s; todo se distingue en grises. El art bible dice que el anillo exterior de la catapulta hace "la mitad" del daño, y hoy es 6 de 10. La columna de audio es una propuesta: no pasó por el lente de `audio-director`.
@@ -371,11 +371,11 @@ Salvo indicación: fase `Atacar` del jugador 0 (azul), tablero con solo las piez
 
 | Pregunta | Dueño | Cuándo |
 |---|---|---|
-| ¿Se juega algún fuego amigo por sorpresa, sobre todo contra el Rey propio? (CD-GDD-ALIGN, aceptado) | Vista previa (#16), playtest | En su GDD y en el MVP |
+| ¿Se juega algún fuego amigo por sorpresa, sobre todo contra el Rey propio? (CD-GDD-ALIGN, aceptado) Lo recoge la Vista previa (#16, reglas 12 y 14; Open Questions 2). | Vista previa (#16), playtest | En su GDD y en el MVP |
 | Zona y daño de la explosión, ¿alcanza a tramos propios como dice el concepto?, y muerte del demoledor | Resolución (#9) | En su GDD |
 | ¿Resulta rentable el fuego amigo deliberado (explotar demoledores para mejorar el Modificador, disparar al muro propio)? | Modificador (#11), playtest | MVP |
-| ¿Cuántos turnos abren `Atacar` sin ataques útiles por la regla 14, y cuánto tiempo cuestan? | Métricas (#19), playtest | MVP |
+| ¿Cuántos turnos abren `Atacar` sin ataques útiles por la regla 14, y cuánto tiempo cuestan? La medida existe (Métricas, #19, regla 14). | Métricas (#19), playtest | MVP |
 | ¿Alcanzan 30 s (20 en el tramo final) para asignar 13 ataques o más en pantalla táctil? | Entrada (#13), playtest en teléfono | Antes de cerrar las reglas |
-| ¿Mostrar el alcance desde un destino hipotético mientras se mueve (pilar 1)? | Entrada (#13), Vista previa (#16) | En sus GDD |
+| ¿Mostrar el alcance desde un destino hipotético mientras se mueve (pilar 1)? Lo recoge la Vista previa (#16, Open Questions 4). | Entrada (#13), Vista previa (#16) | En sus GDD |
 
 **Factibilidad:** regla pura de C#, sin superficie de motor. La parte leída de `docs/engine-reference/unity/modules/core.md` (C# 9, .NET Standard 2.1) no limita este diseño; no se revisó `breaking-changes.md`. No hay ADR todavía.

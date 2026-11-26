@@ -319,7 +319,8 @@ Estos cambios los provocó este GDD y **se aplicaron el 2026-11-25** (ver Depend
 | #9 Resolución | Dura | Daño a pieza y tramo a la vez (F1, F2, F6), vida nueva, rotura y la explosión del demoledor sobre muros |
 | #10 Reclutamiento | Dura | `puedeReclutar` |
 | #11 Modificador | Dura | `tramosRotos` / `puedeReclutar` para poner en 0 las caras de reclutar |
-| #15 Ficha y HUD, #16 Vista previa, #18 Render | Blanda | Vida de cada tramo, contador de tramos rotos, `enMuro`, estados En pie, dañado y Roto, daño previsto al tramo |
+| #15 Ficha y HUD, #16 Vista previa, #18 Render | Blanda | Vida de cada tramo, contador de tramos rotos, `enMuro`, estados En pie, dañado y Roto, daño previsto al tramo (los tres existen desde las tandas 3 y 4) |
+| #19 Métricas | Blanda | `TramoRoto` (vía Resolución) para medir ataques al muro, cortes y turnos desde el corte |
 | #25 Rival IA | Blanda | Mismas consultas que un jugador; el estado del muro es público |
 | #26 Registro | Blanda | Guarda `vida_tramo` dentro de la config de cada partida |
 
@@ -385,7 +386,7 @@ Fuente: `design/art/art-bible.md` (§3 *Castillo y muros*, §4 *ROTO* y daltonis
 
 **Principios del art bible que aplican:** *Regla visual (orden de lectura)*, *Principio 1: El plan se lee antes que el detalle*, *Principio 2: El combo se ve como un solo golpe*, *Principio 3: El ritmo del turno manda sobre la animación*, y de §4 los colores semánticos y el respaldo de daltonismo.
 
-**Para corregir en el art bible** (no en este GDD):
+**Corregido en el art bible** al cerrar la tanda 4 (2026-11-26):
 
 - §6 dice "interior de 5 × 5 de empedrado", pero el bloque es de 5 × 5 con 9 casillas de interior (Tablero, regla 5).
 - §6 dice que las marcas del terreno "se desvanecen a los 3 turnos". El hueco de un tramo roto es estado y no se desvanece nunca (el tramo no se repara); esa regla de 3 turnos es solo para marcas como el cráter y la quemadura.
@@ -407,7 +408,7 @@ Sin pantalla propia: vive en el tablero y en el HUD (#15).
 - **Contador de tramos rotos por castillo** (0, 1, 2 o más): número más ícono de grieta, siempre visible para los dos jugadores, uno por castillo. En 1, aviso; en 2, aviso de una sola vez ("sin reclutamiento").
 - **Vida de cada tramo:** el estado (entero, mellado, roto) se ve siempre por la forma; el número exacto, al elegir o pasar sobre el tramo, y siempre en la vista previa junto al daño previsto. En pantalla táctil, al tocarlo.
 - **Arquero:** al elegirlo se marcan los tramos propios libres a los que puede subir (puntos blancos al 60%) y su alcance efectivo (corchetes). En el muro, la ficha muestra escudo 4 y alcance 1–6, con el parapeto en la figura.
-- **Vista previa (#16):** el daño al tramo y la placa ROTO, igual que con las piezas.
+- **Vista previa (#16):** el daño al tramo es una placa de un renglón con `vidaAntes→vidaDespues`, y ROTO si queda en 0 (#16, regla 9).
 - **Panel "?" del Modificador (#17):** cuando un castillo no recluta, las caras de reclutar se muestran en 0% **con la causa** ("Castillo cortado", el término de #17 y Reclutamiento), no solo el número.
 - **Tutorial (#24):** debe enseñar subir al muro y romper un tramo en el paso de piezas especiales.
 - **Accesibilidad (#23):** el contador va con número e ícono, el hueco se distingue por forma, y el tramo tiene el tamaño táctil de una casilla.
@@ -428,7 +429,7 @@ Sin pantalla propia: vive en el tablero y en el HUD (#15).
 | Fila 5 del índice y aristas #1, #3, #7, #8, #15, #16, #18, #25 | `systems-index.md` | Tabla de sistemas y Dependency Map | **Agrega** (hecho el 2026-11-25) |
 | Reglas del castillo, arqueros en el muro, Rey, demoledor y pilares | `game-concept.md` | "Reglas vigentes" y Game Pillars | Fuente; sin cambio |
 | `arquero`, `radio_muro`, `piezas_para_matar` | `entities.yaml` | Entradas existentes | Valores nuevos a registrar en la Fase 5 |
-| Estados del tramo, ROTO, escombros | `art-bible.md` | §3, §4, §6 | Fuente; dos discrepancias a corregir (ver Visual/Audio) |
+| Estados del tramo, ROTO, escombros | `art-bible.md` | §3, §4, §6 | Fuente; las dos discrepancias se corrigieron al cerrar la tanda 4 |
 
 ## Acceptance Criteria
 
@@ -475,7 +476,7 @@ Los criterios usan las coordenadas del despliegue: el azul tiene el tramo `(4, 7
 
 **Visual**
 
-- **AC-31 (estados del tramo)**: **GIVEN** un tramo con vida 30, 14 y 0, **WHEN** se dibuja el castillo, **THEN** se ve borde recto, melladuras en el borde superior y un hueco con escombro y borde quebrado; el arquero en el muro se ve con el parapeto y la silueta entera. Se guarda una captura de cada estado en `production/qa/evidence/`. *(Visual, dueño #18, PROVISIONAL)*
+- **AC-31 (estados del tramo)**: **GIVEN** un tramo con vida 30, 14 y 0, **WHEN** se dibuja el castillo, **THEN** se ve borde recto, melladuras en el borde superior y un hueco con escombro y borde quebrado; el arquero en el muro se ve con el parapeto y la silueta entera. Se guarda una captura de cada estado en `production/qa/evidence/`. *(Visual, dueño #18; la cubre AC-8 de Render)*
 
 **Revisión de QA**
 
@@ -489,13 +490,13 @@ Los criterios usan las coordenadas del despliegue: el azul tiene el tramo `(4, 7
 | Pregunta | Dueño | Para cuándo |
 |---|---|---|
 | ¿Es el ritmo deseado que un solo demoledor rompa hasta 3 tramos y corte el reclutamiento rival? Con `vida_tramo` 30 y ataque 30 es un borde exacto | Resolución (#9), playtest | MVP: medir cuántas partidas lo usan y qué efecto tienen |
-| ¿Vale la pena atacar el muro antes que al ejército o al Rey? Cortar cuesta 8 soldados y el Rey 5 | Métricas (#19), playtest | MVP: medir ataques a tramos por partida |
+| ¿Vale la pena atacar el muro antes que al ejército o al Rey? Cortar cuesta 8 soldados y el Rey 5 La medida existe (Métricas, #19, regla 14). | Métricas (#19), playtest | MVP: medir ataques a tramos por partida |
 | ¿Cortar el reclutamiento apaga la remontada (pilar 3)? ¿Alcanza el reparto del Modificador? | Modificador (#11), Métricas | MVP y tras las primeras 20 partidas online |
 | El hueco de una esquina no abre paso al interior (el movimiento es en cruz) pero cuenta para el corte: por sí solo, ¿es intencional? | Movimiento (#6), playtest | En el GDD de #6 y en el MVP |
-| ¿Es una estrategia degenerada cortar el propio reclutamiento para ganar probabilidad de Grito de guerra y Arremetida? | Modificador (#11), Métricas | MVP |
+| ¿Es una estrategia degenerada cortar el propio reclutamiento para ganar probabilidad de Grito de guerra y Arremetida? La medida existe (Métricas, #19, regla 14). | Modificador (#11), Métricas | MVP |
 | ¿Protegen los muros al Rey de las piezas de alcance 1 y 2 como se quiere? Con el Rey en el centro y el muro entero, desde afuera solo lo alcanzan el arquero y la catapulta | Alcance (#7), Resolución (#9), playtest | MVP |
 | ¿El hueco y el contador "se leen al instante"? No automatizable | Render (#18), HUD (#15), playtest | MVP |
 | Presupuesto de rendimiento de `enMuro` y `tramosRotos` (sin aserción de tiempo en tests) | Librería (#1) | En su ADR |
 | Qué hace la Librería con un registro cuya `vida_tramo` difiere de la config actual | Librería (#1) | En su ADR |
 | ~~Confirmar el contrato de #9 (reglas 7 y 8) y la explosión del demoledor sobre muros~~ **Resuelta 2026-11-25:** #9 lo confirma (reglas 7, 8 y 14) | — | — |
-| ¿Cuánto suma el muro a la duración de la partida (pilar 4)? Medir turnos hasta el primer tramo roto y turnos extra por brechas; declarar su `Δturnos` contra el presupuesto de la Máquina de turno | Métricas (#19), Máquina de turno (#3) | MVP: compuerta de duración |
+| ¿Cuánto suma el muro a la duración de la partida (pilar 4)? Medir turnos hasta el primer tramo roto y turnos extra por brechas; declarar su `Δturnos` contra el presupuesto de la Máquina de turno Se mide con Métricas (#19, regla 14): el `Δturnos` del muro no se separa con una fórmula, se lee en «turnos desde el corte al fin». | Métricas (#19), Máquina de turno (#3) | MVP: compuerta de duración |
