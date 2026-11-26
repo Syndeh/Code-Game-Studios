@@ -464,12 +464,12 @@ La resolución es el estado «Resolución / cosecha» del art bible (Sección 2,
 | `AtaqueEjecutado` (directo) | El gesto corto de ataque de la pieza (anticipación, golpe, vuelta), sincronizado con todos los demás. La flecha de la vista previa pasa de «plan» a «golpe» | Ataque propio del tipo; todos en el mismo cuadro |
 | `AtaqueEjecutado` (área) | La catapulta dispara; el centro y las 8 vecinas reciben el pulso en el mismo cuadro. Deja una **mancha de tierra removida** en el centro | Disparo y caída, más grave que un golpe directo |
 | `AtaqueEjecutado` (explosión) | El demoledor estalla sobre sus 8 vecinas, incluidos aliados y muros, y **no cae como una pieza común**: desaparece en la explosión. Deja una **marca chamuscada** | El golpe más fuerte de la resolución; no se confunde con un área |
-| `DanoRecibido` (`atacantesRivales` = 1) | Pulso de luz blanca cálida ~0,3 s desde el objetivo y número flotante con el **neto** | Golpe simple |
+| `DanoRecibido` (`atacantesRivales` = 1) | Pulso de luz blanca cálida ~0,3 s desde el objetivo y número flotante con la **vida perdida** (`vidaPerdida`); si muere, solo **MUERE** | Golpe simple |
 | `DanoRecibido` (`combinado`) | Un impacto **más grande que la suma de los chicos**: los trazos de los atacantes convergen y el efecto escala con `atacantesRivales` (principio 2) | Un solo golpe más pleno, no varios apilados; escala con la cantidad |
 | `DanoRecibido` con `neto` 0 | Rebote contra el escudo: ícono de escudo y «0», **sin pulso de daño**; se distingue del daño por la forma y el ícono, no por el color | Golpe amortiguado (escudo contra acero) |
 | `DanoRecibido` con `brutoDesviado` > 0 | Una línea del aliado cubierto al escudero; el escudero muestra el total desviado con el ícono de escudo; el cubierto no muestra nada. Se lee **dónde fue el golpe** | Golpe sobre el escudero, igual que uno directo |
 | Fuego amigo (el receptor es de J) | Mismo pulso, pero con una señal de **forma** propia (contorno discontinuo en la figura) y nunca por color solo (art bible, Sección 4, daltonismo) | Igual que el golpe, sin cue extra: la sorpresa ya se evitó en la vista previa |
-| `DanoATramo` | El tramo muestra su estado por la forma: entero con borde recto, **mellado** si `vidaDespues × 2 < vida_tramo`, número flotante con el **bruto** | Golpe sobre piedra |
+| `DanoATramo` | El tramo muestra su estado por la forma: entero con borde recto, **mellado** si `vidaDespues × 2 < vida_tramo`, número flotante con la **vida perdida** del tramo; si se rompe, solo **ROTO** | Golpe sobre piedra |
 | `TramoRoto` | El tramo se vuelve **hueco con escombro bajo y borde quebrado**, la placa **ROTO** (grieta en zigzag) y el contador del castillo se actualiza (Castillo, UI). Deja escombros (cuantos más tramos rotos, más escombros) | Derrumbe de piedra; más fuerte con el segundo tramo roto (corte de reclutamiento) |
 | `PiezaMuerta` (`Dano`) | La pieza se **desatura y cae**, en el mismo momento que las demás muertes (art bible, Sección 5, *Golpe y muerte*), con la placa **MUERE** | Caída, sin diferencia entre bandos |
 | `PiezaMuerta` (`Explosion`) | Sin caída: la pieza desaparece dentro de la explosión; el demoledor que explota **no muestra número** aunque tenga `DanoRecibido` (Render, #18) | Parte del estallido |
@@ -499,8 +499,8 @@ La resolución es el estado «Resolución / cosecha» del art bible (Sección 2,
 
 Resolución **no tiene pantalla propia**: todo lo que el jugador ve de ella lo muestran la vista previa (#16) y Render (#18) a partir de los eventos de la regla 14. Lo que esos sistemas necesitan poder mostrar:
 
-- **Por pieza:** el **neto** como número flotante y la placa **MUERE** cuando `vidaDespues` es 0. Con `neto` 0, el rebote contra el escudo.
-- **Por tramo:** el **bruto** (sin escudo) y la placa **ROTO** cuando `vidaDespues` es 0; el contador de tramos rotos del castillo se actualiza con `tramosRotosDelDueno` (Castillo, UI).
+- **Por pieza:** la **vida perdida** (`vidaPerdida`) como número flotante si sobrevive, y solo la placa **MUERE**, sin número, cuando `vidaDespues` es 0. Con `neto` 0, el rebote contra el escudo.
+- **Por tramo:** la **vida perdida** si queda en pie, y solo la placa **ROTO**, sin número, cuando `vidaDespues` es 0; el contador de tramos rotos del castillo se actualiza con `tramosRotosDelDueno` (Castillo, UI).
 - **Exceso:** cuando un escudero muere con `neto` mayor que su vida, la vista previa marca el **exceso perdido** (`neto − vidaPerdida`) para que el jugador no junte daño inútil sobre un cubierto.
 - **Desvío:** la línea del aliado cubierto a su escudero, con el total que absorbe el escudero; el cubierto no muestra daño.
 - **Fuego amigo:** todo lo propio que recibe daño, y de forma destacada si el **Rey propio** muere (Alcance, UI). Es lo que separa una jugada osada de una sorpresa.

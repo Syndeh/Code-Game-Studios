@@ -204,7 +204,7 @@ Ninguno propio. El problema más grave de S2 es BL-1 (el número flotante distin
 
 ---
 
-### Verdict: FAIL
+### Verdict: FAIL (superado: ver «Revisión de cambios 2026-11-26» al final; veredicto vigente CONCERNS)
 
 FAIL: dos problemas bloqueantes de consistencia (BL-1 y BL-2) que la arquitectura heredaría. Los dos están en la frontera entre el núcleo y la presentación del combate (#9, #15, #16, #18). Las reglas de juego en sí son coherentes. Además hay 22 Warnings de consistencia y 8 de diseño.
 
@@ -241,3 +241,27 @@ Todas las fases corrieron. Cada revisor leyó por secciones y dejó áreas sin v
 - **Cliente:** el contenido completo de #16 más allá del grep, las fórmulas F1-F7 de #15 y F1-F5 de #17, los presupuestos de texto en píxeles y los AC de #13 y #17. Los eventos no están en `entities.yaml`, así que no se pudieron cotejar contra el registro.
 - **Teoría de diseño:** sin partidas del MVP no hay win rate por lado, W, duración por motivo de fin ni bajas por turno. No se leyó el Detailed Design de #6, #12 y #9 (solo lo que citan los demás GDD), ni los REPORT de los prototipos v1 y v2.
 - **Escenarios:** no se leyó `orden_aparicion` de #4, solo la regla 3 de #1, las secciones Visual/Audio y UI de casi todos los GDD, ni F4/F5 de #14. La pantalla de resultado (#21) no existe todavía.
+
+---
+
+## Revisión de cambios 2026-11-26
+
+**Alcance.** `review-scope.sh` dio «ningún GDD cambió», porque el informe se commiteó junto con los arreglos de BL-1 (`928898a`). Por eso se revisó a mano el diff `49627ba..HEAD`, con estas búsquedas en todos los GDD y en el registro: «flotante» junto con «neto» o «bruto», «destello», y las filas de dependencias de #15 y #18. Los W, DW y F del informe original no se revisaron de nuevo; ninguno tocaba las líneas cambiadas.
+
+**Commits revisados**
+- `928898a`, BL-1: el número flotante es `vidaPerdida`, sin número sobre MUERE o ROTO. Toca #16, #18, #9 y #5.
+- `7c99dc5`, BL-2: #15 muestra el estado presentado durante la cosecha, y #15 y #18 pasan a ser dependencias Duras entre sí. Toca #15 y #18, y agrega AC-37.
+
+**Restos encontrados y corregidos en este mismo commit**
+- **#9:** la tabla Visual en l.467 y l.472, y «Por pieza» y «Por tramo» en l.502-503, todavía decían «neto» y «bruto». Ahora dicen vida perdida y que MUERE o ROTO van sin número. Con esto cierra BL-1.
+- **#16:** l.377 (supuestos sobre #18) y l.504 (cambios pedidos) dicen la regla nueva y dejan nota de la anterior.
+- **#15:** Visual l.505 y l.519 pasan de «cuadro del destello» a `t_impacto` de Render. El Quick reference nombra Render.
+- **#18 Quick reference y `systems-index.md` filas 15 y 18:** #15 y #18 figuran como Duras entre sí. Esto resuelve la parte de W-21 que tocaba estas filas.
+
+**Estado**
+- BL-1 y BL-2: **resueltos**.
+- Sin hallazgos nuevos.
+
+### Verdict vigente: CONCERNS
+
+No queda ningún bloqueante. Siguen abiertos los 22 Warnings de consistencia (W-21 solo en parte), los 8 Warnings de diseño (DW-1 a DW-8) y los Warnings de escenario. Ninguno bloquea `/create-architecture`, pero conviene repartirlos entre las `/design-review` de cada GDD.

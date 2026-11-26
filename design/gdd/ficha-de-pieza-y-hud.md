@@ -11,7 +11,7 @@
 
 La **Ficha de pieza y HUD** es la capa de interfaz de solo lectura que muestra sobre cada pieza su tipo, vida, ataque y escudo (con el bono del turno ya sumado y la base al lado cuando difiere) y, en los bordes de la pantalla, de quién es el turno, cuánto tiempo queda, cuántas piezas se movieron y los botones de avanzar, deshacer y rendirse. Existe para que el jugador planifique leyendo en vez de contando, que es la base del pilar «el daño es fijo y se ve antes de resolver», y vive en la capa del sistema para que ninguna skin pueda tocar una cifra.
 
-> **Quick reference** — Layer: `Presentation` · Priority: `MVP` · Key deps: `Librería de reglas, Catálogo de piezas, Máquina de turno, Timer de turno, Modificador, Localización` (blandas: Entrada y selección, Movimiento, Castillo y muros, Alcance y asignación, Cobertura del escudero, Reclutamiento, Tablero)
+> **Quick reference** — Layer: `Presentation` · Priority: `MVP` · Key deps: `Librería de reglas, Catálogo de piezas, Máquina de turno, Timer de turno, Modificador, Localización, Render (tiempos)` (blandas: Entrada y selección, Movimiento, Castillo y muros, Alcance y asignación, Cobertura del escudero, Reclutamiento, Tablero)
 
 ## Overview
 
@@ -502,7 +502,7 @@ La fórmula `alto_tarjeta` se define así:
 |---|---|---|
 | Pieza que entra al tablero (despliegue, recluta) | La ficha aparece junto con su figura en el mismo cuadro, sin animación propia | Definido (§7) |
 | Selección o inspección de una pieza | La tarjeta del margen izquierdo entra en ≤ 0,25 s con frenado suave | **Falta**: la tarjeta y su lugar (regla 8 y 15) |
-| Cambio de vida en la resolución | El número de vida cambia **de una vez**, en el cuadro del destello, sin contar hacia abajo | Definido (§7) |
+| Cambio de vida en la resolución | El número de vida cambia **de una vez**, en `t_impacto` de Render (#18, regla 20), sin contar hacia abajo | Definido (§7) |
 | Pieza ya movida | Números e íconos de la ficha pasan a gris apagado `#A8A49B` y la placa gana un marco interior de 1 px `#F5F1E8` (≤ 0,25 s) | **Falta** (regla 5, F5); sustituye la «placa atenuada» elegida por el jugador |
 | Bono del turno (Grito) | Banderín de 12 × 12 px en la esquina de la casilla y subrayado de 2 px bajo cada número que difiere de la base | **Falta** el banderín (lo propone el Modificador) y el subrayado |
 | `AvisoEtapa` / `AvisoReloj` | Un solo ámbar `#E89A2C`, con pulso de 1 por segundo, en el temporizador que limita; el otro, borde grueso y número en negrita (F3) | **Cambia** §2/§7: el art bible define un solo timer |
@@ -516,7 +516,7 @@ La fórmula `alto_tarjeta` se define así:
 | Leyendas de la Máquina (`FaseSaltada`, `ReclutaPerdido`) | Una placa central de hasta 3 líneas, 1 s, sin sonido de error | **Falta** (ya la pide la Máquina) |
 | Recluta automático | Marca breve `Elegido por el tiempo` sobre la ficha de la pieza, ≤ 1 s | **Falta** (ya la pide la Máquina) |
 
-**Restricciones de animación y estilo.** Toda variación dura ≤ 0,25 s con frenado suave (salvo el banner de tramo final: 1 s, una vez). Nada anima en serie con la resolución: los números cambian en el mismo cuadro del destello. Los pulsos (1 por segundo, y nunca dos a la vez, F3) cuentan en el presupuesto de destellos del art bible (< 3 por segundo); «Reducir efectos» los apaga sin quitar ninguna forma. La ficha es **plana, sin textura ni gradiente pintado** y **no recibe la gradación de ambiente** de los estados de la sección 2 (la capa del sistema no se tiñe con el atardecer del tramo final).
+**Restricciones de animación y estilo.** Toda variación dura ≤ 0,25 s con frenado suave (salvo el banner de tramo final: 1 s, una vez). Nada anima en serie con la resolución: los números cambian en el mismo cuadro, `t_impacto` de Render (#18, regla 20). Los pulsos (1 por segundo, y nunca dos a la vez, F3) cuentan en el presupuesto de destellos del art bible (< 3 por segundo); «Reducir efectos» los apaga sin quitar ninguna forma. La ficha es **plana, sin textura ni gradiente pintado** y **no recibe la gradación de ambiente** de los estados de la sección 2 (la capa del sistema no se tiñe con el atardecer del tramo final).
 
 **Principios del art bible que aplican:** *Regla visual (orden de lectura)*: lo que decide la jugada se lee primero (por eso la vista previa le gana a la ficha en `Atacar`); *Principio 1, el plan se lee antes que el detalle*; *Principio 3, el ritmo del turno manda sobre la animación*; §3 *Gramática de formas de la interfaz* (rectángulo de esquinas redondeadas, plano; puño redondeado; escudo heráldico); §4 *Daltonismo: pares en riesgo* (vida contra ataque, ámbar contra ataque, escudo contra muro) y su respaldo de forma.
 

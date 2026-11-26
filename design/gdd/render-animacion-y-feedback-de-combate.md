@@ -11,7 +11,7 @@
 
 Render dibuja el campo de batalla: el terreno, los castillos con sus tramos en tres estados, las figuras leídas de una skin como datos y las marcas del plan (destinos, alcance, flechas con punta fundida, área, explosión, cobertura). También anima lo que el núcleo ya decidió. Su momento central es la cosecha: en 1,65 s (techo 2 s), todos los golpes de la resolución caen en el mismo cuadro, el golpe combinado se ve más grande que la suma de los chicos con el mismo escalón que prometía la flecha, y los muertos caen juntos. Se puede saltar con un toque, y en local no le cuesta reloj al jugador siguiente. Define el formato de skin que heredan la colección y el Kit, y nunca toca la ficha ni ninguna cifra.
 
-> **Quick reference** — Layer: `Presentation` · Priority: `MVP` · Key deps: `Librería (#1), Catálogo (#2), Máquina (#3), Tablero (#4), Castillo (#5), Movimiento (#6), Alcance (#7), Cobertura (#8), Resolución (#9), Interfaz del Modificador (#17), Entrada (#13); blandas: Reclutamiento (#10), Modificador (#11), Timer (#12), Localización (#14), Ficha y HUD (#15), Vista previa (#16)`
+> **Quick reference** — Layer: `Presentation` · Priority: `MVP` · Key deps: `Librería (#1), Catálogo (#2), Máquina (#3), Tablero (#4), Castillo (#5), Movimiento (#6), Alcance (#7), Cobertura (#8), Resolución (#9), Interfaz del Modificador (#17), Entrada (#13), Ficha y HUD (#15); blandas: Reclutamiento (#10), Modificador (#11), Timer (#12), Localización (#14), Vista previa (#16)`
 
 ## Overview
 

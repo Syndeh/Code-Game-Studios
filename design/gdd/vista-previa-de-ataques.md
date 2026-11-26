@@ -374,7 +374,7 @@ La fórmula `tiempo_resultado` se define así:
 
 **No depende ni dependen de este sistema:** Movimiento (#6), Reclutamiento (#10), Timer (#12: solo manda `TurnTimeout`, que la vista previa ve como cambio de fase), Interfaz del Modificador (#17: no abre nada en `Atacar` salvo el «?»). **La Rival IA (#25) no depende de este GDD**: usa la operación de vista previa de la Librería, no esta capa de dibujo. Hoy el índice lista a #16 como dependencia del Tutorial (#24) y no de la IA, y está bien así.
 
-**Supuestos sobre Render (#18): confirmados** al cerrar la tanda 4 (2026-11-26): la cosecha empieza en el cuadro en que se van las placas, los números flotantes son el `neto` de la pieza y el `bruto` del tramo, y las placas anclan con `casillaEnPantalla` (#18, F3). Sobre Audio (#22), sin GDD: los cues de la sección Visual/Audio.
+**Supuestos sobre Render (#18): confirmados** al cerrar la tanda 4 (2026-11-26): la cosecha empieza en el cuadro en que se van las placas, el número flotante es la vida perdida del receptor y no aparece sobre MUERE ni ROTO (decisión del 2026-11-26, que reemplaza a «neto de la pieza, bruto del tramo»), y las placas anclan con `casillaEnPantalla` (#18, F3). Sobre Audio (#22), sin GDD: los cues de la sección Visual/Audio.
 
 ## Tuning Knobs
 
@@ -501,7 +501,7 @@ Esta sesión corrió en paralelo con las de #18 y #19 y **no editó ningún otro
 | **Entrada y selección (#13)** | **Interactions**, fila #16: el recálculo lo disparan también `CoberturaAsignada` y `CoberturaQuitada` (no solo las asignaciones). Sin cambio de gestos |
 | **Art bible** (no es un GDD; lo cambia `/art-bible` o el director de arte) | §7 *Íconos:* ícono de **impacto**. §3 *Gramática de formas:* **contorno discontinuo** de lo propio, **marco de fin**, **placa de un renglón**, **línea de cobertura resaltada y cortada**. §4: confirmar que el bermellón del impacto es el del ataque |
 | **Índice de sistemas** | Fila 16: estado *Designed*, enlace a este GDD, dependencias + Librería, Ficha y HUD, Entrada (las que faltan en la fila). Agregar Vista previa (#16) como dependencia blanda en las filas 18 (Render), 22 (Audio) y 23 (Accesibilidad). Contadores de progreso (17/19 si cierran #18 y #19, según corresponda) |
-| **Render (#18) y Métricas (#19)** (se escriben en paralelo) | **#18:** confirmar la entrega de la regla 19 (la cosecha empieza en el cuadro en que se van las placas) y que los números flotantes son el `neto` y el `bruto`. **#19:** decidir si mide el uso de la vista previa (Open Questions 5); hoy #16 no define eventos para eso |
+| **Render (#18) y Métricas (#19)** (se escriben en paralelo) | **#18:** confirmar la entrega de la regla 19 (la cosecha empieza en el cuadro en que se van las placas) y que el número flotante es la vida perdida, sin número sobre MUERE ni ROTO (decisión del 2026-11-26; antes decía «el `neto` y el `bruto`»). **#19:** decidir si mide el uso de la vista previa (Open Questions 5); hoy #16 no define eventos para eso |
 | **Registro (`entities.yaml`)** | Candidatos del informe de la sesión, aplicados al cerrar la tanda 4 |
 
 ## Acceptance Criteria
