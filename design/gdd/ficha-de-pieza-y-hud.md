@@ -48,7 +48,7 @@ El jugador interactúa con la ficha de forma pasiva (la lee) y con el HUD de for
 
 **Lo que este encuadre no promete:** una pantalla vacía. La ficha completa tapa parte de la figura (conflicto ya resuelto en el art bible con la opción «Ficha simple») y el HUD tiene muchos elementos; promete que cada uno está donde se espera y que ninguno exige una cuenta mental.
 
-*Candidatas consideradas (lente `creative-director`, modo `full`, sin agente):* **A, «Leo el tablero, no lo cuento»** (elegida, anclada en el pilar 1: lo planeado se lee antes de resolver); **B, «Sé siempre cuánto me queda»** (anclada en el pilar 4; queda como momento de apoyo, porque el reloj es del Timer y la fantasía de este sistema es más amplia que el reloj); **C, «El tablero habla solo cuando hace falta»** (anclada en el pilar 4; descartada como fantasía porque describe una restricción de diseño, no una sensación, y está recogida en «Un HUD silencioso»). **Pendiente de confirmación del jugador:** la elección la tomó la sesión en modo `guided`.
+*Candidatas consideradas (lente `creative-director`, modo `full`, sin agente):* **A, «Leo el tablero, no lo cuento»** (elegida, anclada en el pilar 1: lo planeado se lee antes de resolver); **B, «Sé siempre cuánto me queda»** (anclada en el pilar 4; queda como momento de apoyo, porque el reloj es del Timer y la fantasía de este sistema es más amplia que el reloj); **C, «El tablero habla solo cuando hace falta»** (anclada en el pilar 4; descartada como fantasía porque describe una restricción de diseño, no una sensación, y está recogida en «Un HUD silencioso»). **Confirmada por el jugador el 2026-11-26.**
 
 ## Detailed Design
 
@@ -648,6 +648,6 @@ Este sistema **es** la capa de interfaz de la partida; su especificación comple
 | 10 | **Escala de texto contra ficha fija.** La ficha compacta no puede escalar en 68 px; su equivalente es la tarjeta. ¿Accesibilidad acepta ese reparto? | #23 | Al diseñar #23 |
 | 11 | **Animación de resolución sobre el reloj** (pregunta del Timer): hoy el reloj del jugador siguiente corre durante la animación de ≤ 1,5 s y el HUD lo muestra corriendo, sin pausa. ¿Se mantiene? | Playtest | MVP |
 | 12 | **Pieza agotada contra en marcha.** La atenuación marca «ya la toqué», no «ya no puede moverse». ¿Hace falta distinguir una pieza agotada (movimiento restante 0)? | Playtest | MVP |
-| 13 | **Nombres de bando.** Tablero (regla 4) llama azul y rojo a los sectores 4 y 6; el art bible llama Hueso y Ciruela a los bandos. ¿Se unifica el vocabulario? Este GDD usa jugador 0 y jugador 1, y Hueso y Ciruela para los colores | Tablero (#4) y director de arte | Al revisar Tablero |
+| 13 | ~~**Nombres de bando.**~~ **Resuelta 2026-11-26:** convención del jugador: «azul/rojo» = jugadores 0/1 como nombres internos de reglas y tests; Hueso (jugador 0) y Ciruela (jugador 1) son los colores en pantalla (Tablero regla 4, art bible §4) | — | — |
 | 14 | **Fuente tipográfica.** El art bible nombra la familia pero no la elige; F1 usa 7 px por cifra como supuesto (AC-3) | Director de arte | Antes de cerrar F1 |
-| 15 | **Elección de la Player Fantasy.** La hizo la sesión en modo `guided` entre tres candidatas; el jugador debe confirmarla | Jugador | Al revisar este GDD |
+| 15 | ~~**Elección de la Player Fantasy.**~~ **Resuelta 2026-11-26:** el jugador confirmó la A, «Leo el tablero, no lo cuento» | — | — |

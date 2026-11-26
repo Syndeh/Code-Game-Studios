@@ -253,7 +253,7 @@ aclaró para llegar a 4,5.
 
 ### Colores de bando
 
-Decisión del jugador (2026-11-17): **Hueso contra Ciruela.**
+Decisión del jugador (2026-11-17): **Hueso contra Ciruela.** Hueso es el jugador 0 y Ciruela el jugador 1; los GDD los llaman «azul» y «rojo» solo como nombres internos de reglas y tests (convención del 2026-11-26, Tablero regla 4).
 
 - **El problema:** en los prototipos los bandos eran azul y rojo. El ataque es rojo y el
   escudo azul, y el bando se pinta en el suelo, justo debajo de la ficha: un suelo rojo al
