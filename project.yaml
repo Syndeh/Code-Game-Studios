@@ -32,7 +32,7 @@ project:
 
 modes:
   rigor: full
-  automation: collaborative
+  automation: guided
 
 engine:
   name: "Unity"
