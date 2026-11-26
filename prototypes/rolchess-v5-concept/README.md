@@ -33,6 +33,8 @@ terminadas de la v4 del 2026-11-21 entraron todas en 25 min (8 a 21 min).
 3. Partida en la misma PC, turnándose con el ratón.
 4. Al terminar, el panel muestra la duración, la racha y dónde se guardó el archivo.
 
+Las reglas completas para quien juega por primera vez están en [COMO-JUGAR.md](COMO-JUGAR.md).
+
 ## Métricas
 
 En `Application.persistentDataPath/rolchess-v5/` (en macOS,
