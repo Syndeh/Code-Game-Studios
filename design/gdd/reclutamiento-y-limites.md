@@ -201,7 +201,7 @@ The `reparto_sin_lugar` formula is defined as:
 | `Q` | int | 0–100 | calculated | Porcentaje liberado por tope o lugar |
 | `m` | int | 2–3 | calculated | Caras que reciben |
 
-**Composición con `reparto_liberado`** (Librería): las caras Agotadas liberan `L`, que va mitad a Grito y mitad a Arremetida (el punto impar a Arremetida); las SinLugar liberan `Q`. Los dos se calculan **desde la tabla base** y se suman, así que el orden no importa. Al final, con `piezas_sin_rey ≤ limite_normal`, toda Arremetida pasa a Grito. Distracción no cambia nunca.
+**Composición con `reparto_liberado`** (Librería; la firma pública es `TablaEfectiva(tablaBase, agotadas, sinLugar, piezasSinRey, limiteNormal)`, regla 10): las caras Agotadas liberan `L`, que va mitad a Grito y mitad a Arremetida (el punto impar a Arremetida); las SinLugar liberan `Q`. Los dos se calculan **desde la tabla base** y se suman, así que el orden no importa. Al final, con `piezas_sin_rey ≤ limite_normal`, toda Arremetida pasa a Grito. Distracción no cambia nunca.
 
 **Output Range:** tabla que suma exactamente 100 (`m ≥ 2`, sin división por cero). Con `Q = 0` no cambia nada.
 **Example** (base 15/20/25/25/15: Distracción/Grito/Llamada/Cuerno/Arremetida, más de 12 piezas salvo la última fila):

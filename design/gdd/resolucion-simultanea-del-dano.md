@@ -426,9 +426,9 @@ Valores del Catálogo v5: soldado ataque 8, escudo 3, vida 25 · arquero 6, 2, 1
 
 | Perilla (dueño) | Valor hoy | Rango seguro (del dueño) | Qué cambia en la resolución | Si sube mucho | Si baja mucho |
 |---|---|---|---|---|---|
-| `ataque` por tipo (Catálogo) | 8 · 6 · 4 · 10 · 8 · 30 · 8 | Lo fijan I1 a I3 del Catálogo | Daño de cada golpe directo y del centro del área; con él `piezasParaMatar` | Una pieza mata sola (rompe I1 o I2) | Un golpe suelto queda por debajo del escudo y no hace nada (neto 0): escudero (4) contra Rey (5) |
-| `escudo` por tipo (Catálogo) | 3 · 2 · 5 · 2 · 3 · 1 · 5 | Lo fijan I1 a I3 del Catálogo (validez 0–1.000) | Se resta **una vez** sobre la suma | Un tipo se vuelve inmune a golpes sueltos (pilar 2: es lo buscado hasta que ningún combo razonable lo pasa) | 0 deja pasar todo; el combo deja de ser necesario |
-| `vida` por tipo (Catálogo) | 25 · 15 · 20 · 15 · 20 · 10 · 30 | Lo fijan I1 a I3 del Catálogo (validez 1–1.000) | Cuánto neto mata | Partidas largas (pilar 4) | Muertes de un golpe en todo el tablero |
+| `ataque` por tipo (Catálogo) | 8 · 6 · 4 · 10 · 8 · 30 · 8 | Lo fijan I1 a I4 del Catálogo | Daño de cada golpe directo y del centro del área; con él `piezasParaMatar` | Una pieza mata sola (rompe I1 o I2) | Un golpe suelto queda por debajo del escudo y no hace nada (neto 0): escudero (4) contra Rey (5) |
+| `escudo` por tipo (Catálogo) | 3 · 2 · 5 · 2 · 3 · 1 · 5 | Lo fijan I1 a I4 del Catálogo (validez 0–1.000) | Se resta **una vez** sobre la suma | Un tipo se vuelve inmune a golpes sueltos (pilar 2: es lo buscado hasta que ningún combo razonable lo pasa) | 0 deja pasar todo; el combo deja de ser necesario |
+| `vida` por tipo (Catálogo) | 25 · 15 · 20 · 15 · 20 · 10 · 30 | Lo fijan I1 a I4 del Catálogo (validez 1–1.000) | Cuánto neto mata | Partidas largas (pilar 4) | Muertes de un golpe en todo el tablero |
 | `danoArea` (Catálogo) | 6 | 0–10 (Catálogo, Tuning: techo por I3, `danoArea − escudo < vida` del demoledor; piso útil sin calibrar) | Daño de las 8 vecinas del área | 11 o más mata solo al demoledor (rompe I3) y el área reemplaza al combo | 0 convierte a la catapulta en atacante directo |
 | `vida_tramo` (Castillo, config) | 30 | 18–40, sin medir (Castillo, Tuning; registro) | Cuántos golpes rompen un tramo y si la explosión lo rompe de uno | **31 o más:** la explosión de 30 deja cada tramo en 1 y el demoledor deja de cortar solo | 1: cualquier golpe rompe; una explosión abre todos los vecinos |
 | `bono_grito_ataque` (Modificador, config) | 2 | 1–3 (Modificador, Tuning; la config admite 0–10) | Suma al directo y al centro del área, nunca a la explosión ni al área | 10: cada soldado pega 18; la catapulta 20 contra el demoledor | 0: el Grito no suma daño |
@@ -518,7 +518,7 @@ Resolución **no tiene pantalla propia**: todo lo que el jugador ve de ella lo m
 |---|---|---|---|
 | `Resolver`, `TurnTimeout`, regla 15 (simultánea), eventos, vista previa, `vidaQuitada` | `design/gdd/libreria-de-reglas.md` | Reglas 5, 8, 9, 11, 15 y 17; AC-10, AC-27, AC-42, AC-48 | Completa; propone la lista de eventos y ajustes de AC (abajo) |
 | Cierre del turno, `EvaluateMatchEnd`, `vidaQuitada` y su cota | `design/gdd/maquina-de-turno.md` | Reglas 4.1, 11 a 15; Interactions; AC-10 | Respeta; confirma la cota |
-| `ataque`, `escudo`, `vida`, `danoArea`, `piezasParaMatar`, I1 a I3 | `design/gdd/catalogo-de-piezas.md` | Reglas 5 y 6, Formulas, I1 a I3, AC-18, AC-33 | Lee; cierra la regla real que el oráculo comprueba |
+| `ataque`, `escudo`, `vida`, `danoArea`, `piezasParaMatar`, I1 a I4 | `design/gdd/catalogo-de-piezas.md` | Reglas 5 y 6, Formulas, I1 a I4, AC-18, AC-33 | Lee; cierra la regla real que el oráculo comprueba |
 | Grilla, contorno de 8, `ocupante` | `design/gdd/tablero-y-despliegue-inicial.md` | Reglas 2 y 3 | Lee |
 | Tramo, bono del arquero, daño compartido, rotura | `design/gdd/castillo-y-muros.md` | Reglas 4, 5, 7, 8, 9, 10; F1, F2, F5, F6; AC-5, 6, 10 a 12, 28, 30 | Confirma el contrato PROVISIONAL; corrige AC-6 (abajo) |
 | Lista de asignaciones, modos, zona de explosión | `design/gdd/alcance-y-asignacion-de-ataques.md` | Reglas 5, 7, 11 y 16; AC-19 | Confirma |

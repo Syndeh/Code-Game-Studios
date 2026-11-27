@@ -247,10 +247,10 @@ servidor.
 
 | # | System Name | Category | Priority | Status | Design Doc | Depends On |
 |---|-------------|----------|----------|--------|------------|------------|
-| 1 | Librería de reglas (contrato) (inferred) | Core | MVP | In Review | design/gdd/libreria-de-reglas.md | — |
-| 2 | Catálogo de piezas | Core | MVP | Designed | design/gdd/catalogo-de-piezas.md | — |
+| 1 | Librería de reglas (contrato) (inferred) | Core | MVP | Approved | design/gdd/libreria-de-reglas.md | Catálogo de piezas (blanda: formato y validación F1–F9) |
+| 2 | Catálogo de piezas | Core | MVP | Approved | design/gdd/catalogo-de-piezas.md | — |
 | 3 | Máquina de turno y fin de partida | Core | MVP | Designed | design/gdd/maquina-de-turno.md | Librería de reglas, Catálogo de piezas, Tablero (blanda: quién empieza) |
-| 4 | Tablero y despliegue inicial | Core | MVP | Designed | design/gdd/tablero-y-despliegue-inicial.md | Librería de reglas, Catálogo de piezas, Castillo y muros (blanda, solo un dato) |
+| 4 | Tablero y despliegue inicial | Core | MVP | Approved | design/gdd/tablero-y-despliegue-inicial.md | Librería de reglas, Catálogo de piezas, Castillo y muros (blanda, solo un dato) |
 | 5 | Castillo y muros | Gameplay | MVP | Designed | design/gdd/castillo-y-muros.md | Librería de reglas, Tablero, Catálogo de piezas, Máquina de turno (blanda: momento del corte) |
 | 6 | Movimiento | Gameplay | MVP | Designed | design/gdd/movimiento.md | Librería de reglas, Tablero, Catálogo de piezas, Máquina de turno, Castillo y muros |
 | 7 | Alcance y asignación de ataques | Gameplay | MVP | Designed | design/gdd/alcance-y-asignacion-de-ataques.md | Librería de reglas, Tablero, Catálogo de piezas, Máquina de turno, Castillo y muros (tramo como objetivo; alcance del arquero en el muro), Cobertura del escudero y Reclutamiento (blandas: contratos) |
@@ -262,7 +262,7 @@ servidor.
 | 13 | Entrada y selección (inferred) | Core | MVP | Designed | design/gdd/entrada-y-seleccion.md | Librería de reglas, Máquina de turno, Tablero, Movimiento, Alcance y asignación, Cobertura del escudero, Reclutamiento, Localización, Timer (blanda) |
 | 14 | Localización (inferred) | Meta | MVP | Designed | design/gdd/localizacion.md | Catálogo de piezas (solo ID de tipo), Librería de reglas (blanda: lista de códigos) |
 | 15 | Ficha de pieza y HUD | UI | MVP | Approved | design/gdd/ficha-de-pieza-y-hud.md | Librería de reglas, Catálogo de piezas, Máquina de turno, Timer, Modificador, Localización, Render (tiempos de la presentación); blandas: Entrada y selección, Movimiento, Castillo y muros (contador de tramos rotos), Alcance y asignación, Cobertura del escudero, Reclutamiento, Tablero, Resolución (eventos) |
-| 16 | Vista previa de ataques | UI | MVP | Approved | design/gdd/vista-previa-de-ataques.md | Librería de reglas, Alcance y asignación, Resolución, Cobertura del escudero, Ficha y HUD, Entrada y selección, Localización; blanda: Castillo y muros (daño y ROTO del tramo) |
+| 16 | Vista previa de ataques | UI | MVP | Approved | design/gdd/vista-previa-de-ataques.md | Librería de reglas, Alcance y asignación, Resolución, Cobertura del escudero, Ficha y HUD, Entrada y selección, Localización; blandas: Castillo y muros (daño y ROTO del tramo), Catálogo de piezas (fixture de AC-11), Tablero (capa de amenaza) |
 | 17 | Interfaz del Modificador | UI | MVP | Designed | design/gdd/interfaz-del-modificador.md | Modificador, Reclutamiento, Localización, Librería de reglas, Máquina de turno, Entrada y selección; blandas: Timer (el panel no pausa), Ficha y HUD (lugar en la franja superior), Catálogo, Tablero, Castillo y muros |
 | 18 | Render, animación y feedback de combate | UI | MVP | Approved | design/gdd/render-animacion-y-feedback-de-combate.md | Tablero, Catálogo de piezas, Movimiento, Resolución, Cobertura del escudero, Interfaz del Modificador, Entrada y selección, Ficha y HUD; blandas: Castillo y muros (tres estados del tramo), Alcance y asignación, Reclutamiento, Timer, Localización, Modificador, Vista previa |
 | 19 | Métricas locales de partida | Meta | MVP | Designed | design/gdd/metricas-locales-de-partida.md | Máquina de turno, Resolución, Reclutamiento, Modificador, Timer, Catálogo de piezas (versionBalance); blandas: Movimiento, Alcance y asignación (eventos), Librería, Castillo, Entrada, Interfaz del Modificador, Ficha y HUD |
@@ -525,8 +525,8 @@ Los cuatro ciclos encontrados se cortaron con contratos; ninguno queda abierto.
 |--------|-------|
 | Total systems identified | 41 |
 | Design docs started | 20 |
-| Design docs reviewed | 5 |
-| Design docs approved | 4 |
+| Design docs reviewed | 7 |
+| Design docs approved | 7 |
 | MVP systems designed | 19/19 |
 | Vertical Slice systems designed | 0/6 |
 

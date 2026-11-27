@@ -54,7 +54,7 @@
 #   in any other shape is reported as unsupported layout, with its number.
 
 version: 1
-last_updated: "2026-11-26"
+last_updated: "2026-11-27"
 
 # ─── ENTITIES ────────────────────────────────────────────────────────────────
 # Named game-world objects: enemies, NPCs, characters, factions, bosses.
@@ -372,9 +372,9 @@ formulas:
     output_range: [0, 100]
     expression: "L = suma de las caras de reclutar que no pueden salir (pasan a 0); p_Grito += L / 2 (division entera hacia abajo); p_Arremetida += L - L / 2; despues, si piezas_sin_rey <= limite_normal: p_Grito += p_Arremetida y p_Arremetida = 0"
     # expression was: sin el bloqueo de Arremetida (v5, 2026-11-24), before 2026-11-25
-    notes: "Arma la tabla efectiva del Modificador (#11) al entrar en esperando tirada. Un solo redondeo sobre el total liberado; el punto impar va a Arremetida. Cubre solo muros y llamadas; tope y lugar van por reparto_sin_lugar (#10) y se suman. La tabla resultante siempre suma tirada_rango (100) y se valida como en CrearPartida. Ejemplos con mas de 12 piezas sin el Rey: 15/20/25/25/15 con 2 muros rotos -> 15/45/0/0/40; 20/25/15/20/20 con Llamada agotada -> 20/32/0/20/28. Con 12 o menos: la primera -> 15/85/0/0/0."
+    notes: "Arma la tabla efectiva del Modificador (#11) al entrar en esperando tirada. Un solo redondeo sobre el total liberado; el punto impar va a Arremetida. Cubre solo muros y llamadas; tope y lugar van por reparto_sin_lugar (#10) y se suman. La tabla resultante siempre suma tirada_rango (100) y se valida como en CrearPartida. La funcion publica es TablaEfectiva(tablaBase, agotadas, sinLugar, piezasSinRey, limiteNormal) (Libreria, regla 10; reemplaza a RepartoLiberado); el bloqueo de Arremetida usa la Arremetida final (base + L + Q), no la base. Ejemplos con mas de 12 piezas sin el Rey: 15/20/25/25/15 con 2 muros rotos -> 15/45/0/0/40; 20/25/15/20/20 con Llamada agotada -> 20/32/0/20/28. Con 12 o menos: la primera -> 15/85/0/0/0."
     added: 2026-11-19
-    revised: 2026-11-25
+    revised: 2026-11-27
   - name: tope_total
     status: active
     source: design/gdd/catalogo-de-piezas.md
@@ -404,8 +404,56 @@ formulas:
       - vida_t
     output_range: [1, 2000]
     expression: "(escudo_t + vida_t + ataque_a - 1) / ataque_a, division entera hacia abajo"
-    notes: "Oraculo de tests de balance (chequeos I1 a I3 del Catalogo); no entra al nucleo ni a la vista previa. El calculo real del dano es de Resolucion (#9)."
+    notes: "Oraculo de tests de balance (chequeos I1 a I4 del Catalogo, que se evaluan con el bono del Grito y sin el: ver piezas_para_matar_ef); no entra al nucleo ni a la vista previa. El calculo real del dano es de Resolucion (#9)."
     added: 2026-11-20
+    revised: 2026-11-27
+  - name: piezas_para_matar_ef
+    status: active
+    source: design/gdd/catalogo-de-piezas.md
+    referenced_by:
+      - design/gdd/catalogo-de-piezas.md
+    variables:
+      - ataque_a
+      - bonoGrito_a
+      - escudo_t
+      - vida_t
+    output_range: [1, 2000]
+    expression: "ceil((escudo_t + vida_t) / (ataque_a + bonoGrito_a)); bonoGrito_a = bono_grito_ataque, 0 para el demoledor (la explosion no lleva bono)"
+    notes: "Version con el Grito de piezas_para_matar (decision D2 del Catalogo, 2026-11-27): I1 e I2 se evaluan con el bono y sin el. EvaluarI(catalogo, config) lee bono_grito_ataque de la config. Oraculo de tests; no entra al nucleo."
+    added: 2026-11-27
+    revised: ""
+  - name: regla_f9
+    status: active
+    source: design/gdd/catalogo-de-piezas.md
+    referenced_by:
+      - design/gdd/catalogo-de-piezas.md
+      - design/gdd/libreria-de-reglas.md
+      - design/gdd/tablero-y-despliegue-inicial.md
+      - design/gdd/modificador.md
+    variables:
+      - movimiento_t
+      - bono_grito_movimiento
+      - techo_movimiento
+    output_range: [0, 1]
+    expression: "valida si movimiento_t + bono_grito_movimiento <= techo_movimiento (12) para todo tipo t; si no, ConfigInvalida(F9)"
+    notes: "Regla de forma F9 del Catalogo. checked_in: CrearPartida (no PrepararContexto, que no recibe la config; decision D5 del 2026-11-27), despues de validar los bonos del Grito (0 a 10, no los dos en 0) y antes de T4 a T6 (Libreria, regla 2). Con el bono vigente de 2 el movimiento base llega como mucho a 10. No mira el alcance: m + R <= 13 lo cubren solo los tests de balance (Open Question del Tablero y del Catalogo)."
+    added: 2026-11-27
+    revised: ""
+  - name: chequeo_i4
+    status: active
+    source: design/gdd/catalogo-de-piezas.md
+    referenced_by:
+      - design/gdd/catalogo-de-piezas.md
+      - design/gdd/resolucion-simultanea-del-dano.md
+      - design/gdd/metricas-locales-de-partida.md
+    variables:
+      - ataque_5
+      - escudo_Rey
+      - vida_Rey
+    output_range: [0, 1]
+    expression: "regla dura: ataque_5 - escudo_Rey < vida_Rey (la explosion del demoledor nunca mata al Rey sola)"
+    notes: "Chequeo I4 del Catalogo (D1 y D7, 2026-11-27): la explosion queda en 30; la excepcion admite hasta 8 muertes no-Rey por explosion, sin cota (se miden en Metricas, #19). Reemplaza la aprobacion del 2026-11-20. EvaluarI devuelve ademas la lista informativa de excepciones aprobadas (I1 e I4). Oraculo de tests; no entra al nucleo."
+    added: 2026-11-27
     revised: ""
   - name: umbral_cierre_s
     status: deprecated
@@ -488,9 +536,9 @@ formulas:
       - m
     output_range: [1, 8]
     expression: "ceil((distancia_frente - 1) / m), cota inferior; m = movimiento de las piezas de frente, minimo 1 (Catalogo F2)"
-    notes: "Oraculo de tests de balance; no entra al nucleo. Con distancia_frente 9: m=4 -> 2, m=6 -> 2, m=2 -> 4, m=1 -> 8, m=8 -> 1. Ignora bloqueos y supone avance en linea recta."
+    notes: "Oraculo de tests de balance; no entra al nucleo. En general la salida va de 1 a distancia_frente - 1 (1 a 8 con el valor vigente), con m de 1 a 12. Con distancia_frente 9: m=4 -> 2, m=6 -> 2, m=2 -> 4, m=1 -> 8, m=8 -> 1. Supone que avanzan los dos bandos, en linea recta y sin bloqueos; mide contacto, no golpe (el golpe a distancia es margen_primer_golpe). El ejemplo con Grito no aplica Grito a azul en el turno 1."
     added: 2026-11-25
-    revised: ""
+    revised: 2026-11-27
   - name: techo_movimiento
     status: active
     source: design/gdd/tablero-y-despliegue-inicial.md
@@ -504,8 +552,26 @@ formulas:
       - RADIO_MURO
     output_range: [1, 12]
     expression: "d_anillo_muro - 1, con d_anillo_muro = (cc_rojo - RADIO_MURO - 1) - (cc_azul + RADIO_MURO + 1)"
-    notes: "Techo de movimiento efectivo para que una pieza reclutada en el anillo no llegue al muro rival el mismo turno (13 pasos -> techo 12). Responde la Open Question del Catalogo sobre el techo de movimiento; supone el carril libre. Oraculo de tests de balance; no entra al nucleo."
+    notes: "Techo de movimiento efectivo para que una pieza reclutada en el anillo no llegue al muro rival el mismo turno (13 pasos -> techo 12). Supone el carril libre. Su valor lo lee la regla F9 del Catalogo en CrearPartida (regla_f9; antes era solo un oraculo). Variante con alcance, oraculo de tests: techo_movimiento(k) = 13 - alcance_max(k), es decir m_k + alcance_max_k <= 13 por tipo (hoy el maximo es 8). El Grito no se suma el turno en que aparece la pieza (reclutar y Grito son caras distintas)."
     added: 2026-11-25
+    revised: 2026-11-27
+  - name: margen_primer_golpe
+    status: active
+    source: design/gdd/tablero-y-despliegue-inicial.md
+    referenced_by:
+      - design/gdd/tablero-y-despliegue-inicial.md
+      - design/gdd/modificador.md
+    variables:
+      - t
+      - k
+      - d_k
+      - m_k
+      - R_k
+      - bono_t
+    output_range: [null, 3]
+    expression: "margen(t, k) = d_k - (m_k + bono_t + R_k); margen_primer_golpe(t) = min_k margen(t, k); d_k = distancia_frente + linea_max - linea_k; bono_1 = 0; en t = 2, min(caso Grito con bono_t = bono_grito_movimiento sobre el ejercito inicial, caso reclutar con bono_t = 0 sobre el ejercito inicial y cada tipo reclutable con d = 11)"
+    notes: "Oraculo de tests de balance; no entra al nucleo. Valores vigentes: 3 en el turno 1 y 1 en el turno 2 (caso Grito 1, caso reclutar 3). Invariante >= 1 en los dos turnos, contra un azul que no se movio. Sin cota inferior: alcance_max no tiene techo de diseno. El Rey queda fuera de k (margen 5). m_k va de 1 a 10 con F9 y el bono vigente; bono_t de 0 a 10. Topes de m + R para margen_primer_golpe(2) >= 1 con el bono de 2: arquero <= 8, soldado <= 7, escudero <= 6 (arquero y escudero ya estan en su tope), cualquier reclutable <= 10. De aqui sale el tope 2 de bono_grito_movimiento."
+    added: 2026-11-27
     revised: ""
   - name: vida_tramo_tras_resolver
     status: active
@@ -1424,10 +1490,11 @@ constants:
     source: design/gdd/libreria-de-reglas.md
     referenced_by:
       - design/gdd/libreria-de-reglas.md
+      - design/gdd/modificador.md
     value: 100
     unit: "cantidad de valores posibles de la tirada (0-99); suma de cada tabla de cara_por_tirada"
     added: 2026-11-19
-    revised: ""
+    revised: 2026-11-27
   - name: tirada_max
     status: active
     source: design/gdd/libreria-de-reglas.md
@@ -1449,9 +1516,9 @@ constants:
       - design/gdd/vista-previa-de-ataques.md
       - design/gdd/metricas-locales-de-partida.md
     value: 5
-    unit: ms
+    unit: "ms (p95); constante del contrato de la Libreria, no dato de la config"
     added: 2026-11-19
-    revised: ""
+    revised: 2026-11-27
   - name: comando_presupuesto_ms
     status: active
     source: design/gdd/libreria-de-reglas.md
@@ -1466,8 +1533,24 @@ constants:
       - design/gdd/vista-previa-de-ataques.md
       - design/gdd/metricas-locales-de-partida.md
     value: 1
-    unit: ms
+    unit: "ms (p95); constante del contrato de la Libreria, no dato de la config"
     added: 2026-11-19
+    revised: 2026-11-27
+  - name: c_max
+    status: active
+    source: design/gdd/libreria-de-reglas.md
+    referenced_by:
+      - design/gdd/libreria-de-reglas.md
+      - design/gdd/catalogo-de-piezas.md
+      - design/gdd/maquina-de-turno.md
+      - design/gdd/resolucion-simultanea-del-dano.md
+      - design/gdd/reclutamiento-y-limites.md
+      - design/gdd/modificador.md
+      - design/gdd/timer-de-turno.md
+      - design/gdd/metricas-locales-de-partida.md
+    value: 1000000
+    unit: "tope de contadorComandos, contadorTirada y del proximo ID de pieza; PROVISIONAL. El Aceptado que deja contadorComandos en C_MAX - 1 termina la partida en Tablas (Libreria, regla 16); LimitePartida (fila 15) queda solo como defensa (pila en 256, proximo ID > C_MAX). Entra en las cotas de vidaQuitada (#3, #9)"
+    added: 2026-11-27
     revised: ""
   - name: tope_vivas_por_jugador
     status: active
@@ -1550,7 +1633,7 @@ constants:
       - design/gdd/alcance-y-asignacion-de-ataques.md
       - design/gdd/entrada-y-seleccion.md
     value: 24
-    unit: "columnas de la grilla (0-23); constante del contrato, cambiarla sube la version de reglas (adoptada de la Libreria, antes PROVISIONAL)"
+    unit: "columnas de la grilla (0-23); constante del contrato, cambiarla sube la version de reglas (adoptada de la Libreria, antes PROVISIONAL); el unico valor seguro es 24 (el margen del turno 2 con Grito es COLUMNAS - 23)"
     added: 2026-11-25
     revised: ""
   - name: tablero_filas
@@ -1574,7 +1657,7 @@ constants:
       - design/gdd/tablero-y-despliegue-inicial.md
       - design/gdd/reclutamiento-y-limites.md
     value: 2
-    unit: "casillas del centro del castillo al muro (bloque de 5 x 5, 16 tramos, 9 de interior); constante del contrato, rango seguro 1-5"
+    unit: "casillas del centro del castillo al muro (bloque de 5 x 5, 16 tramos, 9 de interior); constante del contrato; seguro 2, validos 1-3 (con el muro pegado al borde, distancia_frente = 17 - 4 x radio_muro con 24 columnas: 1 da 13, 3 da 5)"
     added: 2026-11-25
     revised: ""
   - name: vida_tramo
@@ -1910,7 +1993,7 @@ constants:
       - design/gdd/interfaz-del-modificador.md
       - design/gdd/metricas-locales-de-partida.md
     value: 2
-    unit: "ataque extra del Grito por un turno, salvo el modo Explosion; nunca al danoArea; config, valido 0-10, no los dos bonos en 0; rango seguro 1-3"
+    unit: "ataque extra del Grito por un turno, salvo el modo Explosion; nunca al danoArea; config, valido 0-10, no los dos bonos en 0; rango seguro 1-2 (con 3 rompe I1 del Catalogo, AC-39; techo de balance que frena el test, no CrearPartida)"
     added: 2026-11-25
     revised: ""
   - name: bono_grito_movimiento
@@ -1919,13 +2002,14 @@ constants:
     referenced_by:
       - design/gdd/modificador.md
       - design/gdd/libreria-de-reglas.md
+      - design/gdd/catalogo-de-piezas.md
       - design/gdd/movimiento.md
       - design/gdd/tablero-y-despliegue-inicial.md
       - design/gdd/ficha-de-pieza-y-hud.md
       - design/gdd/interfaz-del-modificador.md
       - design/gdd/metricas-locales-de-partida.md
     value: 2
-    unit: "movimiento extra del Grito por un turno, todas las piezas y el Rey; config, valido 0-10, la pila con el bono <= 256; rango seguro 1-2 con limite_normal 37"
+    unit: "movimiento extra del Grito por un turno, todas las piezas y el Rey; config, valido 0-10, la pila con el bono <= 256 y F9 (movimiento + bono <= 12); rango seguro 1-2 con limite_normal 37: el tope de 2 sale de margen_primer_golpe(2) >= 1 (turno 2, primera tirada, de rojo), sin guarda en ejecucion"
     added: 2026-11-25
     revised: ""
   - name: ms_toque_objetivo

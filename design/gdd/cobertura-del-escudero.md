@@ -197,7 +197,7 @@ Es el daño bruto total que el rival tiene que juntar sobre el escudero para mat
 **Output Range:** 1 a 2.000, sin riesgo de desborde de 32 bits (mínimo con escudo 0 y vida 1). Con los valores v5, 25.
 **Example:** el rival necesita 25 de bruto repartido sobre el escudero. Cuatro soldados juntan 32 y lo matan (32 − 5 = 27 ≥ 20); tres juntan 24 y no (24 − 5 = 19 < 20). **Y en los dos casos el aliado no pierde nada**: todo lo desviado se absorbe o se pierde.
 
-**Chequeos de balance** (los hace un test, igual que I1–I3 del Catálogo):
+**Chequeos de balance** (los hace un test, igual que I1–I4 del Catálogo):
 
 - **C1, la cobertura vigente protege entera.** Con una cobertura vigente, el daño de la pieza cubierta por golpes del rival es 0 aunque el bruto sea 1.000.000. Solo el tramo puede recibir daño. Es la consecuencia de que el exceso se pierde.
 - **C2, la cobertura no se rompe sola.** Con los valores vigentes, `piezasParaMatar(a, escudero) ≥ 2` para todo atacante `a` salvo el demoledor (que muere al explotar y es la excepción aprobada I1). Hoy: soldado 4, arquero 5, escudero 7, catapulta 3, jinete 4, Rey 4, demoledor 1. Si un cambio de Catálogo baja alguno de esos a 1, una sola pieza anula la cobertura: es una regresión.
@@ -386,7 +386,7 @@ Principios del art bible: *El plan se lee antes que el detalle* (1), *El combo s
 |---|---|---|---|
 | Lista de comandos, orden de validación, fila 14, `EstadoInvalido`, eventos | `design/gdd/libreria-de-reglas.md` | Reglas 3, 4, 8, 10, 11, 15 | Completa; suma `QuitarCobertura` (cambio de contrato) |
 | Borrado al abrir el turno, `Atacar`, salto de fase, cierre, `TurnTimeout` | `design/gdd/maquina-de-turno.md` | Reglas 4, 9, 10, 11, 12, 17 | Respeta; pide `QuitarCobertura` en la matriz de la fase |
-| ID de tipo 2, `piezasParaMatar`, excepción I1 | `design/gdd/catalogo-de-piezas.md` | Core Rules, F2, I1 a I3 | Lee; F3 y C2 se apoyan en su matriz |
+| ID de tipo 2, `piezasParaMatar`, excepción I1 | `design/gdd/catalogo-de-piezas.md` | Core Rules, F2, I1 a I4 | Lee; F3 y C2 se apoyan en su matriz |
 | Contorno de 8, `ocupante` | `design/gdd/tablero-y-despliegue-inicial.md` | Reglas 2 y 11 | Lee |
 | El tramo no se redirige, arquero sobre el tramo, tramo roto | `design/gdd/castillo-y-muros.md` | Reglas 7, 8 y 9 | Respeta |
 | Una acción por pieza, `QuitarAtaque`, evento `CoberturaQuitada`, acción posible | `design/gdd/alcance-y-asignacion-de-ataques.md` | Reglas 9, 10, 14, 15; Open Questions | Completa y cierra su pregunta sobre cómo se quita |

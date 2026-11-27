@@ -154,13 +154,13 @@ de mover se pierde; se mide en playtest (Open Questions).
     presentación de la resolución, ≤ 2 s por turno con ataques: la `Tirada` espera a Render,
     #18 regla 25). El tiempo lo mide la autoridad (Timer #12 local, Servidor #28
     online); el núcleo no tiene reloj. Cuando el reloj de un jugador llega a 0, en cualquier
-    fase, la autoridad envía `CerrarPartida` con ganador = el rival (motivo **RelojAgotado**,
+    fase, la autoridad envía `CerrarPartida(RelojAgotado, rival, numeroTurno)` (motivo **RelojAgotado**,
     Librería, reglas 3 y 16, que lo rechaza con `CierreInvalido` si el ganador no es el rival
     del jugador del turno o si se espera una tirada). Lo ya movido queda; los ataques asignados y no resueltos no se
     resuelven. **El modo Sin límite no tiene reloj.** **El jugador ve los dos relojes** en todo
     momento (diseño: Ficha y HUD, #15).
 15. **`vidaQuitada` (estadística).** No hay empate por tiempo que resolver: con el reloj por
-    jugador la partida termina por Rey muerto, reloj agotado, rendición, abandono o tablas
+    jugador la partida termina por Rey muerto, reloj agotado, rendición, abandono o tablas (Tablas es un cierre técnico sin ganador: no hay oferta de empate en el MVP; Librería, regla 3)
     (2026-11-24). El estado guarda `vidaQuitada` por jugador (jugador, 2026-11-25): vida
     **realmente perdida** por piezas y muros del rival, acumulada en la partida; el fuego
     amigo no cuenta y lo que absorbe un escudero al cubrir sí. La escribe Resolución (#9), la
@@ -169,7 +169,7 @@ de mover se pierde; se mide en playtest (Open Questions).
     desborda.
 16. **Eventos de la Máquina (lista cerrada).** `TurnoIniciado(numeroTurno, jugador)`,
     `FaseIniciada(fase)`, `FaseSaltada(fase)`, `ReclutaPerdido`, `TurnoTerminado` y
-    `PartidaTerminada(ganador, motivo)` y `MovimientoDeshecho(pieza, origen, destino,
+    `PartidaTerminada(ganador, motivo, numeroTurno, jugador del turno, fase, ataques asignados sin resolver)` (campos de la Librería, regla 8: un fin a mitad de turno se cierra sin `TurnoTerminado`) y `MovimientoDeshecho(pieza, origen, destino,
     usadosRestaurados)`, el evento de `Deshacer` que exige la Librería (regla 8: todo comando
     aceptado emite al menos uno; nombre propuesto por Métricas, #19, cierre de la tanda 4).
 17. **Matriz de comandos por fase.** Sale del orden de validación de la Librería (regla 4):
@@ -198,6 +198,7 @@ de mover se pierde; se mide en playtest (Open Questions).
 | `Atacar` | `EsperandoTirada` (turno + 1) | `Resolver` o `TurnTimeout` de atacar, sin ganador |
 | `Atacar` | `Terminada` | `Resolver` o `TurnTimeout` con ganador (`ReyMuerto`, `DobleRey`) |
 | cualquier estado en curso | `Terminada` | `Rendirse`, o `CerrarPartida` (Abandono, `RelojAgotado` salvo en `EsperandoTirada`, Tablas) |
+| cualquier estado en curso | `Terminada` (Tablas) | Cierre automático: el Aceptado que deja `contadorComandos` en `C_MAX − 1` termina la partida en Tablas en ese mismo Aplicar (Librería, regla 16) |
 | `Terminada` | `Terminada` | Todo comando se rechaza con `PartidaTerminada` |
 
 ### Interactions with Other Systems
@@ -285,7 +286,7 @@ La fórmula `reloj_jugador_s` se define así:
 pasa de 25:00. Las esperas de la tirada y la red quedan afuera.
 
 **Example:** azul gastó 740 s y abre su turno con 10 s. Aunque la etapa de mover dure 60 s, a
-los 10 s la autoridad envía `CerrarPartida(RelojAgotado, rojo)`.
+los 10 s la autoridad envía `CerrarPartida(RelojAgotado, rojo, numeroTurno)`.
 
 ### D3. Retirada
 
@@ -315,7 +316,8 @@ un Catálogo que lo viole.
 8 × 2 = 16; jinete 8 × 6 = 48; demoledor 4 × 6 = 24; Rey 1 × 6 = 6 → **254**. El peor caso
 es una Arremetida (sin tope de piezas, sin bono de movimiento) moviendo todo un paso por
 comando. Con Grito de guerra (12 piezas más el Rey, +2 de movimiento) el máximo es
-12 × 8 + 8 = 104.
+12 × 8 + 8 = 104. El movimiento efectivo con Grito lo acota la regla F9 del Catálogo
+(`movimiento + bono_grito_movimiento ≤ 12`, validada en `CrearPartida`).
 
 **Dónde se rompe:** subir el movimiento del soldado en 1 da 266 > 256. Por eso el
 invariante.
@@ -374,8 +376,9 @@ el bono del Grito; por eso `limite_normal` llega como mucho a 37 (con 38 daría 
 - **Un comando genera hasta 5 eventos de la Máquina** (peor caso: `Tirada` con reclutar
   perdido y las fases `Mover` y `Atacar` saltadas: `ReclutaPerdido`, dos `FaseSaltada`,
   `TurnoTerminado` y `TurnoIniciado`), más los de las demás reglas.
-- **Si `contadorComandos` llega a `C_MAX − 1`:** solo pasan `Rendirse` y `CerrarPartida`
-  (Librería, fila 15).
+- **Si `contadorComandos` llega a `C_MAX − 1`:** el Aceptado que lo deja ahí termina la
+  partida en Tablas en ese mismo Aplicar (Librería, regla 16); ningún estado en curso queda
+  en `C_MAX − 1`. La fila 15 (`LimitePartida`) queda solo como defensa.
 - **Si la pila llegara a 256:** `LimitePartida`; con el invariante de D4 es inalcanzable.
 - **Si una `Tirada` devolviera un resultado tipado inexistente:** inalcanzable, porque
   PrepararContexto valida los papeles de las caras al crear la partida.
@@ -620,10 +623,10 @@ integración con otro sistema. **Config/Data** = chequeo de humo. Los criterios 
 - **AC-20 (Integration, regla 14; cruce con #12; con #28, PROVISIONAL)** — **GIVEN** modo
   Variable, turno de azul con 1 s en su reloj, **WHEN** pasa 1 s en `Mover` (y, en otra copia,
   en `Reclutar` y en `Atacar`), **THEN** la autoridad envía `CerrarPartida(RelojAgotado,
-  rojo)`. **GIVEN** `EsperandoTirada`, **WHEN** pasan 60 s, **THEN** ningún reloj cambia.
+  rojo, numeroTurno)`. **GIVEN** `EsperandoTirada`, **WHEN** pasan 60 s, **THEN** ningún reloj cambia.
   **GIVEN** el turno de rojo, **THEN** el reloj de azul no cambia. En Sin límite nunca lo envía.
 - **AC-21 (Logic, reglas 14 y 15)** — **GIVEN** el turno de azul en `Atacar` con un ataque
-  asignado, **WHEN** llega `CerrarPartida(RelojAgotado, rojo)`, **THEN** `Terminada`, gana
+  asignado, **WHEN** llega `CerrarPartida(RelojAgotado, rojo, numeroTurno)`, **THEN** `Terminada`, gana
   rojo y ese ataque no se resuelve; **WHEN** llega con azul como ganador, **THEN**
   `CierreInvalido`. **Y GIVEN** un golpe de 30 de daño sobre una pieza rival de 5 de vida,
   **THEN** suma 5 a `vidaQuitada`, no 30; sobre una pieza propia, suma 0.
@@ -694,5 +697,7 @@ tiene criterio porque quedó como pregunta abierta.
 | ~~¿Las partidas Sin límite cuentan para la compuerta del arte?~~ **Resuelta 2026-11-26:** no (Métricas, regla 12) | — | — |
 | ¿El timeout durante `Reclutar` salta `Mover` y se siente como castigo? | Playtest | MVP |
 | ¿El reloj decide partidas que el tablero no decidió? Medir cuántas terminan por reloj y quién iba adelante. Con pasividad total pierde azul, que empieza. La medida existe (Métricas, regla 14) | Métricas (#19) | MVP |
+| ¿Hace falta un desempate del reloj que no castigue a azul? Con pasividad total pierde azul, que empieza (Tablero, #4, Open Questions, 2026-11-27) | Máquina y playtest | MVP |
+| ¿Quién es dueño de la pantalla de resultado de Tablas (#15 o la Máquina) y cuenta para estadísticas? (Librería, Open Question «Juego y presentación») | Ficha y HUD (#15) y Métricas (#19) | MVP |
 | ~~`N_base` y `Δturnos` de #9, #10 y #11~~ **Resuelta 2026-11-26:** `N_base` se estima con Métricas F4 (cota inferior); el `Δturnos` de Resolución es 0 por definición | — | — |
 | Que ninguno de los dos jugadores pueda actuar durante varios turnos (casi inalcanzable; en Sin límite solo lo corta `C_MAX`) | Timer (#12) y Librería (ADR) | Antes de lanzar Sin límite |

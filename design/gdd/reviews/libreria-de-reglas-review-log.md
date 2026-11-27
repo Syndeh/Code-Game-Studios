@@ -206,3 +206,84 @@ Reviewed-Content-Hash: design/registry/entities.yaml 09f3afc9fa59c98361ab76eaa45
 Reviewed-Content-Hash: .claude/skills/design-review/SKILL.md 4dcc8b81162613c757144532f1b72708ab3ba27f
 Reviewed-Content-Hash: design/gdd/game-concept.md 590e85748059dfb71f99b94cd04d2b367360de33
 Reviewed-Content-Hash: design/game-brief.md 1f759b960d5955f6eb96f0f0f6f8c3802b1e2c0c
+
+## Review — 2026-11-27 — Verdict: NEEDS REVISION
+Review mode: full · Workflow: full
+Scope signal: M
+Specialists: systems-designer, qa-lead, game-designer, network-programmer, unity-specialist, creative-director (senior)
+Blocking items: 6 | Recommended: 4 groups
+Summary: Eighth pass after the castle-draw removal and the v5 contract (RelojAgotado, Arremetida block, vidaQuitada, vida_tramo). Under the seventh-pass bar, one closure hole (a recruit face with base p = 0 that got Q from reparto_sin_lugar fails the domain row once recruiting or moving makes it Agotada/SinLugar), one command with two outcomes (a delayed RelojAgotado accepted in turn N+2 of the same player while the text said rejected) and four ACs with unreachable preconditions or wrong oracles (AC-38 x2, AC-62, the 12-vs-13 command count in AC-1/AC-56). The creative director called all of them local text fixes; revised in this session with the user's decisions. Also resolves cross-review W-14, W-15, W-19 (in #1), D-16, F-09, A-10, B-07, B-08.
+Prior verdict resolved: Yes (seventh-pass blockers stayed closed; new blockers came from the v5 changes)
+Findings:
+- [BLOCKING] Core Rules 11 (domain row, face of the turn): now "una de reclutar"; Mover/Reclutar don't touch the face (closure matrix).
+- [BLOCKING] Core Rules 3/4 row 9, Edge Cases, AC-50: CerrarPartida(motivo, ganador, turno); RelojAgotado carries numeroTurno, otherwise CierreInvalido (user approved the contract change).
+- [BLOCKING] AC-38 (wrong oracle with shared Común calls; ReclutaPerdido unreachable, now a constructor defense), AC-62 (unreachable turn-1 cascade, now turn-2 Distracción), AC-1/AC-56 (13 commands).
+- [RECOMMENDED] W-15: the Aceptado that reaches contadorComandos = C_MAX − 1 ends the match in Tablas (rules 4 row 15, 11, 16; AC-43, AC-62); W-14: Tablas = technical no-winner close, no draw offer in MVP (user); OQ on LimitePartida closed.
+- [RECOMMENDED] RendirseDisponible query (rule 10, D-16); PartidaTerminada fields (rule 8, F-09); fantasy "la vista previa vale si resolvés a tiempo" (user kept discarding attacks on RelojAgotado); TablaEfectiva signature; limite_normal in rule 6; 123.220 per receptor; vidaQuitada domain-only; AC-40/44/46/53/57 extended; stale PROVISIONAL tags and draw remnants removed; dependents #12/#14 added.
+- [RECOMMENDED] Engine (to ADR, appended to the OQ): two csproj, asmdef/csproj file-set equality + noEngineReferences, caller-owned preview buffer, AC-33b method, web legs of AC-24/25, little-endian trailing hash, same overflow option in csc.rsp and csproj.
+Note: the GDD is not stamped (its reviewed version was overwritten in the same session); the next check runs a focused verification: domain row of the face, RelojAgotado with turno, AC-1/38/56/62, the W-15 AC, size ≤ 100 KB. Size: 101,216 bytes before, 101,280 after (net +64; the 100 KB ceiling was not met). Disagreements: game-designer rated W-14/W-15 blocking (CD: recommended, they are liveness/meaning, not safety); network/systems/game rated the delayed RelojAgotado recommended (CD: blocking, two outcomes). Pending for neighbors and the registry are listed in the session report.
+Reviewed-Content-Hash: design/registry/entities.yaml a1def8387514578df4d215eec6397bb98386ba62
+Reviewed-Content-Hash: .claude/skills/design-review/SKILL.md 4dcc8b81162613c757144532f1b72708ab3ba27f
+Reviewed-Content-Hash: design/gdd/game-concept.md 43e62d80536c71a39bae754ce48356caf6ee6beb
+Reviewed-Content-Hash: design/game-brief.md 1f759b960d5955f6eb96f0f0f6f8c3802b1e2c0c
+Reviewed-Content-Hash: design/gdd/gdd-cross-review-2026-11-26.md 4e2bcb868717e3e9c62d8959fed5d77a54b22266
+Reviewed-Content-Hash: design/gdd/reclutamiento-y-limites.md e627256e98aea8addef670dfafbbb1add0ace54a
+Reviewed-Content-Hash: design/gdd/modificador.md 451e50bd6f8fe9f2aa890968b9cdd59f33bde888
+Reviewed-Content-Hash: design/gdd/maquina-de-turno.md 0af0ecd29538b4dbcfba23734b3dc6fb6bf01e38
+Reviewed-Content-Hash: design/gdd/timer-de-turno.md a913fc5a6cf779fce954ffa0522e104365587347
+Reviewed-Content-Hash: design/gdd/catalogo-de-piezas.md 06dcbb6869c82ccc59b08d260d30c3cb1091667b
+Reviewed-Content-Hash: design/gdd/tablero-y-despliegue-inicial.md 7b0dfbacb62401d09968e9167d03214f846cddad
+Reviewed-Content-Hash: design/gdd/resolucion-simultanea-del-dano.md 95048c972e2d02528ea282c6363eec956f586004
+Reviewed-Content-Hash: design/gdd/ficha-de-pieza-y-hud.md 9d365c37f9a327151b248c7d9e1b489103e657fa
+
+## Review — 2026-11-27 — Verdict: NEEDS REVISION
+Review mode: full · Workflow: full
+Scope signal: M
+Specialists: systems-designer, qa-lead, game-designer, network-programmer, creative-director (senior)
+Blocking items: 4 | Recommended: 6 groups
+Summary: Ninth pass, the focused check of the eighth-pass fixes. Five of the six eighth-pass blockers stayed closed (domain row of the face, CerrarPartida with turno, AC-38 oracle, AC-1/AC-56 at 13 commands); AC-62's replacement cascade (turn-2 Distracción) is still unreachable, because red's four adjacent squires can always cover. QA found three more AC defects of the same kind (AC-42 unreachable IDs, AC-56 and AC-21 wrong oracles). The creative director called all of them local text fixes and downgraded the closure-matrix cascade gap to recommended, asking to fix it in this revision; revised in this session.
+Prior verdict resolved: Partly (5 of 6; AC-62 reopened and fixed again)
+Findings:
+- [BLOCKING] AC-62: turn-2 Distracción without targets unreachable (squires cover; Modificador r13); now a constructor-built Tirada that rolls Distracción for a player without targets or a covering squire.
+- [BLOCKING] AC-42: catapult with ID 3 unreachable (deployment IDs 1–26); now A = deployed soldier ID 3, B = recruited catapult ID > 26, A before B.
+- [BLOCKING] AC-56: load/resync oracle "EstadoInvalido exactly out of domain" wrong; now the first code of the rule 1 / rule 14 order that each mutation triggers.
+- [BLOCKING] AC-21: the version/Catalog-hash domain row gives VersionNoSoportada, now stated.
+- [RECOMMENDED] Applied: closure matrix row "Cascada al empezar una fase", Tirada row changes fase/etapa, "Todo Aceptado" changes motivo/ganador/tirada with automatic Tablas; rule 16: automatic Tablas evaluated after the full cascade, PartidaTerminada last, the command's own end motive wins; AC-50 isolates "not while waiting" and uses three arguments; AC-38 defense gets its WHEN; AC-43 includes the atacar TurnTimeout; Edge Case for the RelojAgotado vs Resolver/TerminarMovimiento race; three-argument CerrarPartida in Edge Cases and AC-29; "two formulas" wording.
+- [RECOMMENDED] Not applied (open): TablaEfectiva combined expression and input contract in Formulas; RendirseDisponible variable table and AC (13 vs 26 true, 14 vs 26 false), live vs turn-start, whether the AI respects it; AC-57 name the opening command; row 15 next-ID cases in AC-43; AC-43 one constructor state per phase; AC-44 two-version fixture; invariant "En curso ⇒ (fase tirada ⇔ tirada pendiente)".
+- [RECOMMENDED] Not applied (game-designer, CD endorsed): move the RelojAgotado caveat into the first fantasy bullet; UI requirement warning that assigned attacks won't resolve when the match clock binds, end screen listing them; OQ on gated surrender pushing rage-quits to Abandono; owner of the Tablas result screen.
+- [NIT] numeroTurno ≤ contadorComandos + 1 would hold (the +2 is slack); C_MAX still PROVISIONAL; Terminada at C_MAX is in-domain but unreachable (AC-49 uses it on purpose).
+Note: the GDD is not stamped (revised in the same session after review). Size: 101,280 bytes before, 102,696 after (the 100 KB ceiling is still not met; the eighth-pass suggestion stands: move the closure matrix and AC-62 to an annex if it grows again). Next: tenth pass in a separate session, a short check of AC-21/42/56/62, the cascade row and rule 16. Disagreement: systems-designer rated the matrix cascade gap borderline blocking; CD recommended (no invalid state, no two outcomes). Propagation (neighbors, not this GDD): timer-de-turno.md (l.69, 192, 236, AC-10, AC-11) and maquina-de-turno.md (l.288, 626) still send two-argument CerrarPartida(RelojAgotado, rival), which would now be CierreInvalido and the match would never end; Timer l.120, 242, 444 and AC-13 still mark Tablas PROVISIONAL; Timer AC-13 expects ComandoViejo for a TurnTimeout (row 10 is player-only).
+Reviewed-Content-Hash: design/registry/entities.yaml a1def8387514578df4d215eec6397bb98386ba62
+Reviewed-Content-Hash: .claude/skills/design-review/SKILL.md 4dcc8b81162613c757144532f1b72708ab3ba27f
+Reviewed-Content-Hash: design/gdd/game-concept.md 43e62d80536c71a39bae754ce48356caf6ee6beb
+Reviewed-Content-Hash: design/game-brief.md 1f759b960d5955f6eb96f0f0f6f8c3802b1e2c0c
+Reviewed-Content-Hash: design/gdd/tablero-y-despliegue-inicial.md 6f268f045f27e1b8aa5d75012c30838a49ebee89
+Reviewed-Content-Hash: design/gdd/modificador.md 451e50bd6f8fe9f2aa890968b9cdd59f33bde888
+Reviewed-Content-Hash: design/gdd/cobertura-del-escudero.md ccc66ea4cf0e8419870a77b09dcdfcbe82a209f0
+Reviewed-Content-Hash: design/gdd/reclutamiento-y-limites.md e627256e98aea8addef670dfafbbb1add0ace54a
+Reviewed-Content-Hash: design/gdd/catalogo-de-piezas.md 06dcbb6869c82ccc59b08d260d30c3cb1091667b
+Reviewed-Content-Hash: design/gdd/timer-de-turno.md a913fc5a6cf779fce954ffa0522e104365587347
+Reviewed-Content-Hash: design/gdd/maquina-de-turno.md 0af0ecd29538b4dbcfba23734b3dc6fb6bf01e38
+
+## Review — 2026-11-27 — Verdict: APPROVED
+Review mode: full · Workflow: full
+Scope signal: M
+Specialists: qa-lead, systems-designer, game-designer, creative-director (senior); qa-lead again for the short re-check
+Blocking items: 2 (fixed in session) | Recommended: 9
+Summary: Tenth pass, focused check of the ninth-pass fixes. AC-62, AC-42 (IDs) and AC-21 stayed closed, as did every eighth-pass item. Two blockers remained. First, AC-56's resync leg could not be computed: with no `confirmado` named, a local base gives SoloOnline in every case. Second, a contract clash with the approved Catálogo: `ConfigInvalida` had no rule code, F9 was not placed in CrearPartida's order, and `EvaluarI`/`ValidarF2` were missing. The creative director called both local text fixes and set the re-check scope: if those hold, APPROVED. The fixes were applied with the user's order decision. The re-check found two more problems (the Tablero's T4 → T5 → T6 order, and F9 summing the bonuses before their range check, which could overflow), both fixed. A second re-check came back HOLDS on every item.
+Prior verdict resolved: Yes (AC-62, AC-42 and AC-21 closed; AC-56 closed in this revision)
+Findings:
+- [BLOCKING] AC-56 / AC conventions: resync of a mutated state uses `confirmado` = the unmutated state with the base fixture in online mode, and `huellaDeclarada` = Huella(mutated); mutations that change nothing are excluded; SoloOnline and PartidaTerminada are excluded from the oracle (AC-44 covers them). The same applies to AC-21.
+- [BLOCKING] Rule 2 / rule 4 / rule 10 / AC-3 (user decision, CD order). CrearPartida checks in this order: tables → PrepararContexto F1→F8 (first failure) → Grito bonuses (0 to 10, not both 0) → F9 → T4 → T5 → limite_normal, tablaReclutas with recruit faces, pila con bono → T6. `ConfigInvalida` carries F1–F9, T4–T6 or a field code. CrearPartida accepts an already-prepared context (it skips F1–F8 but still checks F9). `EvaluarI(catalogo, config)` and `ValidarF2(fila)` are now listed. ProbabilidadesInvalidas comes only from CrearPartida.
+- [RECOMMENDED, applied] Closure matrix cascade row: the incoming player's coverages expire (`Caducada`, #8 rule 9); `ReclutaPerdido` is noted as an event, not a field. CrearPartida row: next ID 27, first move phase non-empty. AC-62's Distracción case expires the rival's coverages. Constructor states satisfy EsValido unless the AC says otherwise. AC-42: A has 3 life, area 6 − 3, E takes 8 − 3 = 5. AC-21 has one case per field. Rule 11 points to the domain table instead of repeating the field list. The RelojAgotado caveat moved into the headline fantasy.
+- [RECOMMENDED, deferred to Open Questions, presentation, CD]: warning that assigned attacks are not resolved under RelojAgotado, plus the end-screen list; showing `FaseSaltada` and a turn emptied by a cascade; the owner of the Tablas result screen; gated Rendirse pushing players to Abandono.
+- [RECOMMENDED, outside this GDD] Register C_MAX = 1.000.000 (PROVISIONAL) in the registry; tirada_rango referenced_by lacks modificador.md.
+- [NIT] "Lo ya movido queda" (rule 3) reads as RelojAgotado only.
+Note: the GDD was revised in the same session; the stamp below is the approved version. Size is 102,696 bytes before and 103,202 after (+506 net, partly offset by removing duplicated field lists and edge cases). CD condition: if the next pass is still over 100 KB, splitting out an annex becomes mandatory. Disagreement: systems-designer rated the cascade-coverages gap blocking; the CD rated it recommended (no invalid state, since #8/#3 already expire them). The T4–T6 codes come from the Tablero's uncommitted revision, which another session is re-reviewing; if they change, this rule 2 must follow. The first specialist spawns failed on a usage limit and were rerun.
+Reviewed-Content-Hash: design/gdd/libreria-de-reglas.md 5ac1d08ff674134ee106d55ad965c1784175b26d
+Reviewed-Content-Hash: design/registry/entities.yaml a1def8387514578df4d215eec6397bb98386ba62
+Reviewed-Content-Hash: .claude/skills/design-review/SKILL.md 4dcc8b81162613c757144532f1b72708ab3ba27f
+Reviewed-Content-Hash: design/gdd/catalogo-de-piezas.md 299af94496afef9ccf01ba6718cd0514993fa5bb
+Reviewed-Content-Hash: design/gdd/tablero-y-despliegue-inicial.md 04cb6fe46f22a9330e4d276b8ae676404554dfbe
+Reviewed-Content-Hash: design/gdd/cobertura-del-escudero.md ccc66ea4cf0e8419870a77b09dcdfcbe82a209f0
+Reviewed-Content-Hash: design/gdd/resolucion-simultanea-del-dano.md 95048c972e2d02528ea282c6363eec956f586004

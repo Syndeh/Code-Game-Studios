@@ -188,8 +188,8 @@ The `tabla_efectiva` formula is defined as:
 |----------|------|-------|--------|-------------|
 | `p_c` | int | 0–100 | data file (tabla base de F1) | Probabilidad base de la cara de reclutar `c` |
 | `estado_cara(J, c)` | enum | Agotada / SinLugar / Disponible | calculated (#10, F3) | Estado de la cara al abrir el turno |
-| `L` | int | 0–50 | calculated | Porcentaje liberado por caras Agotadas (`reparto_liberado`, Librería) |
-| `Q` | int | 0–50 | calculated | Porcentaje liberado por caras SinLugar (`reparto_sin_lugar`, #10, F5) |
+| `L` | int | 0–50 (con los datos vigentes; 0–100 por contrato de la Librería) | calculated | Porcentaje liberado por caras Agotadas (`reparto_liberado`, dentro de `TablaEfectiva` de la Librería) |
+| `Q` | int | 0–50 (con los datos vigentes; 0–100 por contrato) | calculated | Porcentaje liberado por caras SinLugar (`reparto_sin_lugar`, #10, F5) |
 | `m` | int | 2–3 | calculated | Caras que reciben `Q`: siempre Grito y Arremetida, más la otra de reclutar si está Disponible |
 | `piezas_sin_rey` | int | 0–60 | calculated (estado) | Piezas vivas del jugador sin el Rey y sin muros |
 | `limite_normal` | int | 1–37 (hoy 12) | data file (config; dueño #6) | Límite normal de piezas que se mueven por turno, sin el Rey |
@@ -336,7 +336,8 @@ Fijar el bono en +2 con exclusión del área y la explosión levanta provisional
 | #10 Reclutamiento y límites | Dura | `estado_cara`, `llamadas_restantes`, `reparto_sin_lugar` (F5) |
 | #5 Castillo y muros | Dura | `puedeReclutar` (a través de `estado_cara`: 2 tramos rotos = cara Agotada) |
 | #7 Alcance y asignación | Dura | Modo de ataque (regla 5): decide qué piezas reciben el +2 de ataque |
-| #2 Catálogo de piezas | Blanda | `ataque` y `movimiento` base, `topeVivas` (indirecto) |
+| #2 Catálogo de piezas | Blanda | `ataque` y `movimiento` base, `topeVivas` (indirecto); techo `bono_grito_ataque ≤ 2` (I1, AC-39) y F9 |
+| #4 Tablero y despliegue | Blanda | `margen_primer_golpe`: fija el tope 2 de `bono_grito_movimiento` (margen del turno 2) |
 
 **Dependen de este sistema:**
 
@@ -367,8 +368,8 @@ Todas las perillas de datos son `data file` (config) y entran a la huella. Los r
 | Probabilidad de cada cara de reclutar (tablas) | 15 a 25 | 10–30 | Remontada demasiado fuerte: el que va ganando deja de ganar (3c) y partidas más largas (pilar 4) | Sin remontada (pilar 3); el tope de llamadas nunca aprieta | F5, `llamadas_max` (#10), `topeVivas` (#2) |
 | Probabilidad de Grito (tablas) | 20 a 25 | 15–30, con Grito de «Pierde» ≤ Grito de «Gana» | Más turnos con +2 en todo el ejército | El reparto de lo liberado lo sube igual | Prueba operativa del 3a (regla 12), `reparto_liberado` |
 | Probabilidad de Arremetida (tablas) | 15 a 25 | 10–30 | La pila de deshacer crece; casi sin efecto si `limite_normal` es alto | Cara casi ausente | `limite_normal` (#6), pila de 256 |
-| `bono_grito_ataque` | 2 | 1–3 (la Librería admite 0–10; los dos en 0 se rechazan) | El Grito decide golpes (anti-pilar); mueve la tabla F3 de Castillo | 0 con el otro bono en 0: `ConfigInvalida` | Castillo F3, Catálogo (I2 no aplica al demoledor) |
-| `bono_grito_movimiento` | 2 | 1–2 con `limite_normal` 37; no pasar de 2 por el margen del golpe del turno 1 | La pila pasa de 256 (`ConfigInvalida`); cada punto resta uno al margen del Tablero (con +2 queda en 1, con +3 en 0) | 0 con el otro bono en 0: `ConfigInvalida` | `limite_normal` (#6), Tablero (#4), Movimiento F5 |
+| `bono_grito_ataque` | 2 | 1–2 (la Librería admite 0–10; los dos en 0 se rechazan). Con 3, soldado, jinete y Rey pegan 11 y matan solos al demoledor: rompe I1 del Catálogo (AC-39, 2026-11-27) | El Grito decide golpes (anti-pilar); mueve la tabla F3 de Castillo; con 3 o más rompe I1 del Catálogo | 0 con el otro bono en 0: `ConfigInvalida` | Castillo F3, Catálogo (I2 no aplica al demoledor) |
+| `bono_grito_movimiento` | 2 | 1–2 con `limite_normal` 37; no pasar de 2 por el margen del turno 2 (primera tirada, de rojo: `margen_primer_golpe` del Tablero). Es una restricción del rango seguro, sin guarda en ejecución: la Librería acepta 0–10 y F9 del Catálogo (`movimiento + bono ≤ 12`) deja el máximo en 6 con el Catálogo vigente | La pila pasa de 256 (`ConfigInvalida`); cada punto resta uno al margen del turno 2 del Tablero (con +2 queda en 1, con +3 en 0) | 0 con el otro bono en 0: `ConfigInvalida` | `limite_normal` (#6), Tablero (#4), Movimiento F5 |
 | Umbrales de F1 (1/2, 3/4, 4 a 3, 2 a 1) | constantes de la regla, no config | No ajustables hoy | Cerca de 1: casi siempre una tabla inclinada | Lejos de 1: la adaptación casi nunca actúa (pilar 3) | F5, `Rendirse` (comparte el 1/2) |
 | Umbral del pilar 3c (`W`) | 2/3 | Objetivo de diseño, no valor de juego | — | — | F5, Métricas (#19) |
 | Muestra para decidir | 20 partidas | 20–60 | — | Con 20, error estándar de unos 10,5 puntos | Métricas (#19) |
@@ -444,7 +445,7 @@ El Modificador no tiene una pantalla propia: su interfaz es la placa central, el
 | `movimiento.md` | F5 (cota de pila), regla 11, AC-21 | Bono de movimiento y `limite_normal` |
 | `alcance-y-asignacion-de-ataques.md` | Reglas 3, 5 y 14 | Modos de ataque (Directo, Área, Explosión) y que el Grito no da alcance |
 | `catalogo-de-piezas.md` | Regla 5, invariante I3, AC-29 | Catálogo estático; el área no recibe el bono |
-| `tablero-y-despliegue-inicial.md` | Margen del golpe del turno 1 | Cada punto del bono de movimiento resta uno a ese margen |
+| `tablero-y-despliegue-inicial.md` | `margen_primer_golpe` (Formulas), margen del turno 2 | Cada punto del bono de movimiento resta uno al margen del turno 2 (primera tirada, de rojo); el turno 1 no tiene tirada |
 | `game-concept.md` | Pilares 1 y 3, anti-pilar del dado, filas «Modificador» y «Probabilidades» | Reglas vigentes de las caras y el texto del test 3a a enmendar |
 | `design/art/art-bible.md` | Secciones 1, 2, 4 y 7 | Placa del Modificador, banner de Distracción, ícono «?» |
 | `systems-index.md` | Fila 11, ciclos y riesgos | Descripción del sistema y la fila de riesgo del Modificador |
@@ -524,7 +525,7 @@ Tipos de evidencia (`coding-standards.md`): **Logic** e **Integration** son test
 | ¿`W` cumple 2 de cada 3? Con 20 partidas el error estándar es de unos 10,5 puntos: las primeras 20 orientan y no deciden Se mide con Métricas (#19, F3). | Métricas (#19) | MVP; propuesta de cambios después de 20 partidas online |
 | Valor de `Δturnos_D` y de `t_atacar` (F4) Se mide con Métricas (#19, F4). | Métricas (#19) | Primeras 3 partidas del MVP |
 | ¿Distracción sin objetivos posibles (turno vacío) se siente como el castigo que el director creativo marcó? | Playtest | MVP |
-| El Grito es el 40% de las tiradas de la apertura (tabla Normal 20/40/20/20/0) y deja el margen del golpe del turno 1 en 1: ¿acelera demasiado los primeros turnos? | Playtest y Tablero (#4) | MVP |
+| El Grito es el 40% de las tiradas de la apertura (tabla Normal 20/40/20/20/0) y deja el margen del turno 2 (`margen_primer_golpe` del Tablero) en 1: ¿acelera demasiado los primeros turnos? | Playtest y Tablero (#4) | MVP |
 | Estrategias degeneradas: cortar el propio castillo, llenar el propio anillo o sacrificar piezas para cruzar un umbral, en especial de 13 a 12 sin el Rey (15 a 40 puntos de Arremetida pasan a Grito) La medida existe (Métricas, #19, regla 14). | Métricas (#19), Reclutamiento (#10) | Playtests del MVP |
 | ¿Los dos repartos (liberado y sin lugar) se entienden en el panel «?»? #17 los muestra con el cambio contra la base y el motivo de cada cara (F2, F3); queda medirlo | Playtest | MVP |
 | ¿Pasar los umbrales de F1 (1/2, 3/4, 4 a 3, 2 a 1) a la config? | Este GDD y Librería | Después de 20 partidas |

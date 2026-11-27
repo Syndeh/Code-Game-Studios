@@ -117,7 +117,7 @@ El jugador interactúa con la ficha de forma pasiva (la lee) y con el HUD de for
     - **Avanzar** (abajo a la derecha): `Atacar` en `Mover`, `Terminar turno` en `Atacar`. Entrada manda `TerminarMovimiento` o `Resolver`. Sin diálogo de confirmación (pilar 4). **Se bloquea `bloqueo_avance_ms` (300 ms) tras cada cambio de fase y tras cada toque aceptado** (decisión del jugador, 2026-11-25) para que un doble clic no cierre la fase y luego el turno; un toque durante el bloqueo se ignora sin aviso. Deshabilitado (y con aspecto de deshabilitado) cuando no es el turno del jugador local, en `EsperandoTirada`, en `Reclutar` y en `Terminada`.
     - **Contador de piezas movidas** (arriba del botón de avanzar, solo en `Mover`): `piezasMovidas / límite` (por ejemplo `5/12`). Con Arremetida (`LimiteMovimientos(sin límite)`) muestra `piezasMovidas` y el ícono de infinito, sin tope. Al llegar al límite, el contador pasa a **borde grueso** (cupo lleno: solo se mueven el Rey y las piezas ya movidas; Movimiento, estados). El Rey no cuenta.
     - **Deshacer** (abajo a la izquierda, `Deshacer último movimiento`): activo solo si la pila de deshacer tiene al menos una entrada y la fase es `Mover` del turno del jugador local; desactivado en cualquier otro caso, de modo que `NadaQueDeshacer` no salga por la interfaz (Máquina, UI Requirements). Es la esquina opuesta a Avanzar.
-    - **Rendirse** (**arriba a la izquierda**, simétrico al «?»; decisión del jugador, 2026-11-25): botón chico con bandera blanca y el texto `Rendirse`. **Visible solo** para el jugador del turno que cumple la condición de la Librería (regla 3: tiene la mitad de las piezas vivas del rival o menos, `mias × 2 ≤ rival`); no visible en ningún otro caso ni para el que va ganando. El HUD **consulta** esa condición sobre el estado presentado (regla 1), no la recalcula: durante la cosecha el botón no aparece ni desaparece antes del primer cuadro del grupo 2, así no anticipa las muertes. Al tocarlo, Entrada pide la confirmación de dos botones (Entrada, regla 13).
+    - **Rendirse** (**arriba a la izquierda**, simétrico al «?»; decisión del jugador, 2026-11-25): botón chico con bandera blanca y el texto `Rendirse`. **Visible solo** para el jugador del turno cuando la consulta `RendirseDisponible(estado, jugador)` de la Librería es verdadera (regla 10: tiene la mitad de las piezas vivas del rival o menos, `mias × 2 ≤ rival`, **con el Rey** en los dos conteos); no visible en ningún otro caso ni para el que va ganando. El HUD **consulta** esa condición sobre el estado presentado (regla 1), no la recalcula: durante la cosecha el botón no aparece ni desaparece antes del primer cuadro del grupo 2, así no anticipa las muertes. Al tocarlo, Entrada pide la confirmación de dos botones, modal; en hotseat el emisor se toma al abrir el diálogo (Entrada, regla 13).
 15. **Mapa de pantalla (1080p).** El tablero (1632 × 1020 px) ocupa de y = 60 a y = 1080 y de x = 144 a x = 1776; **ningún elemento del HUD tapa una casilla** salvo las leyendas y placas centrales de ≤ 1 s (art bible §2, reglas de ritmo).
 
     | Zona | Contenido |
@@ -147,7 +147,7 @@ Los controles y la ficha derivan su estado de las fuentes de la regla 1; no hay 
 | | **Deshabilitado** | `EsperandoTirada`, `Reclutar`, turno rival, `Terminada` | Gris sin acento; no responde |
 | Deshacer | **Activo** | Fase `Mover` propia con la pila no vacía | Botón con texto e ícono |
 | | **Desactivado** | Cualquier otro caso | Gris |
-| Rendirse | **Visible** | Jugador del turno con `mias × 2 ≤ rival` | Botón con bandera blanca y texto |
+| Rendirse | **Visible** | `RendirseDisponible` (Librería, regla 10): jugador del turno con `mias × 2 ≤ rival`, Rey incluido | Botón con bandera blanca y texto |
 | | **Oculto** | Cualquier otro caso | No ocupa lugar ni deja hueco |
 | Contador de movidas | **Abierto** | `Mover`, `piezasMovidas < límite` | `5/12` |
 | | **Lleno** | `piezasMovidas = límite` | `12/12` con borde grueso |
@@ -175,7 +175,7 @@ Transiciones: toda variación visual dura **≤ 0,25 s con frenado suave** (art 
 
 | Sistema | Qué entra al HUD | Qué sale del HUD | Dueño de la interfaz |
 |---|---|---|---|
-| #1 Librería | `EffectiveStats`, vida, tipo, casilla, dueño, `enMuro`, `tramosRotos`, `Cubre`/`CubiertoPor`, condición de `Rendirse` (regla 3) | Nada | Librería (contrato de consultas) |
+| #1 Librería | `EffectiveStats`, vida, tipo, casilla, dueño, `enMuro`, `tramosRotos`, `Cubre`/`CubiertoPor`, consulta `RendirseDisponible` (regla 10) | Nada | Librería (contrato de consultas) |
 | #2 Catálogo | Cifras base (para la base entre paréntesis) y `vida` máxima; ID de tipo | Nada | Catálogo (requisito: mostrar la efectiva y, si difiere, la base) |
 | #3 Máquina de turno | Fase, etapa, jugador y número del turno, estado de la pila, eventos (`TurnoIniciado`, `FaseSaltada`, `ReclutaPerdido`, recluta automático) | Nada | Máquina (qué se emite); #15 (cómo se ve) |
 | #4 Tablero | Dimensiones, lado del castillo de cada jugador | Nada | Tablero |
@@ -442,7 +442,7 @@ La fórmula `alto_tarjeta` se define así:
 
 | Sistema | Tipo | Qué usa | Estado del GDD |
 |---|---|---|---|
-| #1 Librería de reglas | **Dura** | `EffectiveStats` y las consultas puras (vida, tipo, casilla, dueño, `enMuro`, `tramosRotos`, `Cubre`/`CubiertoPor`) y la condición de `Rendirse` (regla 3) | Existe |
+| #1 Librería de reglas | **Dura** | `EffectiveStats` y las consultas puras (vida, tipo, casilla, dueño, `enMuro`, `tramosRotos`, `Cubre`/`CubiertoPor`) y la consulta `RendirseDisponible` (regla 10) | Existe |
 | #2 Catálogo de piezas | **Dura** | Cifras base y vida máxima; ID de tipo. **Restricción que se le pide:** toda cifra y su bono máximo ≤ 99 (F1, AC-4) | Existe y ya nombra a #15 |
 | #3 Máquina de turno | **Dura** | Fase, etapa, jugador y número del turno, estado de la pila, eventos (`TurnoIniciado`, `FaseSaltada`, `ReclutaPerdido`, recluta automático, `PartidaTerminada`) | Existe y ya nombra a #15 |
 | #12 Timer de turno | **Dura** | Vista de relojes (regla 13) y eventos (regla 12): `mostrado_s`, `vinculante`, niveles de aviso, pausa, espera, tramo final | Existe y ya nombra a #15 |
@@ -658,3 +658,5 @@ Este sistema **es** la capa de interfaz de la partida; su especificación comple
 | 13 | ~~**Nombres de bando.**~~ **Resuelta 2026-11-26:** convención del jugador: «azul/rojo» = jugadores 0/1 como nombres internos de reglas y tests; Hueso (jugador 0) y Ciruela (jugador 1) son los colores en pantalla (Tablero regla 4, art bible §4) | — | — |
 | 14 | **Fuente tipográfica.** El art bible nombra la familia pero no la elige; F1 usa 7 px por cifra como supuesto (AC-3) | Director de arte | Antes de cerrar F1 |
 | 15 | ~~**Elección de la Player Fantasy.**~~ **Resuelta 2026-11-26:** el jugador confirmó la A, «Leo el tablero, no lo cuento» | — | — |
+| 16 | **Capa de amenaza del turno siguiente del rival** (pedido del Tablero, #4, Player Fantasy y Open Questions, 2026-11-27): lo que el rival puede golpear en su próximo turno, movimiento en cruz + alcance en círculo, calculado **antes de su tirada**, con la franja base (sin bono, que contiene la de Distracción) y la franja del Grito aparte. La calcula Alcance (#7), la activa un gesto de Entrada (#13); ¿qué muestra el HUD y qué la Vista previa (#16)? | Ficha y HUD (#15), con #16 | MVP |
+| 17 | Pendientes de presentación de la Librería (Open Question «Juego y presentación», 2026-11-27): aviso de que con RelojAgotado los ataques asignados no se resuelven, y su listado en la pantalla final (vienen en `PartidaTerminada`); mostrar `FaseSaltada` y el turno que una cascada dejó vacío; dueño de la pantalla de resultado de Tablas (ver Máquina, #3) | Ficha y HUD (#15), con #3 y #18 | MVP |

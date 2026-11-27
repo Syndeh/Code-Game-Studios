@@ -377,5 +377,6 @@ Salvo indicación: fase `Atacar` del jugador 0 (azul), tablero con solo las piez
 | ¿Cuántos turnos abren `Atacar` sin ataques útiles por la regla 14, y cuánto tiempo cuestan? La medida existe (Métricas, #19, regla 14). | Métricas (#19), playtest | MVP |
 | ¿Alcanzan 30 s (20 en el tramo final) para asignar 13 ataques o más en pantalla táctil? | Entrada (#13), playtest en teléfono | Antes de cerrar las reglas |
 | ¿Mostrar el alcance desde un destino hipotético mientras se mueve (pilar 1)? Lo recoge la Vista previa (#16, Open Questions 4). | Entrada (#13), Vista previa (#16) | En sus GDD |
+| **Capa de amenaza del turno siguiente del rival** (pedido del Tablero, #4, Player Fantasy y Open Questions, 2026-11-27): lo que el rival puede golpear en su próximo turno, movimiento en cruz + alcance en círculo, calculado **antes de su tirada**, con la franja base (sin bono, que contiene la de Distracción) y la franja del Grito aparte. El cálculo es de este GDD; la muestran Ficha y HUD (#15) y Vista previa (#16); el gesto que la activa es de Entrada (#13) | Alcance (#7), con #13, #15 y #16 | MVP |
 
 **Factibilidad:** regla pura de C#, sin superficie de motor. La parte leída de `docs/engine-reference/unity/modules/core.md` (C# 9, .NET Standard 2.1) no limita este diseño; no se revisó `breaking-changes.md`. No hay ADR todavía.
