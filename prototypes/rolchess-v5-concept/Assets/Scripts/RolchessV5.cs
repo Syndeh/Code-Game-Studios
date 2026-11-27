@@ -561,7 +561,9 @@ public class RolchessV5 : MonoBehaviour
     int AttackValue(Piece a)
     {
         int v = Atk[(int)a.kind];
-        if (boostOn[a.owner]) v += BoostAmount;
+        // Grito de guerra adds its +2 to every attack except the demolisher's explosion
+        // (GDD: Modificador ataque_ef, Catalogo regla 5; the demolisher only ever explodes).
+        if (boostOn[a.owner] && a.kind != Kind.Demoledor) v += BoostAmount;
         return v;
     }
 
@@ -599,8 +601,9 @@ public class RolchessV5 : MonoBehaviour
         }
     }
 
-    // Catapult area damage. Assumption: Grito de guerra adds its +2 here too.
-    int AreaValue(Piece a) => CatapultAreaDamage + (boostOn[a.owner] ? BoostAmount : 0);
+    // Catapult area damage on the 8 cells around the chosen one. Grito de guerra never adds
+    // to it (GDD: Catalogo regla 5, Modificador); only the chosen cell gets the +2: 12 and 6.
+    int AreaValue(Piece a) => CatapultAreaDamage;
 
     // Any enemy attack on a covered piece goes to the escudero covering it, if that escudero is
     // still alive and one cell away (2026-11-17: every piece, not only archers; area and

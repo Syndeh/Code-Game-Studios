@@ -54,7 +54,7 @@ escudo).
 | Cara | Qué hace |
 |---|---|
 | **Distracción** | No mueves este turno: pasas directo a atacar |
-| **Grito de guerra** | +2 de ataque y +2 de movimiento a todas tus piezas, solo en este turno (también suma +2 al daño de área de la catapulta) |
+| **Grito de guerra** | +2 de ataque y +2 de movimiento a todas tus piezas, solo en este turno. No suma al daño de área de la catapulta (las 8 casillas de alrededor) ni a la explosión del demoledor; sí a la casilla elegida de la catapulta |
 | **Llamada al servicio** | Reclutas 4 piezas comunes de un tipo: soldados, arqueros o escuderos |
 | **Cuerno de guerra** | Reclutas especiales: 4 jinetes, 2 catapultas o 1 demoledor |
 | **Arremetida** | Mueves todas las piezas que quieras, sin el límite de 12 |

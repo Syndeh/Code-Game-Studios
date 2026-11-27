@@ -54,7 +54,7 @@ agotado, Rendición), `reloj_azul` y `reloj_rojo` (segundos que les quedaron),
 | Arquero, alcance | 1–6 | **1–4** |
 | Arquero sobre su muro | +2 de escudo | **+2 de escudo y +2 de alcance** (1–6); ataca desde el muro. Las casillas rojizas muestran el alcance real |
 | Escudero, alcance de ataque | 1 | **1–2** (cubrir sigue siendo a un aliado vecino) |
-| Catapulta, daño | 12 en la casilla, 8 alrededor | **10 en la casilla, 6 alrededor** (con Grito de guerra: 12 y 8) |
+| Catapulta, daño | 12 en la casilla, 8 alrededor | **10 en la casilla, 6 alrededor** (con Grito de guerra: 12 y 6; el Grito no suma al área) |
 | Catapulta, escudo | 3 | **2** |
 | Soldado, escudo | 2 | **3** |
 | Castillo, reclutar | Con 1 muro derribado no se recluta | **Con 2 muros derribados** no se recluta |
