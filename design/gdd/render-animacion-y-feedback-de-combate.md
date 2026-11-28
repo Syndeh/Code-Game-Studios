@@ -1,6 +1,6 @@
 # Render, animación y feedback de combate
 
-> **Status**: Designed (`/design-review` 2026-11-26: NEEDS REVISION; correcciones aplicadas, pendiente de re-review)
+> **Status**: Approved (decisión del jugador al cerrar la tanda B, 2026-11-28: queda aprobado tal como lo marcó el índice el 2026-11-26, commit 6b9a4f6; el `/design-review` del 2026-11-26 dio NEEDS REVISION y se aplicaron las correcciones; sin log propio en `design/gdd/reviews/`. Los pedidos de la tanda B están en Open Questions)
 > **Author**: Martin Arin + Claude
 > **Last Updated**: 2026-11-26
 > **Last Verified**: 2026-11-26
@@ -132,6 +132,7 @@ Todas las marcas son de la capa del sistema (art bible §3, *Gramática de forma
 11. **Movimiento (Movimiento #6, Entrada #13).**
     - Cada destino legal lleva un **punto blanco al 60%** con el **costo** del destino adentro en número (≥ 14 px, negrita, borde Tinta; conflicto b).
     - Un hueco transitable se marca igual que una casilla libre (Castillo, Visual/Audio).
+    - Con un **arquero** elegido, los **tramos propios libres a los que puede subir** (los da `MovimientosLegales`, #6) llevan una marca **distinta por forma** de la de una casilla libre común (pedido de Castillo, UI Requirements; agregado al cerrar la tanda B, 2026-11-28). La forma la fija el art-director; hasta entonces es PROVISIONAL (Open Questions).
     - **Nunca hay flechas para mover**: las flechas son de ataque (Movimiento, Visual/Audio).
 12. **Ataque y cobertura (Alcance #7, Cobertura #8).**
     - **Alcance:** corchetes quietos en las esquinas, bermellón al 70% (conflicto a). La zona ciega queda sin corchete, y los objetivos válidos llevan corchetes más gruesos, en la capa 7, encima de la figura (regla 4).
@@ -187,7 +188,7 @@ Todas las marcas son de la capa del sistema (art bible §3, *Gramática de forma
     - Cada explosión deja **quemado** en la casilla del demoledor.
     - Cada tramo roto suma **escombros** junto al castillo.
 
-    La tierra removida y el quemado se desvanecen según `marca_visible` (F5). Los escombros y el hueco del tramo son estado del castillo y **no se desvanecen nunca** (Castillo, Visual/Audio; el art bible §6 queda por corregir). Ninguna marca supera el contraste de una figura ni la saturación del terreno.
+    La tierra removida y el quemado se desvanecen según `marca_visible` (F5). Los escombros y el hueco del tramo son estado del castillo y **no se desvanecen nunca** (Castillo, Visual/Audio; el art bible §6 y §9 ya lo dicen). Ninguna marca supera el contraste de una figura ni la saturación del terreno.
 24. **No se salta (decisión del 2026-11-26).** La cosecha se ve siempre **entera**, de 0 a `t_resolucion`: ningún toque, clic ni tecla la acorta. Un toque o clic sobre el tablero mientras dura **se ignora**: no salta, no elige, no inspecciona y no manda comandos (Entrada, #13, Edge Cases). Los controles del HUD y de la placa siguen con sus propias reglas (#15, #17), y `Rendirse` es el único que corta la cosecha (Edge Cases). Un toque en el cuadro siguiente al fin va a Entrada como siempre.
 25. **La Tirada espera a la presentación (decisión del jugador, 2026-11-26).** En partida local, el cliente es la autoridad que envía `Tirada` (Modificador, regla 9). La envía **cuando termina el grupo 1 de la cola** (la resolución, que siempre corre entera, regla 24), no antes. El grupo 2 (cambio de turno, #15) empieza en el mismo cuadro. En el centro hay una sola placa: desde el turno 2 la placa de la tirada (#17) lleva el renglón del turno y reemplaza al banner del HUD (#15, regla 13; decisión del jugador, 2026-11-26). Como el reloj del jugador no corre en `EsperandoTirada` (Máquina, regla 14), **la animación de la resolución no le cuesta tiempo al jugador siguiente** y la Open Question del Timer queda cerrada para el modo local. El costo va al tiempo de pared: ≤ `resolucion_max_s` por turno con ataques, fuera de los relojes, igual que las esperas de la tirada que el pilar 4 ya excluye. **Si el turno se cerró sin resolución** (sin asignaciones, o `FaseSaltada` de atacar), el cliente envía la `Tirada` cuando terminan la placa de #17 en curso y la leyenda central de #15 (`leyenda_ms`, ≤ 1,5 s), o en el mismo cuadro si no hay ninguna, fuera de los relojes (decisión del 2026-11-26). En el turno 1 no hay tirada (Máquina, regla 3) ni resolución previa. En el modo online la autoridad es el servidor (#28), y la espera queda como pregunta abierta.
 
@@ -202,7 +203,7 @@ Todas las marcas son de la capa del sistema (art bible §3, *Gramática de forma
     | Resolución | Grupo 1 de la cola | Pulso desde cada objetivo, después la base | La de F1 |
     | Tirada del Modificador | `Tirada` | −15%, viñeta suave, mientras está la placa | ≤ 0,25 s |
     | Distracción | `Tirada` con Distracción | Desaturado 40%, ~6500 K, ≤ 1,5 s | ≤ 0,25 s |
-    | Tramo final | `TramoFinalIniciado` (Timer) | Atardecer ~3800 K, −10%, viñeta larga, **permanente** | 1 s, una vez |
+    | Tramo final | `TramoFinalIniciado` (Timer), presentado con el **grupo 2** de la presentación (cambio de turno), no al llegar el evento, que cae en la cosecha (Timer, Cross-References; regla 25 y Edge Cases) | Atardecer ~3800 K, −10%, viñeta larga, **permanente** | 1 s, una vez |
     | Victoria / Derrota | `PartidaTerminada` | La de cada una en el art bible §2 (Victoria: la luz vuelve y la viñeta se centra en el Rey del ganador; Derrota: crepúsculo frío) | ≤ 0,25 s |
 
     Con el tramo final activo, los estados de fase se aplican **sobre** el atardecer, nunca lo reemplazan. *Turno del rival* (−10%, más frío) solo existe online: en local los dos jugadores miran la misma pantalla y no hay rival que mirar.
@@ -592,7 +593,7 @@ La fórmula `memoria_skin` se define así:
 | Área | La piedra cae en el centro; anillo de polvo sobre las vecinas; deja tierra removida | Disparo y caída grave |
 | Explosión | Estallido sobre las 8 vecinas; el demoledor desaparece dentro; deja quemado | El golpe más fuerte de la resolución |
 | `DanoATramo` | Pulso sobre la piedra; melladuras si cruza el umbral (F4) | Golpe sobre piedra |
-| `TramoRoto` | Hueco con escombro bajo y borde quebrado en `t_caida`; suman escombros | Derrumbe; más fuerte con el segundo tramo del castillo |
+| `TramoRoto` | Hueco con escombro bajo y borde quebrado en `t_caida`; suman escombros | Derrumbe; la resolución que **cruza** el corte (de menos de `TRAMOS_ROTOS_CORTE` a esa cifra o más, también de 0 a 3) lleva **una sola** señal de corte que tapa a los derrumbes de esa resolución (Castillo, Visual/Audio) |
 | `PiezaMuerta` (daño) | Se desatura y cae, todas juntas; sin cuerpo | Caída, igual para los dos bandos |
 | `CoberturaQuitada` (muerte / caducidad) | La línea se corta en la caída / se desvanece en el grupo 2 | Breve cue de escudo roto solo si murió el escudero / ninguno |
 | Estados de ambiente | Gradación y viñeta del terreno de la regla 26 | Lo decide #22 |
@@ -624,7 +625,8 @@ La fórmula `memoria_skin` se define así:
 7. La **disposición de dos números** en la casilla del arquero en el muro.
 8. Una orientación dibujada en el MVP (§8 dice «1 o 2»).
 9. Formato de skin con castillo opcional (§6 ya lo pedía por pack).
-10. Las dos correcciones del §6 que ya dejó Castillo: el interior es de 3 × 3, y los escombros y huecos no se desvanecen.
+10. Las dos correcciones del §6 que ya dejó Castillo: el interior es de 3 × 3, y los escombros y huecos no se desvanecen. (Hechas: §6 al cerrar la tanda 4 y §9 al cerrar la tanda B.)
+11. La marca **distinta por forma** de los tramos propios a los que puede subir el arquero elegido (regla 11; pedido de Castillo, tanda B).
 
 > 📌 **Asset Spec** — Visual/Audio requirements are defined. After the art bible is approved, run `/asset-spec system:render-animacion-y-feedback-de-combate` to produce per-asset visual descriptions, dimensions, and generation prompts from this section.
 
@@ -820,3 +822,4 @@ Valores del Catálogo v5 y `vida_tramo` 30; perillas de tiempo por defecto (F1).
 | (CD-GDD-ALIGN, pilar 4) ¿Cuánto tiempo de pared suma la presentación por partida, fuera de los relojes? Medir el tiempo total de presentación de las resoluciones contra la duración de la partida; si pasa de ~1 min, bajar `t_lectura` o volver a la Tirada inmediata | Métricas (#19), Máquina (#3) | MVP |
 | (CD-GDD-ALIGN, pilares 1 y 2) ¿Se nota que el pulso sale más grande que la punta cuando un área salpica, y que un combo de 6 se ve igual que uno de 3? Pregunta de playtest. Si molesta, contar los golpes de área en la punta o sumar un escalón ×2,5 | Render (#18), director de arte; playtest | MVP |
 | La silueta de cada figura en el **cuadro de golpe** tiene que pasar la prueba del 90% (art bible §3). ¿La prueba la corre el Kit (#38) sobre el índice `k` del manifiesto? | Kit (#38) | Full Vision |
+| **Pedidos de la tanda B** (Castillo #5, Timer #12 y Máquina #3, Approved; cierre del 2026-11-28). (a) El **peso de ROTO** no depende de `atacantesRivales`: la rotura común es el último golpe suelto sobre un tramo gastado. (b) El golpe que **cruza** el corte lleva un acento propio. (c) Un AC con **captura retenida** de la marca de los tramos a los que puede subir el arquero (regla 11; Castillo lo citará en «Sin duplicar»), hoy PROVISIONAL hasta que el art-director fije la forma. (d) AC-8 no pide la **firma del art-director** que pide Castillo AC-31: alinear. (e) El **banner del turno** (donde lo haya) aparece en el mismo instante que el contorno, nunca con el evento `TurnoIniciado`, que sale durante la cosecha; la Máquina dice «el más tardío de: fin de la presentación del turno cerrado y cambio de `jugadorActivo` en la vista (Tirada)», y Render pone el cambio de contorno y emblema en el grupo 2: alinear la redacción. (f) Online, si la `Tirada` llega mientras el cliente todavía presenta la cosecha, el contorno cambia cuando la placa ya empezó: PROVISIONAL con #28. (g) El renglón «Tramo final» y su cue van con la placa de la `Tirada` (grupo 3); nada al llegar el evento | Render (#18), art-director, con #15, #17, #22 y #28 | Antes de `/asset-spec` de Render |

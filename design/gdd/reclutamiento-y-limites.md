@@ -120,13 +120,13 @@ Todo es aritmética entera. Los valores de piezas salen del Catálogo.
 
 The `tipo_disponible` formula is defined as:
 
-`tipo_disponible(j, t) = puedeReclutar(j) Y llamadas_restantes(j, t) > 0 Y vivas(j, t) + n_t ≤ topeVivas_t Y libres(j) ≥ n_t`
+`tipo_disponible(j, t) = puedeReclutar(estado, j) Y llamadas_restantes(j, t) > 0 Y vivas(j, t) + n_t ≤ topeVivas_t Y libres(j) ≥ n_t`
 
 **Variables:**
 
 | Variable | Type | Range | Source | Description |
 |----------|------|-------|--------|-------------|
-| `puedeReclutar(j)` | bool | — | calculated (#5, F7) | Menos de 2 tramos rotos |
+| `puedeReclutar(estado, j)` | bool (resultado tipado) | — | calculated (#5, regla 10 y F7) | `tramosRotos(estado, j) < TRAMOS_ROTOS_CORTE`. Con un jugador fuera de {0, 1} da `ErrorInterno`, inalcanzable con un jugador del estado: acá es una guarda defensiva, y dentro de `Aplicar` se usa la variante `Try…` de #5 (regla 14), que propaga el `false` como `ErrorInterno` del comando |
 | `llamadas_restantes(j, t)` | int | 0–20 (hoy 0–6) | calculated (F2) | Llamadas sin usar |
 | `vivas(j, t)` | int | 0–`topeVivas_t` | calculated (estado) | Piezas vivas del tipo |
 | `n_t` | int | 1–17 (hoy 4, 2 o 1) | data file (config) | Piezas por llamada |
@@ -157,7 +157,7 @@ The `llamadas_restantes` formula is defined as:
 
 The `estado_cara` formula is defined as:
 
-`estado_cara(j, c) = Agotada si NO puedeReclutar(j) o ningún t de c con llamadas_restantes(j, t) > 0; si no, SinLugar si ningún t de c con tipo_disponible(j, t); si no, Disponible`
+`estado_cara(j, c) = Agotada si NO puedeReclutar(estado, j) o ningún t de c con llamadas_restantes(j, t) > 0; si no, SinLugar si ningún t de c con tipo_disponible(j, t); si no, Disponible`
 
 **Variables:**
 
@@ -241,6 +241,7 @@ The `delta_reclutamiento` formula is defined as:
 - **If quedan 3 casillas libres en el anillo**: los tipos de 4 se bloquean (`SinLugarParaReclutar`); catapulta (2) y demoledor (1) siguen. Llamada queda SinLugar.
 - **If el anillo está lleno por piezas propias al empezar el turno**: las dos caras bajan a 0 ese turno. El jugador no puede despejarlo antes: `Mover` viene después.
 - **If el rival ocupa 14 o más casillas del anillo**: bloquea las llamadas de 4. Es legal; exige casi todo un ejército.
+- **If el dueño ocupa con sus piezas casillas de su propio anillo** (por ejemplo, para tapar el frente del muro): se saltan igual que las del rival (regla 8), así que sus reclutas aparecen más atrás en `orden_aparicion`, y con menos de `n_t` libres esa llamada queda bloqueada (`SinLugarParaReclutar`; si le pasa a todos los tipos de la cara, la cara queda `SinLugar`, F3). Es una decisión del dueño: tapar el anillo frente al muro también es defensa, y tiene ese costo.
 - **If el jugador llena su propio anillo para subir Grito o Arremetida**: legal y reversible. *Posible estrategia degenerada; se mide (Open Questions).*
 - **If un tipo se queda sin llamadas y los otros de su cara siguen**: la cara sigue Disponible si alguno entra.
 - **If las dos caras no están Disponibles por causas distintas**: se aplican los dos repartos (F5).
@@ -276,7 +277,7 @@ The `delta_reclutamiento` formula is defined as:
 | #2 Catálogo de piezas | Dura | `topeVivas`, orden de tipos, vida |
 | #3 Máquina de turno | Dura | Fase `Reclutar`, momento del recluta automático |
 | #4 Tablero y despliegue | Dura | Anillo, `ocupante`, `ladoDelRival` |
-| #5 Castillo y muros | Dura | `puedeReclutar` |
+| #5 Castillo y muros | Dura | `puedeReclutar(estado, j)` (resultado tipado); dentro de `Aplicar` usa las variantes `Try…` de #5, regla 14 (la consulta pública no tiene canal de error para las constantes) |
 
 **Dependen de este sistema:**
 
@@ -373,7 +374,7 @@ Todos automatizados (EditMode) salvo donde se indica.
 - **AC-12 (F4, ocupadas e IDs)** — **GIVEN** (5,7) ocupada, **WHEN** azul recluta 4, **THEN** aparecen en (5,5), (5,6), (5,8) y (5,9), y los IDs crecen por fila y columna.
 - **AC-13 (regla 8)** — **GIVEN** el tramo (4,7) roto, **THEN** ningún recluta aparece en (4,7).
 - **AC-14 (regla 9, con #6)** — **GIVEN** un recluta elegido y el frente despejado, **WHEN** se abre `Mover`, **THEN** tiene `usados = 0`, vida completa y movimientos legales, y moverlo gasta 1 de cupo.
-- **AC-15 (regla 10, con #3 y #12)** — **GIVEN** salió Cuerno y la catapulta está bloqueada, **WHEN** vence mover, **THEN** se reclutan 4 jinetes con `automatico`, la fase es `Atacar` (si hay acción posible) y ninguno se movió.
+- **AC-15 (regla 10, con #3 y #12)** — **GIVEN** salió Cuerno y la catapulta está bloqueada, **WHEN** vence mover, **THEN** se reclutan 4 jinetes con `automatico` en **un solo** evento `Reclutado`, la fase es `Atacar` (si hay acción posible) y ninguno se movió.
 - **AC-16 (regla 11)** — **GIVEN** un reclutamiento, **WHEN** se envía `Deshacer` sin movimientos, **THEN** `NadaQueDeshacer` y las piezas siguen.
 - **AC-17 (regla 12)** — **GIVEN** un reclutamiento, **THEN** el evento trae jugador, cara, tipo, ids, casillas, llamadas restantes y `automatico`.
 - **AC-18 (F5, con #1 y #11)** — **GIVEN** la base 15/20/25/25/15 y 13 piezas sin el Rey, **THEN** las cuatro filas del ejemplo de F5 dan exactamente esas tablas (la cuarta, con 12 piezas).

@@ -123,8 +123,10 @@ reiluminan.
 
 - Las transiciones de estado duran ≤ 0,25 s, salvo la del tramo final (1 s, una sola vez).
   No le suman tiempo al turno (pilar 4).
-- La placa del Modificador, el banner de Distracción y el de Tramo final aparecen al centro y
-  nunca tapan una casilla con pieza por más de 1 s.
+- La placa del Modificador y el banner de Distracción aparecen al centro y nunca tapan una
+  casilla con pieza por más de 1 s. **El tramo final no tiene banner propio desde el turno 2:**
+  se anuncia con un renglón «Tramo final» en la placa de la cara del turno siguiente (Timer,
+  #12, Cross-References; cierre de la tanda B, 2026-11-28).
 - Victoria y derrota son pantallas espejo: la misma composición con luz opuesta ("luz que
   vuelve" contra "luz que se va"). Victoria no usa el atardecer del tramo final, para que los
   dos estados no se confundan.
@@ -337,8 +339,9 @@ escudo, contra el ancla).
 | Placa del Modificador | Todos | Nombre escrito más un ícono por cara |
 | Flecha de ataque contra cobertura del escudero | Todos (en grises, L\* 56 contra 63) | La flecha es un arco continuo con punta y borde Tinta; la cobertura es una línea recta eslabonada sin punta. El combo se lee por el grosor de la punta fundida, no por el color |
 
-**Respaldo sonoro:** se pide al director de audio una señal distinta para MUERE y ROTO al
-confirmar la vista previa, para el tramo final y para los últimos 10 s del timer.
+**Respaldo sonoro:** se pide al director de audio una señal distinta para MUERE y ROTO
+**cuando aparece su placa en la vista previa, una vez por transición** (Vista previa, #16),
+para el tramo final y para los últimos 10 s del timer.
 
 **Prueba de validación:** capturas de un turno de ataque pasadas por los filtros protan,
 deutan y tritan y por escala de grises. En las cuatro versiones se tienen que leer bando,
@@ -438,7 +441,7 @@ Sin texto ni números:
 - **Catapulta:** donde cae deja una mancha de tierra removida.
 - **Demoledor:** deja una marca chamuscada.
 - **Muro roto:** deja escombros bajos.
-- **Castillo:** cuantos más tramos dañados, más escombros alrededor del muro; se lee de
+- **Castillo:** cuantos más tramos rotos, más escombros alrededor del muro; se lee de
   lejos qué castillo viene perdiendo.
 
 **Límites:** las marcas quedan por debajo del contraste de cualquier figura (Sección 1), no
@@ -520,12 +523,23 @@ decide el director de arte.
   («Elegido por el tiempo») en la zona de avisos, sin marca sobre la pieza.
 - **Quieto (pausa, espera de la tirada, espera del servidor):** el anillo queda vacío, con
   **ícono y texto** del motivo (ícono de pausa: dos barras verticales; de espera: reloj de
-  arena, forma a definir). Los relojes se quedan quietos con su número, sin subrayado ni
-  pulso. Si había aviso, se mantiene el borde grueso, sin ámbar ni pulso. Durante la cosecha
+  arena, forma a definir, el mismo para todas las esperas: decisión del jugador al cerrar la
+  tanda B, 2026-11-28). Los relojes se quedan quietos con su número, sin pulso; en pausa y
+  en la espera del servidor, sin subrayado; **en la cosecha y en la espera de la tirada, el
+  subrayado y el emblema siguen en el bando que cerró** (Máquina de turno, #3, AC-30). Si había aviso, se mantiene el borde grueso, sin ámbar ni pulso. Durante la cosecha
   de la resolución no hay texto: anillo y relojes quietos con el estado del turno que se
   resuelve.
+- **Espera de la placa** (Timer, #12, regla 17): mientras la placa de la cara está en pantalla
+  y la etapa todavía no se armó, el anillo queda **lleno y quieto** (la duración completa de
+  la etapa), con el emblema y el subrayado de activo en el **bando nuevo**. No se tiene que
+  confundir con «quieto = vacío» (las esperas de arriba), con «corriendo» ni con «esperando
+  al servidor»: forma a definir por el director de arte.
 - **Fin por reloj agotado:** la pantalla de Victoria o Derrota muestra los dos relojes en el
-  resumen; el texto lo define la Máquina de turno (#3).
+  resumen; el texto (`fin.RelojAgotado`, y `fin.Tablas` para Tablas) lo define la Máquina de
+  turno (#3, Visual/Audio).
+- **Pendientes para el director de arte (cierre de la tanda B):** una forma estática del
+  aviso para «Reducir efectos» y para el tramo final (no «más grueso»), y otra para el nivel
+  2; la composición de la placa neutra de Tablas y la de `DobleRey` en hotseat (§2).
 
 ### Tipografía
 
@@ -720,7 +734,7 @@ El humor vive en la capa 2 del orden de lectura (la figura): no le quita lugar a
 |---|---|
 | **Qué se toma** | **Silueta (Sección 3):** unidades minimalistas que se reconocen por un solo objeto (espada, lanza, arco, escudo), nunca por el detalle. **Terreno que guarda la batalla (Sección 6):** el suelo queda marcado después del combate y se lee de un vistazo, sin texto. **Ambiente del terreno (Sección 2):** paleta apagada de pocos tonos, cambios de ambiente con gradación de temperatura y brillo, y bordes que se funden hacia afuera (la viñeta y el borde que se oscurece) |
 | **Sirve a** | Secciones 2 (solo terreno y viñeta), 3 y 6 |
-| **Qué se evita** | El 3D de pocos polígonos con luz en tiempo real (nuestra luz está pintada, Sección 6); el tablero como isla o diorama (el terreno sigue más allá del borde); las unidades diminutas en escuadra (la nuestra es una figura al 70-80% de la casilla); la sangre permanente (nuestras marcas son tierra, quemadura y escombros, y se desvanecen a los 3 turnos); los colores de comandante en la unidad |
+| **Qué se evita** | El 3D de pocos polígonos con luz en tiempo real (nuestra luz está pintada, Sección 6); el tablero como isla o diorama (el terreno sigue más allá del borde); las unidades diminutas en escuadra (la nuestra es una figura al 70-80% de la casilla); la sangre permanente (nuestras marcas de batalla son tierra removida y quemadura, y se desvanecen a los 3 turnos; los escombros y el hueco de un tramo roto no se desvanecen nunca, porque son estado de juego: el tramo no se repara, Sección 6); los colores de comandante en la unidad |
 
 ### 3. Miniaturas de mesa pintadas: la luz y la pintura de la figura
 

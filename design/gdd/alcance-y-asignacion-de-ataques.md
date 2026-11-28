@@ -237,7 +237,7 @@ The `asignaciones_max` formula is defined as:
 | #2 Catálogo | Dura | `alcanceMin`, `alcanceMax`, `danoArea`, IDs de tipo | Sí |
 | #3 Máquina de turno | Dura | Fase `Atacar`, cierre, salto | Sí |
 | #4 Tablero | Dura | `dentro`, `ocupante`, `hayTramo`, dimensiones | Sí |
-| #5 Castillo y muros | Dura | Tramo enemigo en pie, dueño del tramo, bono del arquero (F5) | Sí |
+| #5 Castillo y muros | Dura | Tramo enemigo en pie, dueño del tramo, bono del arquero (F5); dentro de `Aplicar` usa las variantes `Try…` de #5, regla 14 (la consulta pública no tiene canal de error para las constantes) | Sí |
 | #8 Cobertura | Blanda | Exclusión ataque/cobertura del escudero | Sí |
 | #11 Modificador | Blanda | Grito: +2 de ataque salvo en el modo Explosión | Sí |
 | #10 Reclutamiento | Blanda | Un recluta puede atacar ese turno | Sí |
@@ -263,7 +263,7 @@ The `asignaciones_max` formula is defined as:
 |---|---|---|---|---|---|
 | `alcanceMax` por tipo (**dueño: Catálogo, #2**) | 1 / 4 / 2 / 6 / 1 / 1 / 1 | 1–6, sin medir; inerte desde 27 | La zona crece con el cuadrado: más objetivos y tablero ilegible | Menos combinaciones posibles (pilar 2) | `alcanceMin`; el del demoledor **es inerte** (regla 7) |
 | `alcanceMin` por tipo (**dueño: Catálogo, #2**) | 1; catapulta 2 | 1–3, sin medir | Zona ciega tan grande que la catapulta no sirve cerca | Con 1 la catapulta no tiene contrajuego cuerpo a cuerpo | `alcanceMax` |
-| `bono_alcance_muro` (**dueño: Castillo, #5**) | 2 | 1–3 (lo fija #5) | El muro domina el centro | Subir no paga | `alcanceMax` del arquero |
+| `BONO_ALCANCE_MURO` (**dueño: Castillo, #5; constante del contrato, no perilla**: regla 14 de #5, dominio 0–10, hoy 2; cambiarla sube la versión de reglas) | 2 | 1–3 (rango seguro de #5) | El muro domina el centro | Subir no paga | `alcanceMax` del arquero |
 | «+ 1» de F1 | 1 | Constante del contrato; no se ajusta | — | Con 0, alcance 1 pierde las diagonales | Cambiarla sube la versión de reglas |
 | Ataques por pieza y turno | 1 | Constante del contrato; no se ajusta | Rompe el presupuesto de turno (pilar 4) | — | Cambiarla sube la versión de reglas |
 

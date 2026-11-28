@@ -54,7 +54,7 @@
 #   in any other shape is reported as unsupported layout, with its number.
 
 version: 1
-last_updated: "2026-11-27"
+last_updated: "2026-11-28"
 
 # ─── ENTITIES ────────────────────────────────────────────────────────────────
 # Named game-world objects: enemies, NPCs, characters, factions, bosses.
@@ -494,8 +494,39 @@ formulas:
       - t
     output_range: [7, 256]
     expression: "suma de tope_vivas_t * movimiento_t para t = 0 a 6; invariante pila_max <= pila_tope"
-    notes: "D4. Peor caso de entradas de la pila de deshacer en un turno (Arremetida, un paso por comando). Valores vigentes 48+64+48+16+48+24+6 = 254 de 256; PrepararContexto rechaza con ConfigInvalida un Catalogo que supere 256. Confirmada por Movimiento (F5); no cuenta el bono del Grito: por eso limite_normal va de 1 a 37."
+    notes: "D4. Peor caso de entradas de la pila de deshacer en un turno, sin bono (Arremetida, un paso por comando). Valores vigentes 48+64+48+16+48+24+6 = 254 de 256; PrepararContexto rechaza con ConfigInvalida(F8) un Catalogo que supere 256 (Catalogo, regla 6). Confirmada por Movimiento (F5). No cuenta el bono del Grito: eso lo cubre cota_grito. El 37 es el tope duro de la config de limite_normal (Libreria, regla 2) y con el Catalogo vigente coincide con lo que deja cota_grito; no es una consecuencia de pila_max."
     added: 2026-11-20
+    revised: 2026-11-28
+  - name: cota_grito
+    status: active
+    source: design/gdd/maquina-de-turno.md
+    referenced_by:
+      - design/gdd/maquina-de-turno.md
+      - design/gdd/libreria-de-reglas.md
+    variables:
+      - movimiento_rey
+      - movimiento_t
+      - tope_vivas_t
+      - bono_grito_movimiento
+      - limite_normal
+      - piezas_sin_rey_max
+    output_range: [2, 256]
+    expression: "(movimiento_rey + bono) + suma de los n_grito valores mayores de (movimiento_t + bono) sobre el multiconjunto de piezas sin el Rey (cada tipo t aparece tope_vivas_t veces); n_grito = min(limite_normal, piezas_sin_rey_max); bono = bono_grito_movimiento; invariante cota_grito <= pila_tope (256)"
+    notes: "D4 de la Maquina (la formula es la F5 de Movimiento). Peor caso de la pila de deshacer con el Grito. Valores vigentes: 12 x 8 + 8 = 104; 254 con limite_normal 37; 260 con 38. La valida CrearPartida con la config, despues de limite_normal y tablaReclutas y antes de T6 (Libreria, regla 2); rechaza con ConfigInvalida y el codigo del campo, propuesto PilaGrito (lo fija el ADR)."
+    added: 2026-11-28
+    revised: ""
+  - name: pila_peor
+    status: active
+    source: design/gdd/maquina-de-turno.md
+    referenced_by:
+      - design/gdd/maquina-de-turno.md
+    variables:
+      - pila_max
+      - cota_grito
+    output_range: [7, 256]
+    expression: "max(pila_max, cota_grito)"
+    notes: "D4. Con las dos validaciones (F8 del Catalogo y cota_grito en CrearPartida), pila_peor <= 256 en cualquier turno. Hoy 254."
+    added: 2026-11-28
     revised: ""
   - name: turnos_presupuesto
     status: active
@@ -504,13 +535,15 @@ formulas:
       - design/gdd/maquina-de-turno.md
       - design/gdd/metricas-locales-de-partida.md
     variables:
-      - T_tope
-      - seg_medio
-    output_range: [1, 1500]
-    expression: "T_tope / seg_medio, division entera hacia abajo; seg_medio minimo 1"
-    notes: "D1. Cuantos turnos caben en el tope de partida (1500 s) al promedio medido por turno. v4: 57 s -> 26 turnos, 40 s -> 37. Formula de diseno que usan las Metricas (#19); no corre en el nucleo. Resolucion (#9), Reclutamiento (#10) y Modificador (#11) declaran su delta de turnos contra este presupuesto."
+      - reloj_jugador_s
+      - N_J
+      - duracion_ms_J
+      - k_J
+    output_range: [16, 1498]
+    expression: "k_J = ceil((reloj_jugador_s * 1000 * N_J) / max(duracion_ms_J, 1000 * N_J)) - 1 si N_J >= 1; k_J = reloj_jugador_s - 1 si N_J = 0; turnos_presupuesto = min(2 * k_0, 2 * k_1 + 1); todo en ms enteros (int64), sin redondeos intermedios"
+    notes: "D1 (una sola formula; reemplaza la de bolsa comun T_tope / seg_medio, 2026-11-27). Turnos completos que caben antes de que el primero de los dos agote su reloj. N_J y duracion_ms_J cuentan los turnos de J cerrados con TurnoTerminado y el cortado por RelojAgotado (dato completo); no cuentan los cortados por Rendirse, CerrarPartida(Abandono) o Tablas. consumido_ms_t = ms_mover + ms_atacar del TurnoMedido del Timer. Piso 16: la guarda 1 del Timer (turno_max_s x 8 < reloj_jugador_s) da k_J >= 8. Techo 1.498 con el piso de 1.000 ms por turno. Ritmos iguales: 2 x k (agota primero azul). Solo modos con timer (Sin limite: sin presupuesto). La calcula la herramienta de informe de Metricas (#19); no corre en el nucleo. Resolucion (#9), Reclutamiento (#10) y Modificador (#11) declaran su delta de turnos contra este presupuesto. Ej.: los dos a 60.000 ms por turno -> k 12, presupuesto 24."
     added: 2026-11-20
-    revised: ""
+    revised: 2026-11-28
   - name: distancia_frente
     status: active
     source: design/gdd/tablero-y-despliegue-inicial.md
@@ -585,9 +618,9 @@ formulas:
       - vida_tramo
     output_range: [0, 1000]
     expression: "max(0, vida - bruto)"
-    notes: "F1. Vida del tramo despues de una resolucion; sin escudo (escudo 0 fijo). La aplica Resolucion (#9). Ej.: vida 30 con bruto 32 -> 0 (roto); con bruto 8 -> 22."
+    notes: "F1. Vida del tramo despues de una resolucion; sin escudo (escudo 0 fijo). La aplica Resolucion (#9). bruto de 0 a 61.610 por casilla (61 piezas, cada una a lo sumo una vez, dano hasta 1.010; Resolucion F1), lejos de int32. Ej.: vida 30 con bruto 32 -> 0 (roto); con bruto 8 -> 22."
     added: 2026-11-25
-    revised: ""
+    revised: 2026-11-28
   - name: vida_quitada_tramo
     status: active
     source: design/gdd/castillo-y-muros.md
@@ -612,9 +645,9 @@ formulas:
       - ataque_a
     output_range: [1, 1000]
     expression: "ceil(vida_tramo / ataque_a) = (vida_tramo + ataque_a - 1) / ataque_a, division entera hacia abajo"
-    notes: "F3. Oraculo de tests de balance; no entra al nucleo. Con vida_tramo 30: soldado 4, arquero 5, escudero 8, catapulta 3, jinete 4, demoledor 1, rey 4 (con Grito de guerra +2: 3, 4, 5, 3, 3, 1, 3). Borde: ataque del demoledor 30 = vida_tramo 30; con 31 pasa a 2 (excepcion aprobada 2026-11-25; Confirmado por Resolución (#9), regla 8 y F6)."
+    notes: "F3. Oraculo de tests de balance; no entra al nucleo. Con vida_tramo 30: soldado 4, arquero 5, escudero 8, catapulta 3, jinete 4, demoledor 1, rey 4 (con Grito de guerra +2: 3, 4, 5, 3, 3, 1, 3). El Grito no le suma ataque al demoledor (Catalogo, regla 5): con vida_tramo 31 da 2 tambien con Grito. Borde: ataque del demoledor 30 = vida_tramo 30; con 31 pasa a 2 (excepcion aprobada 2026-11-25; Confirmado por Resolucion (#9), regla 8 y F6). Una explosion rompe hasta 3 tramos desde afuera y hasta 5 desde una esquina del interior (tramos_en_explosion, #9 F6)."
     added: 2026-11-25
-    revised: ""
+    revised: 2026-11-28
   - name: piezas_para_cortar
     status: active
     source: design/gdd/castillo-y-muros.md
@@ -626,9 +659,9 @@ formulas:
       - piezas_para_romper
     output_range: [1, 16000]
     expression: "tramos_rotos_corte * piezas_para_romper(a)"
-    notes: "F4. Oraculo de tests de balance; cota inferior sin area ni explosion. Con soldados: 8, contra 5 para matar al Rey (piezas_para_matar); el test falla si un ajuste invierte esa relacion."
+    notes: "F4. Oraculo de tests de balance. No es cota inferior: ignora el area y la explosion, asi que sobreestima lo que cuesta cortar (con un solo tipo y golpes directos es exacto; con area o explosion el costo real puede ser menor; demoledor: F4 da 2, en el juego alcanza 1). Con soldados: 8, contra 5 para matar al Rey (piezas_para_matar); el test falla si un ajuste invierte esa relacion."
     added: 2026-11-25
-    revised: ""
+    revised: 2026-11-28
   - name: estadisticas_en_muro
     status: active
     source: design/gdd/castillo-y-muros.md
@@ -648,9 +681,9 @@ formulas:
       - bono_alcance_muro
     output_range: [0, 1010]
     expression: "escudo_efectivo = escudo + (enMuro ? bono_escudo_muro : 0); alcance_max_efectivo = alcance_max + (enMuro ? bono_alcance_muro : 0)"
-    notes: "F5. enMuro = arquero sobre un tramo propio con vida > 0; consulta pura, evaluada al empezar la resolucion. Arquero vigente: escudo 2 -> 4, alcance 1-4 -> 1-6; el ataque no cambia. Entra a EffectiveStats (Libreria, AC-12b)."
+    notes: "F5. Salida: escudo_efectivo 0-1.010 y alcance_max_efectivo 1-1.010 (dato del Catalogo mas un bono de 0 a 10). enMuro = arquero de su dueno sobre un tramo propio en pie; consulta pura y total, evaluada al empezar la resolucion. Arquero vigente: escudo 2 -> 4, alcance 1-4 -> 1-6; el ataque no cambia. Entra a EffectiveStats (Libreria, AC-12b)."
     added: 2026-11-25
-    revised: ""
+    revised: 2026-11-28
   - name: dano_casilla_tramo_con_arquero
     status: active
     source: design/gdd/castillo-y-muros.md
@@ -659,11 +692,11 @@ formulas:
     variables:
       - bruto
       - escudo_efectivo
-    output_range: [0, 24999999]
+    output_range: [0, 61610]
     expression: "neto_pieza = max(0, bruto - escudo_efectivo); neto_tramo = bruto (despues vida_tramo_tras_resolver)"
-    notes: "F6. Dano compartido: lo que cae en la casilla va a la pieza y al tramo a la vez. La parte de la pieza puede absorberla un escudero que la cubre; la del tramo no (decision 2026-11-25). Ej.: 4 soldados (bruto 32) sobre arquero con escudo 4: pieza 28, tramo 32."
+    notes: "F6. Dano compartido: lo que cae en la casilla va a la pieza y al tramo a la vez. La parte de la pieza puede absorberla un escudero que la cubre; la del tramo no (decision 2026-11-25). bruto de 0 a 61.610 por casilla (antes 24.999.999, que era la cota de una resolucion entera; C-07/C-08). Ej.: 4 soldados (bruto 32) sobre arquero con escudo 4: pieza 28, tramo 32."
     added: 2026-11-25
-    revised: ""
+    revised: 2026-11-28
   - name: tramos_rotos
     status: active
     source: design/gdd/castillo-y-muros.md
@@ -680,8 +713,22 @@ formulas:
       - tramos_rotos_corte
     output_range: [0, 16]
     expression: "tramos_rotos(j) = tramos del castillo de j con vida = 0; puede_reclutar(j) = tramos_rotos(j) < tramos_rotos_corte"
-    notes: "F7. Permanente: un tramo roto no se repara. Lo leen Reclutamiento (#10) y la Libreria, que pone en 0 las caras de reclutar de la tabla efectiva del Modificador (#11) con reparto_liberado. Rige desde la tabla del siguiente turno del dueno del castillo."
+    notes: "F7. Permanente: un tramo roto no se repara. Lo leen Reclutamiento (#10) y la Libreria, que pone en 0 las caras de reclutar de la tabla efectiva del Modificador (#11) con reparto_liberado. Rige desde la tabla del siguiente turno del dueno del castillo. El corte es el cruce de tramos_rotos de < tramos_rotos_corte a >= tramos_rotos_corte en una resolucion (no el valor 2): una explosion puede llevarlo de 0 o 1 a 3, y hasta 5 desde el interior."
     added: 2026-11-25
+    revised: 2026-11-28
+  - name: tramos_en_explosion
+    status: active
+    source: design/gdd/resolucion-simultanea-del-dano.md
+    referenced_by:
+      - design/gdd/resolucion-simultanea-del-dano.md
+    variables:
+      - c
+      - vida_t
+      - ataque_ef_demoledor
+    output_range: [0, 5]
+    expression: "tramos_en_explosion(c) = tramos en pie entre las 8 vecinas de c; tramos_rotos_por_explosion(c) = cuantos de esos tienen vida <= ataque_ef(demoledor)"
+    notes: "F6 de Resolucion. Oraculo de tests de balance de la excepcion del demoledor (Castillo F3 y F4); no entra al nucleo ni a la vista previa. Pegado por fuera a un tramo recto 3, junto a una esquina 2, esquina exterior en diagonal 1; por dentro del castillo 3 contra un lado y hasta 5 en una esquina del interior. Con vida_tramo <= 30 los rotos igualan a los tramos; con 31, 0 (el Grito no le suma al demoledor)."
+    added: 2026-11-28
     revised: ""
   - name: movimiento_restante
     status: active
@@ -916,13 +963,15 @@ formulas:
       - design/gdd/maquina-de-turno.md
       - design/gdd/metricas-locales-de-partida.md
     variables:
-      - dur_mover_s
-      - dur_atacar_s
-    output_range: [45, 125]
-    expression: "dur_mover + dur_atacar segun modo y tramo"
-    notes: "D1 de Timer; hoy 90 y 60."
+      - dur_mover_normal_s
+      - dur_atacar_normal_s
+      - dur_mover_final_s
+      - dur_atacar_final_s
+    output_range: [45, 93]
+    expression: "dur_mover + dur_atacar del modo y del tramo (Variable normal: dur_mover_normal_s + dur_atacar_normal_s; Variable final y Fijo 60: los _final_s; Fijo 90: los _normal_s)"
+    notes: "D1 de Timer; hoy 90 y 60. Guarda 1: turno_max_s x 8 < reloj_jugador_s, para el modo de la partida y cada uno de sus tramos (93 con 750; 80 con 645). Techo de consumido_ms_t en la D1 de la Maquina."
     added: 2026-11-25
-    revised: ""
+    revised: 2026-11-28
   - name: tramo
     status: active
     source: design/gdd/timer-de-turno.md
@@ -931,11 +980,11 @@ formulas:
     variables:
       - consumido_ms
       - umbral_tramo_final_s
-    output_range: [0, 1]
-    expression: "final si modo = Variable y consumido_ms[0] + consumido_ms[1] >= umbral_tramo_final_s * 1000"
-    notes: "D2 de Timer; tiempo consumido, no hora de pared. Rige desde el turno siguiente."
+    output_range: [normal, final]
+    expression: "final si modo = Variable y consumido_ms[0] + consumido_ms[1] >= umbral_tramo_final_s * 1000; se fija al cerrar el turno anterior"
+    notes: "D2 de Timer; enum (normal, final), no un numero. Tiempo consumido, no hora de pared. Rige desde el turno siguiente."
     added: 2026-11-25
-    revised: ""
+    revised: 2026-11-28
   - name: vence_en_ms
     status: active
     source: design/gdd/timer-de-turno.md
@@ -944,9 +993,9 @@ formulas:
     variables:
       - restante_etapa_ms
       - restante_reloj_ms
-    output_range: [0, 90000]
+    output_range: [0, 78000]
     expression: "min(restante_etapa_ms, restante_reloj_ms[jugador activo]); empate: vale el reloj"
-    notes: "D3 de Timer."
+    notes: "D3 de Timer. Techo 78.000 ms: la etapa mas larga es dur_mover_normal_s (30-78 s)."
     added: 2026-11-25
     revised: ""
   - name: mostrado_s
@@ -1549,9 +1598,9 @@ constants:
       - design/gdd/timer-de-turno.md
       - design/gdd/metricas-locales-de-partida.md
     value: 1000000
-    unit: "tope de contadorComandos, contadorTirada y del proximo ID de pieza; PROVISIONAL. El Aceptado que deja contadorComandos en C_MAX - 1 termina la partida en Tablas (Libreria, regla 16); LimitePartida (fila 15) queda solo como defensa (pila en 256, proximo ID > C_MAX). Entra en las cotas de vidaQuitada (#3, #9)"
+    unit: "tope de contadorComandos, contadorTirada y del proximo ID de pieza; PROVISIONAL. El Aceptado que deja contadorComandos en C_MAX - 1 termina la partida en Tablas (Libreria, regla 16); LimitePartida (fila 15) queda solo como defensa (pila en 256, proximo ID > C_MAX). Entra en las cotas de vidaQuitada (#3, #9): techo 2.147.468 para que esa cota entre en int32 (Maquina, regla 15)"
     added: 2026-11-27
-    revised: ""
+    revised: 2026-11-28
   - name: tope_vivas_por_jugador
     status: active
     source: design/gdd/catalogo-de-piezas.md
@@ -1608,9 +1657,9 @@ constants:
       - design/gdd/timer-de-turno.md
       - design/gdd/metricas-locales-de-partida.md
     value: 1500
-    unit: "segundos de partida (25 min, pilar 4); rango seguro 1290-1500; el reloj por jugador es la mitad (reloj_jugador_s)"
+    unit: "segundos de partida (25 min, pilar 4); alias T_tope en las formulas de la Maquina (#3); rango 1290-1500, el del Timer (Tuning Knobs, guardas 1 y 5); con menos de 1442 (reloj_jugador_s < 721) la guarda 1 del Timer rechaza los modos de 90 s y solo valen Fijo 60 y Sin limite (online, ningun modo); un impar se acepta y pierde 1 s (reloj_jugador_s redondea hacia abajo); el reloj por jugador es la mitad (reloj_jugador_s)"
     added: 2026-11-20
-    revised: 2026-11-25
+    revised: 2026-11-28
   - name: reloj_jugador_s
     status: active
     source: design/gdd/maquina-de-turno.md
@@ -1620,9 +1669,9 @@ constants:
       - design/gdd/timer-de-turno.md
       - design/gdd/ficha-de-pieza-y-hud.md
     value: 750
-    unit: "segundos por jugador en toda la partida (12:30 = tope_partida_s / 2); corre solo en su turno; Sin limite no tiene reloj"
+    unit: "segundos por jugador en toda la partida (12:30); calculado: tope_partida_s / 2 hacia abajo (Maquina, D2), rango 645-750; corre solo en su turno, nunca en EsperandoTirada ni durante la espera de la placa (Timer, regla 17); Sin limite no tiene reloj"
     added: 2026-11-25
-    revised: ""
+    revised: 2026-11-28
   - name: tablero_columnas
     status: active
     source: design/gdd/tablero-y-despliegue-inicial.md
@@ -1676,9 +1725,9 @@ constants:
       - design/gdd/render-animacion-y-feedback-de-combate.md
       - design/gdd/metricas-locales-de-partida.md
     value: 30
-    unit: "vida inicial y maxima de cada uno de los 16 tramos de muro de un castillo; dato de la config de CrearPartida (validado 1-1000, entra a la huella); rango seguro 18-40, sin medir"
+    unit: "vida inicial y maxima de cada uno de los 16 tramos de muro de un castillo; dato de la config de CrearPartida (validado 1-1000, entra a la huella); rango seguro 21-40, sin medir (Castillo, Tuning Knobs, 2026-11-27; antes 18-40); se mantiene 30 y se mide (DW-6)"
     added: 2026-11-25
-    revised: ""
+    revised: 2026-11-28
   - name: tramos_rotos_corte
     status: active
     source: design/gdd/castillo-y-muros.md
@@ -1690,9 +1739,9 @@ constants:
       - design/gdd/resolucion-simultanea-del-dano.md
       - design/gdd/ficha-de-pieza-y-hud.md
     value: 2
-    unit: "tramos rotos (vida 0) de un castillo a partir de los cuales deja de reclutar, de forma permanente; constante del contrato, valido 1-16, rango seguro 2-3 (era 1 hasta la v4)"
+    unit: "tramos rotos (vida 0) de un castillo a partir de los cuales deja de reclutar, de forma permanente; constante del contrato, valido 1-16, rango seguro 2-3 (era 1 hasta la v4); el corte es el cruce (de < a >=); con 4 a 6 el demoledor solo corta desde el interior tras una brecha previa; con 7 o mas, ninguna explosion sola"
     added: 2026-11-25
-    revised: ""
+    revised: 2026-11-28
   - name: bono_escudo_muro
     status: active
     source: design/gdd/castillo-y-muros.md
@@ -1703,9 +1752,9 @@ constants:
       - design/gdd/resolucion-simultanea-del-dano.md
       - design/gdd/ficha-de-pieza-y-hud.md
     value: 2
-    unit: "escudo extra del arquero sobre un tramo propio con vida > 0; constante del contrato, valido 0-10, rango seguro 1-4"
+    unit: "escudo extra del arquero sobre un tramo propio con vida > 0; constante del contrato, valido 0-10, rango seguro 1-3 (criterio: nunca inmune a un arquero rival suelto; Castillo, Tuning Knobs, 2026-11-27; antes 1-4)"
     added: 2026-11-25
-    revised: ""
+    revised: 2026-11-28
   - name: bono_alcance_muro
     status: active
     source: design/gdd/castillo-y-muros.md
@@ -1826,9 +1875,9 @@ constants:
       - design/gdd/entrada-y-seleccion.md
       - design/gdd/ficha-de-pieza-y-hud.md
     value: 60
-    unit: "s"
+    unit: "s; rango seguro y valido 30-78 (por encima, ninguna config pasa la guarda 1)"
     added: 2026-11-25
-    revised: ""
+    revised: 2026-11-28
   - name: dur_atacar_normal_s
     status: active
     source: design/gdd/timer-de-turno.md
@@ -1868,10 +1917,11 @@ constants:
     source: design/gdd/timer-de-turno.md
     referenced_by:
       - design/gdd/timer-de-turno.md
+      - design/gdd/maquina-de-turno.md
     value: 600
-    unit: "s consumidos, suma de los dos"
+    unit: "s consumidos, suma de los dos; rango 300-1100; guarda 5: < 2 x reloj_jugador_s (solo Variable)"
     added: 2026-11-25
-    revised: ""
+    revised: 2026-11-28
   - name: aviso_etapa_s
     status: active
     source: design/gdd/timer-de-turno.md
@@ -1879,19 +1929,19 @@ constants:
       - design/gdd/timer-de-turno.md
       - design/gdd/ficha-de-pieza-y-hud.md
     value: 10
-    unit: "s"
+    unit: "s; rango seguro y valido 5-14; menor que la menor duracion de etapa del modo (guarda 3); el art bible §2 fija los ultimos 10 s"
     added: 2026-11-25
-    revised: ""
+    revised: 2026-11-28
   - name: aviso_reloj_s
     status: active
     source: design/gdd/timer-de-turno.md
     referenced_by:
       - design/gdd/timer-de-turno.md
       - design/gdd/ficha-de-pieza-y-hud.md
-    value: 60
-    unit: "s"
+    value: 120
+    unit: "s de reloj del jugador para el aviso de nivel 1; rango seguro y valido 91-240; guarda 4: mayor que turno_max_s del modo (estricto) y menor que reloj_jugador_s (antes 60; Timer, decision del jugador 2026-11-27)"
     added: 2026-11-25
-    revised: ""
+    revised: 2026-11-28
   - name: aviso_reloj_critico_s
     status: active
     source: design/gdd/timer-de-turno.md
@@ -1909,8 +1959,18 @@ constants:
       - design/gdd/timer-de-turno.md
       - design/gdd/metricas-locales-de-partida.md
     value: 5000
-    unit: "ms, solo local"
+    unit: "ms, solo local; rango 2000-30000; solo emite SaltoDetectado(ms) para Metricas: no toca los relojes, el salto se cobra entero (Timer, regla 10)"
     added: 2026-11-25
+    revised: 2026-11-28
+  - name: espera_placa_ms
+    status: active
+    source: design/gdd/timer-de-turno.md
+    referenced_by:
+      - design/gdd/timer-de-turno.md
+      - design/gdd/interfaz-del-modificador.md
+    value: 1200
+    unit: "ms; 1500 con Distraccion. Espera de la etapa tras una Tirada aceptada: la etapa se arma con su duracion completa en el primero de hora de la Tirada + espera_placa_ms o el primer comando de fase aceptado del jugador del turno (Timer, regla 17; Maquina, regla 14). El valor es t_total_max de la placa (Interfaz del Modificador, #17, F1), que la autoridad pasa por tirada en ms enteros; la placa no cuesta reloj y no bloquea"
+    added: 2026-11-28
     revised: ""
   - name: precision_vencimiento_ms
     status: active

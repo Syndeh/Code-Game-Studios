@@ -65,7 +65,7 @@ Movimiento es el conjunto de reglas de la fase `Mover`: decide a qué casillas p
 7. **Arquero y muro propio.** Sube a un tramo propio en pie y libre desde el anillo propio, desde otro tramo propio o desde un hueco vecino; camina de tramo en tramo a 1 punto por paso y baja al anillo o a un hueco. Un paso entre un tramo en pie y una casilla del interior (3 × 3) no existe para el arquero; por un hueco abierto llega al interior como cualquier pieza.
 8. **Rey.** Usa el `movimiento` del Rey, no cuenta en el límite de piezas, atraviesa sus propios tramos y los de nadie más, y no sube a los muros. Sin regla de entrar o salir del castillo (2026-11-19).
 9. **Jinete.** Pasa por encima de piezas enemigas, el Rey incluido, pagando 1 por casilla; no termina sobre ellas; los tramos en pie lo frenan.
-10. **Límite de piezas.** Una pieza que no es el Rey y tiene `usados = 0` solo recibe su primer `Mover` si `piezasMovidas < límite_turno` (F4). Si no, `SinMovimientos`. `límite_turno` es `limite_normal` (12) o "sin límite" tras Arremetida (la Máquina lo guarda, regla 5). Cuenta la pieza, no el comando. Una pieza ya movida sigue moviéndose con el cupo lleno. `piezasMovidas` no se guarda: se calcula desde `usados`, así `Deshacer` la corrige sola. Una pieza que va y vuelve sigue contando hasta que se deshaga.
+10. **Límite de piezas.** Una pieza que no es el Rey y tiene `usados = 0` solo recibe su primer `Mover` si `piezasMovidas < límite_turno` (F4). Si no, `SinMovimientos`. `límite_turno` es `limite_normal` (12) o "sin límite" tras Arremetida; **no se guarda**: se deriva de la cara del turno con `LimiteDelTurno(estado)`, consulta de la Máquina (regla 5). Cuenta la pieza, no el comando. Una pieza ya movida sigue moviéndose con el cupo lleno. `piezasMovidas` no se guarda: se calcula desde `usados`, así `Deshacer` la corrige sola. Una pieza que va y vuelve sigue contando hasta que se deshaga.
 11. **Reclutas (decisión 2026-11-25).** Una pieza reclutada este turno llega a `Mover` con `usados = 0` y se mueve como cualquier otra, gastando cupo si se mueve. Las del recluta automático no llegan a `Mover` (#10, regla 10). `techo_movimiento` (12) impide que llegue al muro rival ese mismo turno.
 12. **Efecto de un `Mover` aceptado.** La pieza pasa al destino, `usados += costo`, se apila (pieza, origen, `usados` anterior) en la pila de la Máquina y sale el evento `PiezaMovida(pieza, origen, destino, costo, camino)`. Un rechazo no cambia nada ni emite eventos.
 13. **Códigos de rechazo (fila 14 de la Librería), en este orden:** `DestinoFueraDelTablero` (se valida antes de calcular índices), `DestinoIgualOrigen`, `PiezaAgotada` (`restante = 0`), `SinMovimientos` (cupo lleno y pieza sin mover), `DestinoOcupado` (hay una pieza), `DestinoBloqueado` (tramo en pie en el que esa pieza no puede terminar), `FueraDeAlcance` (ningún camino de costo ≤ `restante`).
@@ -101,7 +101,7 @@ Estado de una pieza durante la fase `Mover` de su dueño (se deriva de `usados`,
 | #2 Catálogo | `movimiento` por tipo, IDs de arquero (1), jinete (4) y Rey (6) | — | Catálogo |
 | #3 Máquina de turno | Fase `Mover` abierta, límite del turno, pila | `hayMovimientoLegal`, una entrada de pila por `Mover`, `usados` a 0 al cerrar | Máquina (fases y pila); #6 (qué es legal) |
 | #4 Tablero | `dentro`, `ocupante`, `hayTramo`, cruz, `distanciaCruz`, anillo e interior | Casilla nueva de la pieza | Tablero |
-| #5 Castillo y muros | Quién bloquea, huecos, subir y bajar (reglas 3 y 6) | `enMuro` se recalcula solo (consulta de #5) | Castillo |
+| #5 Castillo y muros | Quién bloquea, huecos, subir y bajar (reglas 3 y 6) | `enMuro` se recalcula solo (consulta de #5); dentro de `Aplicar` usa las variantes `Try…` de #5, regla 14 (la consulta pública no tiene canal de error para las constantes) | Castillo |
 | #8 Cobertura | — | Nada: las coberturas del jugador se borran al abrir su turno (Máquina, regla 4) | — |
 | #9 Resolución | — | Los muros y las piezas vivas no cambian durante `Mover`: el daño se resuelve después | — |
 | #10 Reclutamiento | Piezas reclutadas con `usados = 0` | — | Reclutamiento (casilla de aparición) |
@@ -175,7 +175,7 @@ The `puede_recibir_mover` formula is defined as:
 
 | Variable | Type | Range | Source | Description |
 |----------|------|-------|--------|-------------|
-| limite_turno | int o sin límite | 1–37 | estado (Máquina) | `limite_normal` salvo Arremetida |
+| limite_turno | int o sin límite | 1–37 | calculated (`LimiteDelTurno(estado)`, Máquina, regla 5) | `limite_normal` salvo Arremetida; se deriva de la cara del turno, no se guarda |
 | limite_normal | int | 1–37 (hoy 12) | data file (config) | Límite del turno común |
 | piezasMovidas | int | 0–60 | calculated | Cupo gastado |
 
@@ -247,7 +247,7 @@ The `ms_por_pieza` formula is defined as:
 - **If una pieza está rodeada de enemigos, tramos o bordes:** `MovimientosLegales` vacía y todo destino libre da `FueraDeAlcance`. Un jinete rodeado de enemigos puede salir.
 - **If ninguna pieza, ni el Rey, tiene destino al abrir la fase:** `FaseSaltada` (Máquina, regla 10).
 - **If el jinete tiene enemigos en fila:** los pasa pagando 1 por cada uno, si llega a una casilla libre.
-- **If hay un arquero propio sobre un tramo:** el Rey lo atraviesa; otro arquero no, y rodea por el anillo si le alcanza.
+- **If hay un arquero propio sobre un tramo:** el Rey lo atraviesa; otro arquero no, y rodea por el anillo si le alcanza. En el lado pegado al borde (`(0, 6)` a `(0, 8)` del castillo azul y su espejo) no hay anillo ni paso al interior: de `(0, 6)` a `(0, 8)` con `(0, 7)` ocupado, el único rodeo da la vuelta al castillo por los tramos (14 pasos), fuera del movimiento de cualquier arquero (Castillo, Edge Cases).
 
 **Muro**
 
@@ -301,7 +301,7 @@ The `ms_por_pieza` formula is defined as:
 
 - **Máquina de turno:** `usados` a 0 en la regla 11; levantar el PROVISIONAL de D4 y del límite normal; cerrar la pregunta de las reclutas; precisar en AC-7 que el `Mover` es de una pieza sin mover.
 - **Librería:** códigos de la regla 13 en la fila 14; `limite_normal` de 1 a 37; `usados` a 0 en la matriz de clausura.
-- **Castillo y muros:** levantar el PROVISIONAL de #6; aclarar que tampoco se atraviesa un tramo con arquero; cerrar la pregunta de la esquina.
+- **Castillo y muros:** levantar el PROVISIONAL de #6; aclarar que tampoco se atraviesa un tramo con arquero; cerrar la pregunta de la esquina. *(Hecho en #5: regla 3, Edge Cases y la OQ cerrada; verificado al cerrar la tanda B, 2026-11-28.)*
 - **Tablero:** exponer la consulta del interior (regla 11) y sumarla a la fila de #6.
 - **Catálogo:** #6 ya tiene GDD.
 - **Concepto:** cerrar "cruz o 8 direcciones".

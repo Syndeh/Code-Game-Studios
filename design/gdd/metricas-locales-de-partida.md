@@ -99,7 +99,7 @@ El núcleo no sabe que este sistema existe (índice, frontera del núcleo): Mét
     | ¿El reloj decide partidas que el tablero no decidió? (Máquina; Timer) | Partidas por `RelojAgotado` y, en ellas, quién iba adelante en piezas vivas y en `vidaQuitada` al cierre |
     | Fijo 90 con uso máximo termina en el turno 17 (Timer) | Duración y `N` por `modoTimer` |
     | ¿Cuántos turnos abren `Atacar` sin ataques útiles? (Alcance, regla 14) | Turnos con `Atacar` abierta y 0 ataques asignados al resolver, y su `ms_atacar` |
-    | ¿Vale atacar el muro? ¿Cuánto suma el muro a la duración? (Castillo) | Ataques a tramos por partida, turno del primer tramo roto, cortes de reclutamiento (`tramosRotosDelDueno` = 2) y turnos desde el corte al fin |
+    | ¿Vale atacar el muro? ¿Cuánto suma el muro a la duración? (Castillo) | Ataques a tramos por partida, turno del primer tramo roto, cortes de reclutamiento (el **cruce** en una resolución, de `tramosRotosAntes` < `TRAMOS_ROTOS_CORTE` a `tramosRotosDelDueno` ≥ `TRAMOS_ROTOS_CORTE`: una explosión puede dejar 3 sin pasar por 2; Castillo, regla 10) y turnos desde el corte al fin |
     | Cortar el propio castillo, llenar el propio anillo o sacrificar piezas para cruzar un umbral (Modificador; Reclutamiento; Castillo) | Tramos rotos propios, vida por fuego amigo y turnos con una cara de reclutar en 0% |
     | ¿Demasiado Grito para el que pierde? (Modificador) | Turnos del que pierde con `pGrito` ≥ 60% |
     | ¿El tope de 6 Llamadas aprieta? (Reclutamiento) | Partidas en que algún jugador llegó a `llamadasRestantes` = 0 |
@@ -181,7 +181,7 @@ La fórmula `duracion_pared_s` se define así:
 | `salto_reloj_max_ms` | int (ms) | 1.000–30.000 (valor 5.000) | data file (Timer #12, config del cliente) | El mismo umbral que usa el Timer; no se duplica |
 | `duracion_pared_s` | int (s) | 0 – 2.147.483 | calculated | Lo que el jugador vivió como partida, con animaciones y esperas de la tirada |
 
-**Output Range:** de 0 en adelante. Con timer, en local es casi igual a `duracion_partida` (Máquina, D1 = Σ `ms_mover` + `ms_atacar` de `TurnoMedido` / 1000), más las esperas de la tirada (en local, casi 0) y el tiempo en que no corría ninguna etapa. Puede pasar de `T_tope` aunque los relojes no: por eso F2 usa esta duración y no la de D1. Una pausa sin `RelojReanudado` al llegar `PartidaTerminada` se cierra en `t_cierre_ms`, así que `ms_excluido` nunca pasa de `t_cierre_ms` y el resultado nunca es negativo. El tope de 31 bits es de unos 24 días: inalcanzable con timer, y en Sin límite es el borde del caso de E (Edge Cases).
+**Output Range:** de 0 en adelante. Con timer, en local es casi igual a `duracion_partida` (Máquina, D1 = Σ `ms_mover` + `ms_atacar` de `TurnoMedido` / 1000), más las esperas fuera de los relojes: la presentación de la cosecha y la espera de la placa (hasta 1,2 s; 1,5 s con Distracción; la placa no cuesta reloj, Timer, regla 17), en total ≤ 3,5 s por turno, y el tiempo en que no corría ninguna etapa. Puede pasar de `T_tope` aunque los relojes no: por eso F2 usa esta duración y no la de D1. Una pausa sin `RelojReanudado` al llegar `PartidaTerminada` se cierra en `t_cierre_ms`, así que `ms_excluido` nunca pasa de `t_cierre_ms` y el resultado nunca es negativo. El tope de 31 bits es de unos 24 días: inalcanzable con timer, y en Sin límite es el borde del caso de E (Edge Cases).
 **Example:** `t_cierre_ms` = 1.412.300, una suspensión de 30.000 ms y un hueco de 8.000 ms dentro de ella → `ms_excluido` = 30.000 → `duracion_pared_s` = 1.382. La D1 de esa partida daba 1.381 s.
 
 ### F2. Compuerta del arte: cuenta, pasa y racha
@@ -598,3 +598,33 @@ La fórmula `tamano_registro` se define así:
 | Pasos del tutorial: `TutorialPaso(paso, resultado)` está reservado; el Tutorial confirma los pasos y qué es «abandonado» | Tutorial (#24) | En su GDD (Vertical Slice) |
 | ¿Las partidas contra el Rival IA (#25) se informan con su propio grupo (para medir la IA) además de no contar para la compuerta? | Rival IA (#25) | En su GDD |
 | Online: la Analítica (#32) reusa el esquema, suma consentimiento y Divergencia (S1). ¿Sube `versionEsquema` o es un esquema hermano? | Analítica (#32) | En su GDD (Alpha 2a) |
+| **Pedidos de la tanda B** (Máquina #3, Timer #12 y Castillo #5, Approved; cierre del 2026-11-28): la lista va debajo de esta tabla | Métricas (#19), con #3, #12 y #5 | En su `/design-review` (tanda E) |
+
+### Pedidos de la tanda B (cierre del 2026-11-28)
+
+Contratos y medidas que piden tres GDD aprobados (Máquina #3, Timer #12 y Castillo #5). Se aplican en la revisión de este GDD (tanda E); hasta entonces mandan sobre lo que diga este documento.
+
+**De la Máquina (D1, AC-25 y AC-43):**
+- **D1 en ms, sin redondeos intermedios** (reemplaza la fórmula de «bolsa común» `⌊T_tope ÷ seg_medio⌋`; donde este GDD dice `seg_turno_t`, D1 ahora usa `consumido_ms_t`, y `seg_medio` queda solo como dato informativo del informe): `k_J = ⌈(reloj_jugador_s × 1.000 × N_J) ÷ max(duracion_ms_J, 1.000 × N_J)⌉ − 1` (y `reloj_jugador_s − 1` con N_J = 0), `turnos_presupuesto = min(2·k_0, 2·k_1 + 1)`, rango 16–1.498 (registro). La calcula la herramienta de informe.
+- **Qué turnos cuentan:** los cerrados con `TurnoTerminado` **y el cortado por `RelojAgotado`**; no cuentan los cortados por `Rendirse`, `CerrarPartida(Abandono)` o Tablas. `consumido_ms_t` = `ms_mover + ms_atacar` del `TurnoMedido`; un `TurnoMedido` con `parcial` verdadero cuenta solo si `PartidaTerminada.motivo` = `RelojAgotado`; un último turno cerrado con ganador (`ReyMuerto`, `DobleRey`) tiene `parcial` falso y cuenta. Métricas necesita, por turno, `consumido_ms` y el motivo del corte del último turno.
+- **Espejo de AC-25:** 60 → 24, 75 → 18, 70/72 → 20, piso de 1.000 ms → 1.498, N_J = 0 → 24, 685.000 ms → 20; azul con 8 turnos y 720.000 ms y un 9.º cortado por `Rendirse` a los 5.000 ms → 16 (17 si contara); azul con 8 turnos y 662.000 ms y un 9.º cortado por reloj con 88.000 ms, rojo con 8 y 720.000 ms → 16 (17 si se excluyera); 9.º turno cerrado con `ReyMuerto` a los 20.000 ms → 17; corte por `Abandono` a los 5.000 ms → 16.
+- **Cierres:** distinguir los cierres por timeout de los demás (hoy solo `Reclutado` lleva `automatico`); categoría `RelojAgotado` con `ataquesSinResolver` no vacío; piezas vivas de cada lado al cierre (AC-43); bando ganador y motivo desde la primera partida (DW-3). AC-43: con ≥ 5 `RelojAgotado` para la 2.ª condición y el % con ataques sin resolver; el umbral de ≤ 20% sobre 10 partidas es laxo: medir la estrategia de agotar el reloj del rival cerrando turnos rápidos.
+- l.202, `T_tope` 1.290–1.500: confirmado (la Máquina se alinea al Timer).
+- Medir segundos por pieza movida y por ataque (Open Questions de la Máquina).
+- F2 compara la pared con `T_tope`, y la pared suma ≤ 3,5 s por turno de esperas fuera de los relojes: decidir si la compuerta mide pared o reloj consumido (la Máquina dice «la medida que fije #19»).
+
+**Del Timer (esquema y disparadores):**
+- `TurnoMedido` suma `relojInicio_ms` y `parcial`; `parcial` = la partida terminó sin el `TurnoTerminado` de ese turno (`ReyMuerto` y `DobleRey` no son parciales). Si la partida termina antes de armarse la primera etapa de un turno (Rendirse o Abandono en la cosecha o la placa, Tablas automáticas al abrirlo), sale `TurnoMedido(n + 1, j, 0, 0, falso, falso, vacío, verdadero)`; un turno abre para la medición cuando sube `numeroTurno`. El de Tablas automáticas y el de un Rendirse en la cosecha son iguales: se distinguen con `PartidaTerminada.motivo`. El Timer emite `TurnoMedido(parcial)` antes de `RelojesAlCierre`.
+- Evento nuevo `SaltoDetectado(ms)`; `RelojPausado` y `RelojReanudado` no ocurren en el MVP (ningún motivo de pausa se usa). F1 `ms_excluido`: decidir si los huecos de más de `salto_reloj_max_ms` siguen fuera de la duración de pared (el reloj ahora sí los cobra).
+- Contar las etapas vencidas sin ningún comando (DW-4) y separar `vencio_atacar` de las etapas vacías.
+- Disparadores: ventaja de rojo (≥ 20 `RelojAgotado` y azul pierde más del 65%); **punto muerto: 20 turnos seguidos sin que suba la `vidaQuitada` de ninguno ni muera ninguna pieza** (también lo pide el Tablero, #4); `SaltoDetectado` con una etapa corriendo en más del 5% de las partidas. AC-35 cruza `TurnoMedido` antes y después del nivel 1 del reloj.
+
+**De Castillo y muros (medidas de sus Open Questions):**
+- **DW-6 (a):** cortes causados solo por una explosión: un corte cuenta así si todo el `DanoATramo` de ese castillo en esa resolución viene de la explosión de un demoledor **rival** (meta ≤ 40%). Para derivarlo, cruzar `AtaqueEjecutado` en modo explosión con su zona (o que `DanoATramo` traiga la fuente, con #9).
+- **DW-6 (b):** demoledores rivales que terminan un turno de su dueño sin explotar con un recorrido de costo ≤ 8 hasta una casilla vecina de un tramo en pie del defensor, y cuántos mueren antes de explotar (meta ≥ 30%).
+- **Corte propio:** en una resolución sin daño a enemigos, con los casos mixtos aparte (techo: 5% de las partidas).
+- Tramos rivales rotos por ataques asignados (sin rebote ni fuego amigo).
+- **Pilar 3:** diferencia de piezas vivas sin el Rey al terminar el turno 8 de cada jugador; victoria del que iba perdiendo, con corte y sin corte (N ≥ 30 partidas con corte); victoria del que corta primero, con material parejo (±1).
+- **Rey en el castillo:** tasa de muerte por turno-Rey adentro (muro entero) y afuera, separada por tramo de la partida (turnos 1–8, 9–16, 17+), con los arqueros en el muro.
+- Turnos con al menos 1 arquero en el muro y proporción de turnos-arquero en el muro; mediana de duración de las partidas con corte.
+- La lectura del riesgo (las tres preguntas por captura) es de playtest, no de Métricas.

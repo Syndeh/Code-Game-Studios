@@ -108,7 +108,7 @@ la pantalla del otro pasó distinto", "perdí por algo que no se veía".
    superponerse y en el par que fija el Tablero (#4, regla 4). **Orden** (jugador,
    2026-11-27): primero las tablas y sus papeles (`ProbabilidadesInvalidas`, gana sobre
    todo lo demás); después `PrepararContexto` (F1 → F8 del Catálogo, #2, regla 6, la
-   primera que falla); después los bonos del Grito (0 a 10 y no los dos en 0; antes de F9, que los suma); después F9 del Catálogo (`movimiento_t + bono_grito_movimiento ≤` 12); después los del Tablero (#4, regla 6) **T4** (castillos) y **T5** (`vida_tramo`); después `limite_normal`, `tablaReclutas` con las caras de reclutar y la pila con bono; y al final **T6** (ejército inicial). `ConfigInvalida` **lleva el código de lo que falló**: `F1` a `F9`, `T4` a `T6` o el del campo (sus nombres, en el ADR). CrearPartida recibe el Catálogo o un
+   primera que falla); después los bonos del Grito (0 a 10 y no los dos en 0; antes de F9, que los suma); después F9 del Catálogo (`movimiento_t + bono_grito_movimiento ≤` 12); después los del Tablero (#4, regla 6) **T4** (castillos) y **T5** (`vida_tramo`); después `limite_normal`, `tablaReclutas` con las caras de reclutar y la pila con bono (`cota_grito`, Máquina D4; código propuesto `PilaGrito`); y al final **T6** (ejército inicial). `ConfigInvalida` **lleva el código de lo que falló**: `F1` a `F9`, `T4` a `T6` o el del campo (sus nombres, en el ADR). CrearPartida recibe el Catálogo o un
    contexto ya preparado; con un contexto no repite F1 a F8, pero sí F9. En los dos casos
    de error no se crea partida; si no, devuelve el estado y el contexto (regla 1). La partida
    siempre nace **En curso**, con castillos, piezas y muros ya colocados (decisión del
@@ -292,7 +292,7 @@ la pantalla del otro pasó distinto", "perdí por algo que no se veía".
     `EvaluateMatchEnd(estado)` leen el estado sin cambiarlo. Las fórmulas de *Formulas*
     también son funciones puras públicas: `CaraPorTirada(tabla, n)` y
     `TablaEfectiva(tablaBase, agotadas, sinLugar, piezasSinRey, limiteNormal)` (`reparto_liberado`, `reparto_sin_lugar` y el bloqueo de Arremetida). `RendirseDisponible(estado, jugador)` es verdadero si y solo si la partida está en curso, el jugador es el del turno y sus piezas vivas por 2 no pasan de las del rival (con el Rey). También son consultas puras `CasillasEnAlcance(pieza)` (#7),
-    `hayMovimientoLegal(jugador)` (#6), y `tipo_disponible` y `estado_cara` (#10), y `AliadosCubribles`, `CubiertoPor`, `Cubre` y `Coberturas()` (#8). Para los tests del Catálogo (#2): `EvaluarI(catalogo, config)` (chequeos I: pares que fallan y excepciones aprobadas) y `ValidarF2(fila)` (firmas en el ADR).
+    `hayMovimientoLegal(jugador)` (#6), y `tipo_disponible` y `estado_cara` (#10), y `AliadosCubribles`, `CubiertoPor`, `Cubre` y `Coberturas()` (#8), y las cuatro de Castillo y muros (#5, regla 10; cierre de la tanda B, 2026-11-28): `enMuro(estado, pieza)` (**total**: falso para un ID inexistente o una pieza que no es arquero), `tramosRotos(estado, jugador)` y `puedeReclutar(estado, jugador)` (con **resultado tipado**: un jugador fuera de {0, 1} da `ErrorInterno`, como `ladoDelRival`, Tablero AC-30) y `vidaTramo(estado, casilla)` (**total**: «sin tramo» fuera del muro o de la grilla). Ninguna reserva memoria (el resultado tipado es un struct; Castillo AC-16b; lo fija el ADR). Para los tests del Catálogo (#2): `EvaluarI(catalogo, config)` (chequeos I: pares que fallan y excepciones aprobadas) y `ValidarF2(fila)` (firmas en el ADR).
 11. **Todo a la vista y una huella.** El estado contiene toda la partida: no hay
     información oculta (lo único que no existe todavía es la próxima tirada). Se guarda y
     se lee completo en una **forma canónica**: campos en orden fijo, enteros de 4 bytes
@@ -333,7 +333,7 @@ la pantalla del otro pasó distinto", "perdí por algo que no se veía".
     | `contadorTirada`, `contadorComandos` · `numeroTurno` | 0 a C_MAX · 1 a C_MAX + 1 (empieza en 1) | `contadorTirada` ≤ `contadorComandos`; `numeroTurno` ≤ `contadorComandos` + 2 (CrearPartida y cada Aceptado avanzan como mucho un turno, porque una cascada se detiene en el turno siguiente, que necesita tirada); En curso ⇒ `contadorComandos` ≤ C_MAX − 2 (el Aceptado que llega a C_MAX − 1 termina en Tablas, regla 16) |
     | Fase, etapa, jugador del turno | Valores de sus enums (#3) · 0 o 1 | Etapa mover con reclutar o mover; atacar con atacar; ninguna etapa esperando tirada. Resolver no es una fase en reposo (#3, regla 2) |
     | Tabla base del turno, cara del Modificador, bonos | Vacía o índice de una tabla base · vacía o 1 al largo de esa tabla · cada bono 0 a 10 (#11) | Tabla y cara, las dos vacías (primer turno y esperando la tirada) o las dos presentes (decisión del 2026-11-19); la cara tiene p > 0 en esa tabla base o es la de Grito, la de Arremetida o una de reclutar (pueden recibir lo liberado; lo que pase después en el turno no la invalida); bono > 0 solo con la cara de Grito |
-    | Piezas | Como mucho 61 vivas por jugador y, por tipo, su tope de piezas vivas (#2); una pieza que muere sale del estado | IDs únicos, de 1 a próximo ID − 1; tipo en el Catálogo; vida 1 a la de su tipo; movimientos usados 0 a movimiento del tipo + 10; nunca dos piezas en una casilla (un arquero puede estar sobre un tramo); En curso ⇒ un Rey por jugador |
+    | Piezas | Como mucho 61 vivas por jugador y, por tipo, su tope de piezas vivas (#2); una pieza que muere sale del estado | IDs únicos, de 1 a próximo ID − 1; tipo en el Catálogo; vida 1 a la de su tipo; movimientos usados 0 a movimiento del tipo + 10; nunca dos piezas en una casilla (un arquero **de su dueño** puede estar sobre un tramo **en pie**: invariante de ocupación, Castillo #5, regla 1, y Tablero AC-31; fe de erratas del cierre de la tanda B, 2026-11-28); En curso ⇒ un Rey por jugador |
     | Muros | 16 tramos por castillo | Casillas del perímetro de su castillo; vida 0 a la del tramo (#5) |
     | Ataques asignados, coberturas | Uno por pieza como mucho | Ataque: atacante vivo del jugador del turno, objetivo = una casilla que `AsignarAtaque` aceptaría (#7), solo en la etapa atacar (una partida Terminada ahí los conserva). Un escudero del jugador del turno no ataca y cubre a la vez. Cobertura: la que `Cubrir` aceptaría (#8, regla 14; sin cadenas), como mucho `coberturas_max` por jugador; las del jugador del turno solo en su etapa atacar. Cobertura: escudero y aliado vivos del mismo jugador (siguen en el turno rival, #8) |
     | Pila de deshacer | 0 a 256 entradas (`pila_tope`, #3) | IDs de piezas vivas y casillas dentro del tablero; vacía fuera de la fase de mover |
@@ -430,7 +430,7 @@ la pantalla del otro pasó distinto", "perdí por algo que no se veía".
     **Abandono**, 0 o 1; **RelojAgotado**, el rival del jugador del turno; **Tablas**, vacío.
 17. **Qué hace `TurnTimeout`** (definitivo: Máquina de turno, #3, regla 12).
     - **Etapa mover:** si hay un Reclutar obligatorio pendiente, la librería recluta el
-      primer tipo **disponible** en el orden del Catálogo (decisión del 2026-11-19: el
+      primer tipo **disponible** de la cara en el orden del Catálogo (decisión del 2026-11-19: el
       jugador no pierde el recurso). Disponible es `tipo_disponible` (#10, F1): el castillo
       recluta, le quedan llamadas, entran en el tope y hay lugar para todas sus piezas (todo o nada). El evento del
       reclutamiento lleva la marca `automatico`, así la interfaz dice que lo eligió el
@@ -594,7 +594,7 @@ ADR de la librería.
   mismo jugador vuelve a tener el turno); la partida sigue (regla 3).
 - **If a match reaches `contadorComandos` = C_MAX − 1** (por ejemplo, Mover y Deshacer
   en bucle sin timer): ese Aceptado la termina en Tablas (regla 16). Un `LimitePartida` de
-  la fila 15 es una defensa; si llega a un comando de autoridad, la autoridad cierra con
+  la fila 15 es una defensa; si llega a un comando de autoridad **o de un jugador** (también las dos defensas de la fila 15: un recluta que pasaría C_MAX y un `Mover` con la pila en 256), la autoridad cierra con
   `CerrarPartida(Tablas, vacío, vacío)` (#12 regla 9, #28).
 - **If `CerrarPartida(RelojAgotado)` and Resolver or TerminarMovimiento race**: manda el orden
   en que la autoridad los aplica; el segundo da `PartidaTerminada`, `CierreInvalido` o
@@ -638,7 +638,7 @@ nombra a la librería como consumidora de su esquema.
 |---|---|---|
 | 3 Máquina de turno | Dura | Escribe sus fases dentro del contrato; pila de deshacer; `EvaluateMatchEnd` |
 | 4 Tablero y despliegue | Dura | CrearPartida con castillos fijos (par 4–6), IDs estables; no hay sorteo |
-| 5 Castillo y muros | Dura | Define `vida_tramo` (campo de la config, 1 a 1.000), el bono por posición del arquero en `EffectiveStats` y las consultas `enMuro`, `tramosRotos` y `puedeReclutar` |
+| 5 Castillo y muros | Dura | Define `vida_tramo` (campo de la config, 1 a 1.000), el bono por posición del arquero en `EffectiveStats` y las consultas `enMuro`, `tramosRotos`, `puedeReclutar` y `vidaTramo` (regla 10; `tramosRotos` y `puedeReclutar` con resultado tipado, sin reservar memoria) |
 | 6–11 Reglas del núcleo | Dura | Escriben sus reglas, comandos, códigos y eventos dentro del contrato |
 | 25 Rival IA | Dura | Juega con la misma API y las consultas |
 | 26 Registro de partida | Dura | Guarda config, comandos y tiradas; reproduce con Aplicar |

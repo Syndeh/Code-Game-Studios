@@ -1,6 +1,6 @@
 # Vista previa de ataques
 
-> **Status**: Designed (`/design-review` 2026-11-26: NEEDS REVISION; correcciones de W-16, W-17, W-19, W-20 y de las Recommended Revisions aplicadas; falta el re-review)
+> **Status**: Approved (decisión del jugador al cerrar la tanda B, 2026-11-28: queda aprobado tal como lo marcó el índice el 2026-11-26, commit 6b9a4f6; el `/design-review` del 2026-11-26 dio NEEDS REVISION y se aplicaron W-16, W-17, W-19, W-20 y las Recommended Revisions; sin log propio en `design/gdd/reviews/`)
 > **Author**: Martin Arin + Claude
 > **Last Updated**: 2026-11-26
 > **Last Verified**: 2026-11-26
@@ -115,9 +115,9 @@ La vista previa de ataques es la capa del cliente que, durante la fase `Atacar` 
     |---|---|---|
     | 1 | Fin con el Rey propio caído y ganador K (derrota propia) | `ui.vista_previa_derrota` |
     | 2 | Fin con ganador J (`ReyMuerto` o `DobleRey`) | `ui.vista_previa_victoria` o `ui.vista_previa_doble_rey` |
-    | 3 | Algún `TramoRoto` de J con `tramosRotosDelDueno` ≥ `tramos_rotos_corte` (2), cuando antes de esta lista J tenía menos de `tramos_rotos_corte` tramos rotos (cortás tu propio reclutamiento; Castillo, regla 10). Una explosión puede llevar el contador de 1 a 3 (Resolución, regla 8): también cuenta (decisión del 2026-11-26) | `ui.vista_previa_corte_propio` |
+    | 3 | Algún `TramoRoto` de J con `tramosRotosDelDueno` ≥ `TRAMOS_ROTOS_CORTE` (2), cuando antes de esta lista J tenía menos de `TRAMOS_ROTOS_CORTE` tramos rotos (cortás tu propio reclutamiento; Castillo, regla 10). Una explosión puede llevar el contador de 1 a 3 (Resolución, regla 8): también cuenta (decisión del 2026-11-26) | `ui.vista_previa_corte_propio` |
     | 4 | El Rey propio tiene `DanoRecibido` con `vidaPerdida` > 0 y no muere | `ui.vista_previa_rey_herido` |
-    | 5 | Algún `TramoRoto` de K con `tramosRotosDelDueno` ≥ `tramos_rotos_corte` (2), cuando antes de esta lista K tenía menos de `tramos_rotos_corte` tramos rotos (decisión del 2026-11-26) | `ui.vista_previa_corte_rival` («Castillo cortado») |
+    | 5 | Algún `TramoRoto` de K con `tramosRotosDelDueno` ≥ `TRAMOS_ROTOS_CORTE` (2), cuando antes de esta lista K tenía menos de `TRAMOS_ROTOS_CORTE` tramos rotos (decisión del 2026-11-26) | `ui.vista_previa_corte_rival` («Castillo cortado») |
 
     El aviso de la vista previa es **persistente**: se ve mientras su condición se cumpla y se va en el mismo cuadro en que una lista nueva deja de cumplirla. Un aviso transitorio de Entrada (un rechazo) lo **tapa** durante su duración y, al terminar, el aviso de la vista previa vuelve si sigue vigente. Esto precisa la regla 18 de #15, que hoy dice que un aviso nuevo reemplaza al anterior (cambio pedido en Cross-References). Ningún aviso de la vista previa suena a error; el de la prioridad 1 sí tiene un cue propio de advertencia (Visual/Audio).
 15. **Textos.** La vista previa solo lleva texto en MUERE, ROTO, los avisos de la regla 14, el título del bloque de la tarjeta y la fila Sobra. Todo lo demás es número, ícono o forma. Todas las claves son del grupo `ui` con el prefijo `ui.vista_previa_` (Localización, regla 4); se guarda la clave y no el texto, así que el cambio de idioma es instantáneo (Localización, regla 12). MUERE y ROTO tienen un presupuesto propio de **6 caracteres** (`presupuesto_placa`, F1). Los avisos usan `presupuesto_aviso` (60). La flecha `→` y el signo `−`, si se usa en la tarjeta, son símbolos sin idioma: piden entrar en la lista cerrada de la regla 1 de Localización, que hoy admite `:`, `+`, `×` y `/` (cambio pedido).
@@ -168,7 +168,7 @@ Cualquiera de los de pieza suma el contorno discontinuo si el dueño es J, y los
 |---|---|---|---|
 | #1 Librería | La operación de vista previa (regla 9), la lista de eventos (regla 8) y las consultas puras `CubiertoPor` y `Coberturas()` (regla 10) | Nada (no manda comandos) | Librería |
 | #3 Máquina de turno | La fase, el jugador del turno y el evento de fin con ganador y motivo (reglas 13 y 16 de la Librería) | — | Máquina |
-| #5 Castillo y muros | Por los eventos: `DanoATramo`, `TramoRoto`, `tramosRotosDelDueno`; la constante `tramos_rotos_corte` (2) | — | Castillo (reglas); este GDD (dibujo) |
+| #5 Castillo y muros | Por los eventos: `DanoATramo`, `TramoRoto`, `tramosRotosDelDueno`; la constante `TRAMOS_ROTOS_CORTE` (2) | — | Castillo (reglas); este GDD (dibujo) |
 | #7 Alcance y asignación | Los eventos `AtaqueAsignado` y `AtaqueQuitado` como disparadores del recálculo; las flechas y el área ya dibujados | Nada | Alcance |
 | #8 Cobertura del escudero | `CoberturaAsignada` y `CoberturaQuitada` como disparadores; `CubiertoPor` para la línea; `brutoDesviado` del evento | Línea resaltada o cortada | Cobertura (quién cubre); este GDD (cómo se marca el desvío en la vista previa) |
 | #9 Resolución | La forma de los eventos (regla 14): `DanoRecibido`, `DanoATramo`, `TramoRoto`, `PiezaMuerta`, `CoberturaQuitada` | Confirmación de que los campos alcanzan (Dependencies) | Resolución (forma); este GDD (lectura) |
@@ -357,7 +357,7 @@ La fórmula `tiempo_resultado` se define así:
 | #14 Localización | Dura | Claves `ui.vista_previa_*`, presupuestos de largo, aviso de cambio de idioma, símbolos sin idioma | Sí («#16 pendiente» → claves definidas; cambio pedido) |
 | #13 Entrada y selección | Dura | La pieza elegida o en inspección (regla 5); la aceptación de cada comando | Sí (Interactions, Dependencies, AC-36) |
 | #3 Máquina de turno | Dura | La fase `Atacar`, el jugador del turno y el evento de fin con ganador y motivo (regla 13) | Indirecto (por la Librería); no hace falta cambio |
-| #5 Castillo y muros | Blanda | Por los eventos: daño, ROTO y `tramosRotosDelDueno`; la constante `tramos_rotos_corte` para el aviso de corte | Sí (Dependencies, Visual/Audio, UI Requirements) |
+| #5 Castillo y muros | Blanda | Por los eventos: daño, ROTO y `tramosRotosDelDueno`; la constante `TRAMOS_ROTOS_CORTE` para el aviso de corte | Sí (Dependencies, Visual/Audio, UI Requirements) |
 | #11 Modificador | Blanda | Ninguna directa: el Grito ya viene dentro del `bruto` | Sí (Dependencies, UI Requirements, AC-31) |
 | #2 Catálogo de piezas | Blanda | Restricción: para cada tipo, `vida_t + escudo_ef_max_t ≤ 100`, con el +2 del muro solo en el arquero (F2; hoy el máximo es el Rey, 30 + 5 = 35) | Restricción nueva (cambio pedido) |
 | #4 Tablero | Blanda | Geometría de la casilla (68 px) y su conversión a pantalla | Sí (Interactions) |
@@ -392,7 +392,7 @@ La fórmula `tiempo_resultado` se define así:
 - `ficha_opacidad_pct` (96, #15) y las medidas de la ficha (#15, F1): la placa usa las mismas. Cambiarlas en #15 cambia la placa.
 - `casilla_px` (68, Tablero y art bible §7): todo F1 se mide contra la casilla.
 - `presupuesto_aviso` (60, Localización): largo de los avisos de la regla 14.
-- `tramos_rotos_corte` (2, Castillo): define cuándo aparecen los avisos de corte.
+- `TRAMOS_ROTOS_CORTE` (2, Castillo, regla 14: constante del contrato, no perilla): define cuándo aparecen los avisos de corte.
 - `vida_tramo` (30, Castillo): con 100 o más, la placa del tramo se abrevia (F1).
 - Las estadísticas del Catálogo y el bono del muro: el invariante de F2 las acota (para cada tipo, `vida_t + escudo_ef_max_t ≤ 100`; el +2 del muro cuenta solo para el arquero).
 
@@ -474,7 +474,7 @@ La vista previa no tiene pantalla propia: vive en el tablero y en dos lugares qu
 | Disparadores del recálculo; flechas; fuego amigo a cargo de #16 | `design/gdd/alcance-y-asignacion-de-ataques.md` | Reglas 5 a 7, 15; Visual/Audio; Game Feel; UI Requirements; AC-28; Open Questions | Cumple el pedido del fuego amigo |
 | Flecha que termina en el escudero; MUERE sobre el escudero; aliado intacto | `design/gdd/cobertura-del-escudero.md` | Reglas 5, 9, 15; Visual/Audio; Game Feel; UI Requirements; AC-28; Open Questions | Cumple y agrega la línea resaltada y la cortada |
 | Ancla de la ficha, tarjeta, zona de avisos, medidas de la placa | `design/gdd/ficha-de-pieza-y-hud.md` | Reglas 2, 3, 7, 8, 9, 10, 14, 18; F1, F7; Dependencies; AC-7, AC-12, AC-33 | Amplía la regla 10 y precisa la 18 (abajo) |
-| Daño y ROTO del tramo; `tramos_rotos_corte` | `design/gdd/castillo-y-muros.md` | Reglas 8 a 10; Edge Cases; Visual/Audio; UI Requirements | Cumple |
+| Daño y ROTO del tramo; `TRAMOS_ROTOS_CORTE` | `design/gdd/castillo-y-muros.md` | Reglas 8 a 10; Edge Cases; Visual/Audio; UI Requirements | Cumple |
 | El Grito dentro del golpe | `design/gdd/modificador.md` | Regla 7; Player Fantasy; UI Requirements; AC-31 | Cumple; no suma bonos |
 | Claves `ui`, presupuestos, cambio de idioma, símbolos | `design/gdd/localizacion.md` | Reglas 1, 4, 12, 15, 16; F4, F5; Dependencies | Agrega claves y pide dos símbolos (abajo) |
 | Inspección, aceptación de comandos | `design/gdd/entrada-y-seleccion.md` | Regla 5; Interactions; AC-36 | Lee |

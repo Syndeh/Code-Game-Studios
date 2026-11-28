@@ -284,7 +284,7 @@ Opcional en `Meta`. Solo una meta: el cambio de idioma se ve en el siguiente cua
 
 - **Botón ES/EN (MVP):** muestra los dos idiomas y marca el activo con forma, no solo color. Está antes de la partida y en la partida; no tapa el tablero ni el timer. Tamaño táctil: el de la pantalla que lo aloja (#13, #15).
 - **Cajas de texto:** aceptan el presupuesto de su tipo y el texto inflado de F5 sin cortar.
-- **Avisos:** en un solo lugar fijo: la zona de avisos del HUD, banda superior a la derecha del timer (#15, regla 18). **Un término por concepto:** el castillo que no recluta es «Castillo cortado» en todas las pantallas (#10, #17, #5).
+- **Avisos:** en un solo lugar fijo: la zona de avisos del HUD, banda superior a la derecha del timer (#15, regla 18). **Un término por concepto, y dos conceptos** (decisión del jugador en Castillo, 2026-11-27; alineado al cerrar la tanda B): el **estado** del castillo que no recluta es «Sin reclutamiento» (su contador y el aviso de corte del HUD, #15); la **causa** es «Castillo cortado» (el código `CastilloSinReclutar` sobre la cara de reclutar, #17, y el aviso previo de la vista previa sobre el castillo rival, #16, prioridad 5). El corte propio de la vista previa tiene su propio texto: «Cortás tu propio reclutamiento» (#16, prioridad 3). Son claves distintas.
 - **Deshabilitado (`Degradada`):** el botón se ve deshabilitado y no responde.
 - **Ayuda para lectores de pantalla:** todo botón sin texto tiene una clave `ui` con su nombre. Alcance exacto: #23.
 
@@ -347,4 +347,5 @@ Automáticos (Logic) salvo que se indique. «Tablas de prueba» son fixtures del
 | ~~Textos de las 5 caras y sus recuadros~~ **Resuelta por #17 (regla 13)** | — | — |
 | ~~Lugar exacto del botón ES/EN y duración de los avisos~~ **Resuelta por #15 (reglas 18 y 21)** y Entrada (#13) | — | — |
 | ~~Qué eventos llevan texto~~ **Resuelta:** #15 (regla 20) y Render (#18: ninguno) | — | — |
+| **Pedidos de la tanda B** (cierre del 2026-11-28): (a) texto de `codigo.NoEsTuTurno`, un código visible que ningún GDD de interfaz traduce (Máquina #3, regla 17, fila 11); (b) texto corto del contador de tramos rotos y del renglón de *Debilitado*, con presupuesto propio, más una versión larga para el toque y el lector de pantalla (Castillo #5 y HUD #15, reglas 15, 16 y 20); (c) los textos ES/EN de `hud.aviso_reloj_vinculante` y su variante con ataques asignados (Máquina, regla 14) | Localización (#14), con #15 | Antes de su `/design-review` (tanda E) |
 

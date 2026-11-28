@@ -334,7 +334,7 @@ Fijar el bono en +2 con exclusión del área y la explosión levanta provisional
 | #1 Librería de reglas | Dura | Config (tablas base con papeles, bonos), `cara_por_tirada`, tabla efectiva, `reparto_liberado`, `ProbabilidadesSiguienteTirada`, comando `Tirada` |
 | #3 Máquina de turno | Dura | Fase `EsperandoTirada`, resultados tipados, borrado de bonos al cerrar el turno |
 | #10 Reclutamiento y límites | Dura | `estado_cara`, `llamadas_restantes`, `reparto_sin_lugar` (F5) |
-| #5 Castillo y muros | Dura | `puedeReclutar` (a través de `estado_cara`: 2 tramos rotos = cara Agotada) |
+| #5 Castillo y muros | Dura | `puedeReclutar(estado, j)` (a través de `estado_cara`: `TRAMOS_ROTOS_CORTE` tramos rotos, hoy 2 = cara Agotada). Su `ErrorInterno` (jugador fuera de {0, 1}) es inalcanzable con un jugador del estado: `estado_cara` lo trata como guarda defensiva y dentro de `Aplicar` se propaga como `ErrorInterno` del comando (Castillo, regla 14) |
 | #7 Alcance y asignación | Dura | Modo de ataque (regla 5): decide qué piezas reciben el +2 de ataque |
 | #2 Catálogo de piezas | Blanda | `ataque` y `movimiento` base, `topeVivas` (indirecto); techo `bono_grito_ataque ≤ 2` (I1, AC-39) y F9 |
 | #4 Tablero y despliegue | Blanda | `margen_primer_golpe`: fija el tope 2 de `bono_grito_movimiento` (margen del turno 2) |
@@ -394,7 +394,7 @@ Todas las perillas de datos son `data file` (config) y entran a la huella. Los r
 | Arremetida | Placa de la cara; el contador de piezas movidas deja de mostrar `x/12` y muestra que no hay tope | **Falta en el art bible** |
 | Panel de probabilidades | Se abre con el ícono de signo de pregunta, arriba a la derecha (transición ≤ 0,25 s); muestra la tabla efectiva de los dos jugadores | Art bible, sección 7 |
 
-**2. Restricciones de animación y estilo.** La tirada y su placa no se cobran del reloj del jugador (la Máquina no corre ningún reloj en `EsperandoTirada`), pero siguen el pilar 4: ninguna animación del Modificador suma tiempo al turno más allá de los 1,2 s (1,5 s para Distracción). Los marcadores del Grito se animan con el resto de los efectos de la fase, nunca en serie. Cada una de las cinco placas se distingue por **forma o texto, no solo por color** (AC-30).
+**2. Restricciones de animación y estilo.** La tirada y su placa no se cobran del reloj del jugador: en `EsperandoTirada` no corre ningún reloj, y después de la `Tirada` la etapa se arma, con su duración completa, al terminar la placa o con el primer comando de fase del jugador, lo que pase antes (Timer, regla 17; Máquina, regla 14). La placa no bloquea. Igual siguen el pilar 4: ninguna animación del Modificador suma tiempo al turno más allá de los 1,2 s (1,5 s para Distracción). Los marcadores del Grito se animan con el resto de los efectos de la fase, nunca en serie. Cada una de las cinco placas se distingue por **forma o texto, no solo por color** (AC-30).
 
 **3. Principios del art bible que aplican.** *Regla visual* («lo que decide la jugada se lee primero»): el +2 del Grito cambia el daño y tiene que verse antes de resolver. *Principio 1, el plan se lee antes que el detalle:* cada ícono de cara se reconoce en grises. *Principio 3, el ritmo del turno manda sobre la animación.* *Principio 2, el combo se ve como un solo golpe:* el marcador del Grito no compite con la convergencia de flechas.
 
@@ -533,5 +533,6 @@ Tipos de evidencia (`coding-standards.md`): **Logic** e **Integration** son test
 | ~~Confirmar que Resolución lee el ataque solo por `EffectiveStats`~~ **Resuelta 2026-11-25:** #9 lo confirma | — | — |
 | Con `limite_normal` alto Arremetida casi no sale: ¿se revisa su rol? | Movimiento (#6) | Cuando se mida `limite_normal` |
 | Íconos de las cinco caras, marcador del Grito, placa de Arremetida y contador sin tope (la forma de los íconos de cara ya la describe #17, Visual/Audio; falta el art bible) | Director de arte | Antes de `/asset-spec` |
+| **Pedido de la Máquina (#3, Approved; cierre de la tanda B, 2026-11-28).** El resultado tipado que el Modificador devuelve a la Máquina (regla 3) es redundante con la cara, que ya trae su papel. ¿Se deja de devolver un valor redundante, o la Máquina lo valida contra el papel de la cara? | Modificador (#11), con #3 | Antes de su `/design-review` (tanda D) |
 
 **Resuelto en este GDD (2026-11-25):** el bono del Grito (+2 de ataque y +2 de movimiento, Rey incluido, también el impacto de la catapulta; no el área ni la explosión); el uso de `estado_cara` con los dos repartos; el choque con el pilar 3a (enmienda propuesta, regla 12); el umbral 3c (2 de cada 3); el tope de 6 Llamadas (se mantiene en 6 y se mide).
